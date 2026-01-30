@@ -1,28 +1,20 @@
-package com.erdal.helpdeskpro.domain;
+package com.erdal.helpdeskpro;
 
 import java.time.LocalDateTime;
 
-import com.erdal.helpdeskpro.enums.Role;
-
-public class User {
-	
+public class UserDTO {
 	private Long id;
 	private String userName;
 	private String email;
 	private String password;
-	private Role role;
+	private String role;
 	private boolean isActive;
 	private LocalDateTime createdAt;
-	
-	public User() {
+
+	public UserDTO() {
 	}
-	public User(Long id, String username, String email, String password) {
-		this.id=id;
-		this.userName = username;
-		this.email = email;
-		this.password = password;
-	}
-	public User(Long id, String username, String email, String password, Role role, boolean isActive,
+
+	public UserDTO(Long id, String username, String email, String password, String role, boolean isActive,
 			LocalDateTime createdAt) {
 		super();
 		this.id = id;
@@ -33,52 +25,61 @@ public class User {
 		this.isActive = isActive;
 		this.createdAt = createdAt;
 	}
-	
+
 	public Long getId() {
 		return id;
 	}
+
 	public void setId(Long id) {
 		this.id = id;
 	}
+
 	public String getUsername() {
 		return userName;
 	}
+
 	public void setUsername(String username) {
 		this.userName = username;
 	}
+
 	public String getEmail() {
 		return email;
 	}
+
 	public void setEmail(String email) {
 		this.email = email;
 	}
+
 	public String getPassword() {
 		return password;
 	}
+
 	public void setPassword(String password) {
 		this.password = password;
 	}
+
 	public String getRole() {
-		
-		//for SQL database connection we need string  thats why we send name() method which returns string
-		return role != null ? role.name() : null;
+		return role;
 	}
-	public void setRole(Role role) {
+
+	public void setRole(String role) {
 		this.role = role;
 	}
+
 	public boolean isActive() {
 		return isActive;
 	}
+
 	public void setActive(boolean isActive) {
 		this.isActive = isActive;
 	}
+
 	public LocalDateTime getCreatedAt() {
 		return createdAt;
 	}
+
 	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
 	}
-	
-	
-	
+
 }
