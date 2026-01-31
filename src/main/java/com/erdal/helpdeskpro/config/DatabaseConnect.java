@@ -33,7 +33,9 @@ public class DatabaseConnect {
 		
 		
 		try {
+			
 			Class.forName("org.postgresql.Driver");
+			
 			 DatabaseMetaData dbData=conn.getMetaData();
 			 
 			 System.out.println("Connect to : "+ dbData.getDatabaseProductName() + " / "
@@ -48,10 +50,10 @@ public class DatabaseConnect {
 	}
 	public static void initializeDatabase() {
 	    try (Connection conn = connect(); 
-	         Statement stmt = conn.createStatement()) {
+	         Statement statment = conn.createStatement()) {
 
 	        String sql = Files.readString(Paths.get("db/schema.sql"));
-	        stmt.execute(sql);
+	        statment.execute(sql);
 
 	        System.out.println("Database initialized successfully.");
 	    } catch (Exception e) {

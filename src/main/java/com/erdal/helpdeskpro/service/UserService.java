@@ -3,6 +3,7 @@ package com.erdal.helpdeskpro.service;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.enums.Role;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
+import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
 import com.erdal.helpdeskpro.exception.UserExceptionMessage;
 import com.erdal.helpdeskpro.repository.UserRepository;
 
@@ -23,6 +24,14 @@ public class UserService {
 		user.setRole(Role.EMPLOYEE);
 		user.setActive(true);
 		userRepository.save(user);
+		
+	}
+	
+	public User findById(Long id) {
+		
+	return	userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundExeption(
+			                                                  String.format(
+			                                                  UserExceptionMessage.USER_NOT_FOUND, id)));
 		
 	}
 

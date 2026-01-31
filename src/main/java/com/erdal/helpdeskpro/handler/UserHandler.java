@@ -21,12 +21,13 @@ public class UserHandler implements HttpHandler {
         this.userController = new UserController();
     }
 
-    @SuppressWarnings("unused")
+   
+	@SuppressWarnings("unused")
 	@Override
     public void handle(HttpExchange exchange) throws IOException {
         Headers headers = exchange.getResponseHeaders();
         headers.add("Access-Control-Allow-Origin", "*");
-        headers.add("Access-Control-Allow-Methods", "POST, OPTIONS");
+        headers.add("Access-Control-Allow-Methods", "POST, OPTIONS, GET, DELETE, PUT, PATCH");
         headers.add("Access-Control-Allow-Headers", "Content-Type");
 
         // Preflight request (CORS)
@@ -34,12 +35,21 @@ public class UserHandler implements HttpHandler {
             exchange.sendResponseHeaders(204, -1);
             return;
         }
+        String method = exchange.getRequestMethod();
+        String path = exchange.getRequestURI().getPath();
+        String rawQuery = exchange.getRequestURI().getQuery();
+        System.out.println("[UserHandler] " + method + " " + path + (rawQuery != null ? "?" + rawQuery : ""));
 
         // Sadece POST request
         if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
             sendResponse(exchange, 405, "Method Not Allowed");
             return;
-        }
+        }else if ("GET".equalsIgnoreCase(exchange)) {
+        	
+        	//Burada kaldin  ......................
+        	//....................................
+			
+		}
 
         try {
             String body = readBody(exchange.getRequestBody());

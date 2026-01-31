@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 
 import com.erdal.helpdeskpro.config.DatabaseConnect;
 import com.erdal.helpdeskpro.domain.User;
@@ -54,7 +55,32 @@ public class UserRepository {
 	}
 	
 	
-	public User findById(Long id) {
+	public Optional<User> findById(Long id) {
+		
+		String sql = "SELECT * FROM users WHERE id = ?";
+				;
+		
+		try(Connection conn=DatabaseConnect.connect();
+				PreparedStatement pStatement=conn.prepareStatement(sql)) {
+			pStatement.setLong(1, id);
+			ResultSet resultSet =pStatement.executeQuery();
+			if (resultSet.next()) {
+				
+				return Optional.of(new User(
+						resultSet.getLong("id"),
+						resultSet.getString("username"),
+						resultSet.getString("email"),
+						resultSet.getString("password"),
+						resultSet.getString("role"),
+						resultSet.getBoolean("isActive"),
+						resultSet.getTimestamp(Timestamp.valueOf("createdAt"))
+						));
+				
+			}
+			
+		} catch (Exception e) {
+			System.out.println("FindById Error : " + e.getMessage());
+		}
 		
 		return null;
 		

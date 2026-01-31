@@ -1,5 +1,6 @@
 package com.erdal.helpdeskpro.domain;
 
+import java.sql.Date;
 import java.time.LocalDateTime;
 
 import com.erdal.helpdeskpro.enums.Role;
