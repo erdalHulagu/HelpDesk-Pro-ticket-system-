@@ -3,9 +3,11 @@ package com.erdal.helpdeskpro.mapper;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.erdal.helpdeskpro.UserDTO;
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.dtos.UserDTO;
 
+
+//Since I’m not using any mapping framework, I implemented manual mapper classes to keep controllers clean.
 public final class UserMapper {
 
 	public static User userDTOtoUser(UserDTO userDTO) {
@@ -15,7 +17,7 @@ public final class UserMapper {
 		user.setId(userDTO.getId());
 		user.setUsername(userDTO.getUsername());
 		user.setEmail(userDTO.getEmail());
-		user.setPassword(user.getPassword());
+		user.setPassword(userDTO.getPassword());
 
 		return user;
 

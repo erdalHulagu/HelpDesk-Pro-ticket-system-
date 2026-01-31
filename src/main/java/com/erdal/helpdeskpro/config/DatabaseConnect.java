@@ -1,18 +1,22 @@
 package com.erdal.helpdeskpro.config;
 
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class DatabaseConnect {
 	
 	
 	//PostgreSQL provides connection details according to the request.
 	
-	private static String  URL= "jdbc:postgresql://localhost:5432/taskdb";
+	private static String  URL= "jdbc:postgresql://localhost:5432/helpdesk_pro";
 		
-	private static String USERNAME = "pro-helpdesk";
+	private static String USERNAME = "proHelpDesk";
 	
 	private static String PASSWORD = "password";
 	
@@ -23,10 +27,13 @@ public class DatabaseConnect {
 	
 	public static Connection connect() throws SQLException  {
 		
+		
+		
 		Connection conn=DriverManager.getConnection(URL,USERNAME,PASSWORD);
 		
 		
 		try {
+			Class.forName("org.postgresql.Driver");
 			 DatabaseMetaData dbData=conn.getMetaData();
 			 
 			 System.out.println("Connect to : "+ dbData.getDatabaseProductName() + " / "
@@ -38,6 +45,18 @@ public class DatabaseConnect {
 		}
 		
 		return conn;
+	}
+	public static void initializeDatabase() {
+	    try (Connection conn = connect(); 
+	         Statement stmt = conn.createStatement()) {
+
+	        String sql = Files.readString(Paths.get("db/schema.sql"));
+	        stmt.execute(sql);
+
+	        System.out.println("Database initialized successfully.");
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
 	}
 
 }

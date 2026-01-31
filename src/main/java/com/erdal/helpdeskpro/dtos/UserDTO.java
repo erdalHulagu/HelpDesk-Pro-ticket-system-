@@ -1,10 +1,10 @@
-package com.erdal.helpdeskpro;
+package com.erdal.helpdeskpro.dtos;
 
 import java.time.LocalDateTime;
 
 public class UserDTO {
 	private Long id;
-	private String userName;
+	private String username;
 	private String email;
 	private String password;
 	private String role;
@@ -18,7 +18,7 @@ public class UserDTO {
 			LocalDateTime createdAt) {
 		super();
 		this.id = id;
-		this.userName = username;
+		this.username = username;
 		this.email = email;
 		this.password = password;
 		this.role = role;
@@ -35,11 +35,11 @@ public class UserDTO {
 	}
 
 	public String getUsername() {
-		return userName;
+		return username;
 	}
 
 	public void setUsername(String username) {
-		this.userName = username;
+		this.username = username;
 	}
 
 	public String getEmail() {

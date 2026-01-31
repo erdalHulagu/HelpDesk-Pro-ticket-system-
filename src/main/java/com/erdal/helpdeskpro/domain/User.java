@@ -7,18 +7,18 @@ import com.erdal.helpdeskpro.enums.Role;
 public class User {
 	
 	private Long id;
-	private String userName;
+	private String username;
 	private String email;
 	private String password;
 	private Role role;
 	private boolean isActive;
-	private LocalDateTime createdAt;
+	private LocalDateTime createdAt = LocalDateTime.now();
 	
 	public User() {
 	}
 	public User(Long id, String username, String email, String password) {
 		this.id=id;
-		this.userName = username;
+		this.username = username;
 		this.email = email;
 		this.password = password;
 	}
@@ -26,7 +26,7 @@ public class User {
 			LocalDateTime createdAt) {
 		super();
 		this.id = id;
-		this.userName = username;
+		this.username = username;
 		this.email = email;
 		this.password = password;
 		this.role = role;
@@ -41,10 +41,10 @@ public class User {
 		this.id = id;
 	}
 	public String getUsername() {
-		return userName;
+		return username;
 	}
 	public void setUsername(String username) {
-		this.userName = username;
+		this.username = username;
 	}
 	public String getEmail() {
 		return email;
