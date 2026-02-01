@@ -75,6 +75,7 @@ public class UserRepository {
 				);
 
 				return Optional.of(user);
+				
 			}
 
 		} catch (Exception e) {
@@ -82,6 +83,7 @@ public class UserRepository {
 		}
 
 		return Optional.empty();
+		
 	}
 
 	public List<User> findAll() {

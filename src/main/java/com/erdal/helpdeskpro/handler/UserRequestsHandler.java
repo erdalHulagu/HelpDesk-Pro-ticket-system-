@@ -43,12 +43,21 @@ public abstract class UserRequestsHandler {
 	
 	protected void handleGet(HttpExchange exchange) throws IOException {
 
-	    String query = exchange.getRequestURI().getQuery();
-
 	    try {
-	        // ?id=5 varsa → tek user
-	        if (query != null && query.startsWith("id=")) {
-	            Long id = Long.parseLong(query.split("=")[1]);
+	        String query = exchange.getRequestURI().getQuery();
+	        Long id = null;
+
+	        if (query != null) {
+	            for (String param : query.split("&")) {
+	                String[] pair = param.split("=");
+	                if (pair.length == 2 && pair[0].equals("id")) {
+	                    id = Long.parseLong(pair[1]);
+	                }
+	            }
+	        }
+
+	        // Tek user
+	        if (id != null) {
 	            var user = userController.findUserById(id);
 
 	            if (user == null) {
@@ -56,16 +65,16 @@ public abstract class UserRequestsHandler {
 	                return;
 	            }
 
-	            String json = JsonUtil.toJson(user);
-	            sendJson(exchange, 200, json);
+	            sendJson(exchange, 200, JsonUtil.toJson(user));
 	            return;
 	        }
 
-	        // ? yoksa → tüm kullanıcılar
+	        // Tüm kullanıcılar
 	        var users = userController.findAllUsers();
-	        String json = JsonUtil.toJson(users);
-	        sendJson(exchange, 200, json);
+	        sendJson(exchange, 200, JsonUtil.toJson(users));
 
+	    } catch (NumberFormatException e) {
+	        sendResponse(exchange, 400, "Invalid id");
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        sendResponse(exchange, 500, "Internal Server Error");
@@ -83,13 +92,23 @@ public abstract class UserRequestsHandler {
 	private String readBody(InputStream is) throws IOException {
 		return new String(is.readAllBytes(), StandardCharsets.UTF_8);
 	}
-	private void sendJson(HttpExchange exchange, int status, String json) throws IOException {
-	    exchange.getResponseHeaders().add("Content-Type", "application/json");
+	
+	
+	private void sendJson(HttpExchange exchange, int statusCode, String json) throws IOException {
+
+	    if (json == null) {
+	        json = "[]";
+	    }
+
 	    byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-	    exchange.sendResponseHeaders(status, bytes.length);
+
+	    exchange.getResponseHeaders().add("Content-Type", "application/json");
+	    exchange.sendResponseHeaders(statusCode, bytes.length);
+
 	    try (OutputStream os = exchange.getResponseBody()) {
 	        os.write(bytes);
 	    }
+	
 	}
 	
 

@@ -1,6 +1,7 @@
 package com.erdal.helpdeskpro.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.enums.Role;
@@ -29,12 +30,12 @@ public class UserService {
 		
 	}
 	
-	public User findById(Long id) {
+	public Optional<User> findById(Long id) {
 		
-	return	userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundExeption(
-			                                                  String.format(
-			                                                  UserExceptionMessage.USER_NOT_FOUND, id)));
-		
+//	return	userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundExeption(
+//			                                                  String.format(
+//			                                                  UserExceptionMessage.USER_NOT_FOUND, id)));
+		return userRepository.findById(id).orElseThrow(()-> new  ResourceNotFoundExeption(UserExceptionMessage.USER_NOT_FOUND));
 	}
 
 	public List<User> findAll() {

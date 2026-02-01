@@ -15,7 +15,7 @@ public class UserServer {
 
 	        server.createContext("/register",  new UserHandler());
 	        server.createContext("/users/{id}", new UserHandler());
-
+	        server.createContext("/users", new UserHandler());
 	        server.start();
 	        System.out.println("Server started on port 8080");
 		
