@@ -1,5 +1,7 @@
 package com.erdal.helpdeskpro.service;
 
+import java.util.List;
+
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.enums.Role;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
@@ -33,6 +35,18 @@ public class UserService {
 			                                                  String.format(
 			                                                  UserExceptionMessage.USER_NOT_FOUND, id)));
 		
+	}
+
+	public List<User> findAll() {
+		
+		List<User> users=userRepository.findAll();
+		
+		if (users.isEmpty()) {
+			
+			throw new ResourceNotFoundExeption( UserExceptionMessage.NO_USERS);
+			
+		}
+		return users;
 	}
 
 }
