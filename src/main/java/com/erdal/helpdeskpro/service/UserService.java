@@ -30,11 +30,8 @@ public class UserService {
 		
 	}
 	
-	public Optional<User> findById(Long id) {
-		
-//	return	userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundExeption(
-//			                                                  String.format(
-//			                                                  UserExceptionMessage.USER_NOT_FOUND, id)));
+	public  User findById(Long id) {
+			                                               
 		return userRepository.findById(id).orElseThrow(()-> new  ResourceNotFoundExeption(UserExceptionMessage.USER_NOT_FOUND));
 	}
 

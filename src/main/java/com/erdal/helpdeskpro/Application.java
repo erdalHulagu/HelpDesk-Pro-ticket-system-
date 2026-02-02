@@ -14,7 +14,7 @@ public class Application {
 	
 	public static void main(String[] args) throws IOException  {
 		
-		DatabaseConnect.initializeDatabase(); 
+//		DatabaseConnect.initializeDatabase(); 
         UserServer.start();
         
     }

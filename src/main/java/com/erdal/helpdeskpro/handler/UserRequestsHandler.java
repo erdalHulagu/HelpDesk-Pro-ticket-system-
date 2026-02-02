@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 import com.sun.net.httpserver.HttpExchange;
 
@@ -41,40 +42,36 @@ public abstract class UserRequestsHandler {
 		    }
 		}
 	
-	protected void handleGet(HttpExchange exchange) throws IOException {
-
+	
+	protected void handleGetAllUsers(HttpExchange exchange) throws IOException {
 	    try {
-	        String query = exchange.getRequestURI().getQuery();
-	        Long id = null;
+	        var users = userController.findAllUsers();
+	        String json = JsonUtil.toJson(users);
+	        sendJson(exchange, 200, json);
 
-	        if (query != null) {
-	            for (String param : query.split("&")) {
-	                String[] pair = param.split("=");
-	                if (pair.length == 2 && pair[0].equals("id")) {
-	                    id = Long.parseLong(pair[1]);
-	                }
-	            }
-	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        sendResponse(exchange, 500, "Internal Server Error");
+	    }
+	}
+	
+	protected void handleGetUserById(HttpExchange exchange) throws IOException {
+	    try {
+	        String path = exchange.getRequestURI().getPath(); // /users/5
+	        String idStr = path.substring(path.lastIndexOf("/") + 1);
+	        Long id = Long.parseLong(idStr);
 
-	        // Tek user
-	        if (id != null) {
-	            var user = userController.findUserById(id);
+	        var user = userController.findUserById(id);
 
-	            if (user == null) {
-	                sendResponse(exchange, 404, "User not found");
-	                return;
-	            }
-
-	            sendJson(exchange, 200, JsonUtil.toJson(user));
+	        if (user == null) {
+	            sendResponse(exchange, 404, "User not found");
 	            return;
 	        }
 
-	        // Tüm kullanıcılar
-	        var users = userController.findAllUsers();
-	        sendJson(exchange, 200, JsonUtil.toJson(users));
+	        sendJson(exchange, 200, JsonUtil.toJson(user));
 
 	    } catch (NumberFormatException e) {
-	        sendResponse(exchange, 400, "Invalid id");
+	        sendResponse(exchange, 400, "Invalid ID");
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        sendResponse(exchange, 500, "Internal Server Error");

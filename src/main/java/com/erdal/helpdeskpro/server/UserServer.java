@@ -3,14 +3,16 @@ package com.erdal.helpdeskpro.server;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import com.erdal.helpdeskpro.config.DatabaseConnect;
 import com.erdal.helpdeskpro.handler.UserHandler;
 import com.sun.net.httpserver.HttpServer;
 
 public class UserServer {
 
 	
-	public static void start() throws IOException {
+	public static void  start() throws IOException {
 		
+		DatabaseConnect.initializeDatabase();
 		 HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
 	        server.createContext("/register",  new UserHandler());

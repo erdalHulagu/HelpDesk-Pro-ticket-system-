@@ -1,30 +1,25 @@
 package com.erdal.helpdeskpro.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDateTime;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializer;
 
 public class JsonUtil {
 
-    // Tek ObjectMapper kullanımı tavsiye edilir
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final Gson gson = new GsonBuilder()
+        .registerTypeAdapter(LocalDateTime.class,
+            (JsonSerializer<LocalDateTime>) (src, type, ctx) ->
+                new JsonPrimitive(src.toString()))
+        .create();
 
-    // Nesneyi JSON string'e çevir
     public static String toJson(Object obj) {
-        try {
-            return mapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return gson.toJson(obj);
     }
 
-    // JSON string'i nesneye çevir
     public static <T> T fromJson(String json, Class<T> clazz) {
-        try {
-            return mapper.readValue(json, clazz);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return gson.fromJson(json, clazz);
     }
 }

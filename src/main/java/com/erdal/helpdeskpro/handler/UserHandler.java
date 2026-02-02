@@ -29,7 +29,7 @@ public class UserHandler extends UserRequestsHandler implements HttpHandler {
 	    headers.add("Access-Control-Allow-Headers", "Content-Type");
 
 	    String method = exchange.getRequestMethod();
-
+	    String path = exchange.getRequestURI().getPath();
 	    // CORS preflight
 	    if ("OPTIONS".equalsIgnoreCase(method)) {
 	        exchange.sendResponseHeaders(204, -1);
@@ -40,9 +40,21 @@ public class UserHandler extends UserRequestsHandler implements HttpHandler {
 	        handleRegister(exchange);
 	        return;
 	    }
-
 	    if ("GET".equalsIgnoreCase(method)) {
-	        handleGet(exchange);
+
+	        // /users
+	        if (path.equals("/users")) {
+	            handleGetAllUsers(exchange);
+	            return;
+	        }
+
+	        // /users/{id}
+	        if (path.matches("/users/\\d+")) {
+	            handleGetUserById(exchange);
+	            return;
+	        }
+
+	        sendResponse(exchange, 404, "Not Found");
 	        return;
 	    }
 

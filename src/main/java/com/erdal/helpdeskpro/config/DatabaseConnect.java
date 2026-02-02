@@ -11,7 +11,7 @@ import java.sql.Statement;
 
 public class DatabaseConnect {
 	
-	
+
 	//PostgreSQL provides connection details according to the request.
 	
 	private static String  URL= "jdbc:postgresql://localhost:5432/helpdesk_pro";
