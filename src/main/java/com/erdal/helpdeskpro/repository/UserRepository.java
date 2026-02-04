@@ -177,6 +177,27 @@ public class UserRepository {
 		return true;
 	}
 
-	
+	public void deleteById(Long id) {
+		String sql = "DELETE FROM users WHERE id = ?";
+		
+		try {
+			Connection conn=DatabaseConnect.connect();
+			PreparedStatement pStatement=conn.prepareStatement(sql);
+			pStatement.setLong(1, id);
+			
+			int effected=pStatement.executeUpdate();
+
+            if (effected > 0) {
+                System.out.println("️ User deleted: " + id);
+                return;
+            } else {
+                System.out.println("️ User not found: " + id);
+                return;
+            }
+        } catch (SQLException e) {
+            System.out.println("Delete error: " + e.getMessage());
+            return;
+        }
+    }
 
 }

@@ -70,11 +70,14 @@ public class UserHandler extends UserRequestsHandler implements HttpHandler {
 	    }
 
 	    // UPDATE
-	    if ("PUT".equalsIgnoreCase(method) && path.equals("/users")) {
+	    if ("PUT".equalsIgnoreCase(method) && path.matches("/users")) {
 	        handleUpdateUser(exchange);
 	        return;
 	    }
-
+	    if ("DELETE".equalsIgnoreCase(method) && path.matches("/users/\\d+")) {
+	        handleDeleteUser(exchange);
+	        return;
+	    }
 	    sendResponse(exchange, 405, "Method Not Allowed");
 	}
 }

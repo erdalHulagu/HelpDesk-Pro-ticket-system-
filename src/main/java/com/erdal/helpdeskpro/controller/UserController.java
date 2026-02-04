@@ -56,5 +56,13 @@ public class UserController {
 		
 	}
 	
+	public void deleteUserById(Long id) {
+		
+		userService.deleteUserById(id);
+		
+		
+		
+	}
+	
 
 }

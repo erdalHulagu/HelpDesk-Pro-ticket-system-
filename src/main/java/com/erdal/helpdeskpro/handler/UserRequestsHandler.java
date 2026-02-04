@@ -125,6 +125,26 @@ public abstract class UserRequestsHandler {
 	    
 	}
 	}
+	protected void  handleDeleteUser(HttpExchange exchange) throws IOException {
+		
+		  try {
+		        String path = exchange.getRequestURI().getPath(); // /users/5
+		        String idStr = path.substring(path.lastIndexOf("/") + 1);
+		        Long id = Long.parseLong(idStr);
+
+		         userController.deleteUserById(id);
+		         sendResponse(exchange, 201, "User deleted successfully");
+
+		    } catch (NumberFormatException e) {
+		        sendResponse(exchange, 400, "Invalid ID");
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        sendResponse(exchange, 500, "Internal Server Error");
+		    }
+		
+	
+	}
+	
 		
 	protected void sendResponse(HttpExchange exchange, int statusCode, String message) throws IOException {
         byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
