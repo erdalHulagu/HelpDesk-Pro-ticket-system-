@@ -14,6 +14,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.erdal.helpdeskpro.controller.UserController;
 import com.erdal.helpdeskpro.dtos.UserDTO;
 import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
+import com.erdal.helpdeskpro.exception.UserExceptionMessage;
 import com.erdal.helpdeskpro.request.UserRequest;
 import com.erdal.helpdeskpro.util.JsonUtil;
 public abstract class UserRequestsHandler {
@@ -132,14 +133,15 @@ public abstract class UserRequestsHandler {
 		        String idStr = path.substring(path.lastIndexOf("/") + 1);
 		        Long id = Long.parseLong(idStr);
 
-		         userController.deleteUserById(id);
+		        userController.deleteUserById(id);
 		         sendResponse(exchange, 201, "User deleted successfully");
 
 		    } catch (NumberFormatException e) {
 		        sendResponse(exchange, 400, "Invalid ID");
 		    } catch (Exception e) {
 		        e.printStackTrace();
-		        sendResponse(exchange, 500, "Internal Server Error");
+		        
+		        sendResponse(exchange, 500,UserExceptionMessage.USER_NOT_FOUND );
 		    }
 		
 	
