@@ -25,23 +25,33 @@ public class UserHandler extends UserRequestsHandler implements HttpHandler {
 
 	    Headers headers = exchange.getResponseHeaders();
 	    headers.add("Access-Control-Allow-Origin", "*");
-	    headers.add("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
+	    headers.add("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, PATCH");
 	    headers.add("Access-Control-Allow-Headers", "Content-Type");
 
 	    String method = exchange.getRequestMethod();
 	    String path = exchange.getRequestURI().getPath();
-	    // CORS preflight
+
+	    // CORS
 	    if ("OPTIONS".equalsIgnoreCase(method)) {
 	        exchange.sendResponseHeaders(204, -1);
 	        return;
 	    }
 
-	    if ("POST".equalsIgnoreCase(method)) {
+	    // REGISTER
+	    if ("POST".equalsIgnoreCase(method) && path.equals("/register")) {
 	        handleRegister(exchange);
 	        return;
 	    }
+
+	    // GET
 	    if ("GET".equalsIgnoreCase(method)) {
 
+
+	        // /users?email=...
+	        if (path.equals("/users") && exchange.getRequestURI().getQuery() != null) {
+	            handleGetUserByEmail(exchange);
+	            return;
+	        }
 	        // /users
 	        if (path.equals("/users")) {
 	            handleGetAllUsers(exchange);
@@ -54,13 +64,17 @@ public class UserHandler extends UserRequestsHandler implements HttpHandler {
 	            return;
 	        }
 
+
 	        sendResponse(exchange, 404, "Not Found");
 	        return;
 	    }
 
-	    sendResponse(exchange, 405, "Method Not Allowed");
-	
-	}
+	    // UPDATE
+	    if ("PUT".equalsIgnoreCase(method) && path.equals("/users")) {
+	        handleUpdateUser(exchange);
+	        return;
+	    }
 
-	
+	    sendResponse(exchange, 405, "Method Not Allowed");
+	}
 }

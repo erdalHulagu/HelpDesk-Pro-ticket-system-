@@ -15,6 +15,9 @@ import java.util.Optional;
 import com.erdal.helpdeskpro.config.DatabaseConnect;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.enums.Role;
+import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
+import com.erdal.helpdeskpro.exception.UserExceptionMessage;
+import com.erdal.helpdeskpro.request.UserRequest;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators.StringIdGenerator;
 
 public class UserRepository {
@@ -116,13 +119,64 @@ public class UserRepository {
 
 		return users;
 	}
+	
+	public User update(User user) {
 
-	public User findByEmail(String email) {
-		return null;
-	};
+	    String sql = " UPDATE users SET username = ?, password = ?, is_active = ? WHERE email = ? ";
+
+	    try (Connection conn = DatabaseConnect.connect();
+	         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+	        ps.setString(1, user.getUsername());
+	        ps.setString(2, user.getPassword());
+	        ps.setBoolean(3, user.isActive());
+	        ps.setString(4, user.getEmail());
+
+	        int rows = ps.executeUpdate();
+
+	        if (rows == 0) {
+	            throw new ResourceNotFoundExeption(UserExceptionMessage.USER_NOT_FOUND_TO_UPDATE);
+	        }
+
+	        return user;
+
+	    } catch (SQLException e) {
+	        throw new RuntimeException("Failed to update user", e);
+	    }
+	}
+
+	public Optional<User> findByEmail(String email) {
+		String sql = "SELECT * FROM users WHERE email = ?";
+
+		try (Connection conn = DatabaseConnect.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setString(1, email);
+			ResultSet rs = ps.executeQuery();
+
+			if (rs.next()) {
+
+				User user = new User(
+						rs.getLong("id"), 
+						rs.getString("username"), 
+						rs.getString("email"),
+						rs.getString("password"), Role.valueOf(rs.getString("role")), 
+						rs.getBoolean("is_active"),
+						rs.getTimestamp("created_at").toLocalDateTime() // ✅ doğru dönüşüm
+				);
+				return Optional.of(user);
+			}
+			
+
+		} catch (Exception e) {
+			System.out.println("FindByEmail Error : " + e.getMessage());
+		}
+
+		return Optional.empty();
+		}
 
 	public boolean existsByEmail(String email) {
 		return true;
-	};
+	}
+
+	
 
 }

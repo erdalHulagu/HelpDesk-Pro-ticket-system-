@@ -9,6 +9,7 @@ import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
 import com.erdal.helpdeskpro.exception.UserExceptionMessage;
 import com.erdal.helpdeskpro.repository.UserRepository;
+import com.erdal.helpdeskpro.request.UserRequest;
 
 public class UserService {
 	
@@ -45,6 +46,25 @@ public class UserService {
 			
 		}
 		return users;
+	}
+
+	public User updateUser(UserRequest userRequest) {
+	    User user = findUserByEmail(userRequest.getEmail());
+
+	    // 2️⃣ Alanlarını güncelle
+	    user.setUsername(userRequest.getUsername());
+	    user.setPassword(userRequest.getPassword());
+	    user.setActive(userRequest.isActive());
+
+	    // 3️⃣ UPDATE et
+	    return userRepository.update(user);
+	}
+	
+	public User findUserByEmail(String email) {
+		
+	return	userRepository.findByEmail(email).orElseThrow(()-> new ResourceNotFoundExeption(UserExceptionMessage.USER_NOT_FOUND));
+		
+		
 	}
 
 }

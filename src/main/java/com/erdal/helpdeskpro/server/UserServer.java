@@ -11,15 +11,17 @@ public class UserServer {
 
 	
 	public static void  start() throws IOException {
-		
-		DatabaseConnect.initializeDatabase();
-		 HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
-	        server.createContext("/register",  new UserHandler());
-	        server.createContext("/users/{id}", new UserHandler());
-	        server.createContext("/users", new UserHandler());
-	        server.start();
+		    DatabaseConnect.initializeDatabase();
+		    HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+
+		    server.createContext("/register", new UserHandler());
+		    server.createContext("/users", new UserHandler());
+
+		    server.start();
+		
 	        System.out.println("Server started on port 8080");
 		
-	}
-}
+	
+};
+};
