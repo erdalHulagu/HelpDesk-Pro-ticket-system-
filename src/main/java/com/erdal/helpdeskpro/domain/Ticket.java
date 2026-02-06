@@ -1,18 +1,24 @@
 package com.erdal.helpdeskpro.domain;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.erdal.helpdeskpro.enums.TicketCategory;
 import com.erdal.helpdeskpro.enums.TicketStatus;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
+@Table(name="tickets")
 public class Ticket {
 	
 	@Id
@@ -34,6 +40,10 @@ public class Ticket {
 	 @ManyToOne
 	 @JoinColumn(name = "assigned_to")
 	private User assignedTo;
+	 
+	 @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
+	 private List<Attachment> attachments = new ArrayList<>();
+	 
 	 
 	private LocalDateTime createdAt;
 	private boolean isDeleted;
