@@ -8,7 +8,7 @@ import com.erdal.helpdeskpro.domain.Comment;
 
 public interface CommonRepository {
 	
-	public void save();
+	public void save(Comment comment);
 	
 	public Comment findById(Long id);
 	

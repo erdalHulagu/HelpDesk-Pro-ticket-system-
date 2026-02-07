@@ -32,6 +32,8 @@ public class  Comment{
 	
 	private LocalDateTime createdAt;
 	
+	private boolean isDeleted;
+	
 	public  Comment() {
 	
 		
@@ -39,13 +41,15 @@ public class  Comment{
 
 	
 
-	public Comment(Long id, Ticket ticketId, User author, String message, LocalDateTime createdAt) {
+	public Comment(Long id, Ticket ticketId, User author, String message, LocalDateTime createdAt,boolean isDeleted) {
 		super();
 		this.id = id;
 		this.ticketId = ticketId;
 		this.author = author;
 		this.message = message;
 		this.createdAt = createdAt;
+		this.isDeleted = isDeleted;
+		
 	}
 
 
@@ -106,6 +110,16 @@ public class  Comment{
 
 	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
+	}
+	
+	public boolean isDeleted() {
+		return isDeleted;
+	}
+	
+	
+	
+	public void setDeleted(boolean isDeleted) {
+		this.isDeleted = isDeleted;
 	}
 
 
