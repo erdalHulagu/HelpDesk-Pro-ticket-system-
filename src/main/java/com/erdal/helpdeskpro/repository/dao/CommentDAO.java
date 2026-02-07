@@ -1,4 +1,4 @@
-package com.erdal.helpdeskpro.dao;
+package com.erdal.helpdeskpro.repository.dao;
 
 import java.util.List;
 
