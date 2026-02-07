@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.erdal.helpdeskpro.domain.Comment;
 
-public interface CommonRepository {
+public interface CommentRepository {
 	
 	public void save(Comment comment);
 	

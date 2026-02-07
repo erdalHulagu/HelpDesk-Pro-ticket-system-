@@ -7,9 +7,9 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 import com.erdal.helpdeskpro.domain.Comment;
-import com.erdal.helpdeskpro.repository.CommonRepository;
+import com.erdal.helpdeskpro.repository.CommentRepository;
 
-public class CommentDAO implements CommonRepository {
+public class CommentDAO implements CommentRepository {
 	
 	
 	SessionFactory sessionFactory;
