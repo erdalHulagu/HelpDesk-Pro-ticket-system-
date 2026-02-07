@@ -8,13 +8,13 @@ import com.erdal.helpdeskpro.domain.Comment;
 
 public interface CommentRepository {
 	
-	public void save(Comment comment);
+	 void save(Comment comment);
 	
-	public Comment findById(Long id);
+	 Comment findById(Long id);
 	
-	public List<Comment> findAll();
+	 List<Comment> findAll();
 	
-	public void delete(Long id);
+	 void deleteById(Long id);
 	
 	
 	

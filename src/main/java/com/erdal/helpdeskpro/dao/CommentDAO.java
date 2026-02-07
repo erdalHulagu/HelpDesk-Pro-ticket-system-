@@ -12,7 +12,7 @@ import com.erdal.helpdeskpro.repository.CommentRepository;
 public class CommentDAO implements CommentRepository {
 	
 	
-	SessionFactory sessionFactory;
+	private SessionFactory sessionFactory;
 	
 	public CommentDAO(SessionFactory sessionFactory) {
 		this.sessionFactory=sessionFactory;
@@ -51,7 +51,7 @@ public class CommentDAO implements CommentRepository {
 	}
 
 	@Override
-	public void delete(Long id) {
+	public void deleteById(Long id) {
 		Session session=sessionFactory.openSession();
 		Transaction transaction=session.beginTransaction();
 		Comment comment = session.get(Comment.class, id);
