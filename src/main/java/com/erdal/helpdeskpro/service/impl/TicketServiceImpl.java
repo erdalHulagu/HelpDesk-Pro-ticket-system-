@@ -33,7 +33,7 @@ public class TicketServiceImpl implements TicketService {
 		Ticket ticket = ticketRepository.findById(ticketId);
 
 		// Role kontrol
-		if (user.getRole() == Role.EMPLOYEE.name() && !ticket.getCreatedBy().getId().equals(user.getId())) {
+		if ( user.getRole() == Role.EMPLOYEE.name() && !ticket.getCreatedBy().getId().equals(user.getId()) {
 			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 
 		}
