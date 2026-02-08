@@ -56,7 +56,7 @@ public class TicketDAO implements TicketRepository {
 	}
 	
 	@Override
-	public void deleteById(Long id) {
+	public Ticket deleteById(Long id) {
 		Session session = sessionFactory.openSession();
 		Transaction tx = session.beginTransaction();
 
@@ -69,6 +69,8 @@ public class TicketDAO implements TicketRepository {
 		}
 		tx.commit();
 		session.close();
+		
+		return ticket;
 	}
 
 }

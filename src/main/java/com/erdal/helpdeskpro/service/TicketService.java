@@ -10,14 +10,14 @@ public interface TicketService {
 	
 	void createTicket(Ticket ticket, User user);
 	
-	Ticket getTicketById(Long id, User user);
+	Ticket getTicketById(Long ticketId, User user);
 	
 	List<Ticket> getTicketsForUser(User user);
 	
-	void assignTicket(User user);
+	void assignTicket(Long ticketId,User user);
 	
 	void updateStatus(Long ticketId,TicketStatus ticketStatus,User user);
 	
-	void  deleteTicket(Long id);
+	Ticket  deleteTicket(Long ticketId, User user);
 
 }
