@@ -107,10 +107,8 @@ public class User {
 	public void setAssignedTickets(List<Ticket> assignedTickets) {
 		this.assignedTickets = assignedTickets;
 	}
-	public String getRole() {
-		
-		//for SQL database connection we need string  thats why we send name() method which returns string
-		return role != null ? role.name() : null;
+	public Role getRole() {
+		return role;
 	}
 	public void setRole(Role role) {
 		this.role = role;

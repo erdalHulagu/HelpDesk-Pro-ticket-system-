@@ -31,12 +31,16 @@ public class TicketServiceImpl implements TicketService {
 	@Override
 	public void updateStatus(Long ticketId, TicketStatus newStatus, User user) {
 		Ticket ticket = ticketRepository.findById(ticketId);
+		
+		if (ticket == null) {
+		    throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+		}
 
 		// Role kontrol
-		if ( user.getRole() == Role.EMPLOYEE.name() && !ticket.getCreatedBy().getId().equals(user.getId()) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-
-		}
+		if (user.getRole() == Role.EMPLOYEE &&
+			    !ticket.getCreatedBy().getId().equals(user.getId())) {
+			    throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+			}
 
 		// Lifecycle kuralı
 		if (ticket.getStatus() == TicketStatus.CLOSED) {
@@ -56,10 +60,7 @@ public class TicketServiceImpl implements TicketService {
 		if (!ticket.getCreatedBy().getId().equals(user.getId())) {
 			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
-		if (ticket.getStatus() == TicketStatus.CLOSED) {
-			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
-		}
-
+		
 		return ticket;
 	}
 
@@ -67,14 +68,12 @@ public class TicketServiceImpl implements TicketService {
 	public List<Ticket> getTicketsForUser(User user) {
 		List<Ticket> tickets = ticketRepository.findAll();
 
-		List<Ticket> usersTickets = tickets.stream().filter(t -> t.getCreatedBy().getId().equals(user.getId()))
-				.collect(Collectors.toList());
+		return tickets.stream()
+			    .filter(t -> t.getCreatedBy().getId().equals(user.getId()))
+			    .filter(t -> !t.isDeleted())
+			    .collect(Collectors.toList());
 
-		if (usersTickets.isEmpty()) {
-			throw new BadRequestExeption(ExceptionMessage.NO_TICKETS_FOUND_FOR_USER);
-		}
-
-		return usersTickets;
+		
 
 	}
 
@@ -86,8 +85,8 @@ public class TicketServiceImpl implements TicketService {
 		if (ticket == null) {
 			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
 		}
-		if (!ticket.getCreatedBy().getId().equals(user.getId())) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		if (user.getRole() != Role.ADMIN) {
+		    throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
 		if (ticket.getStatus() == TicketStatus.CLOSED) {
 			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
@@ -98,20 +97,11 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	@Override
-	public Ticket deleteTicket(Long ticketId, User user) {
-		Ticket ticket = ticketRepository.deleteById(ticketId);
+	public void deleteTicket(Long ticketId) {
+		 ticketRepository.deleteById(ticketId);
 
-		if (ticket == null) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-		}
-		if (!ticket.getCreatedBy().getId().equals(user.getId())) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
-		if (ticket.getStatus() == TicketStatus.CLOSED) {
-			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
-		}
-
-		return ticket;
+		
 	}
 
+	
 }

@@ -3,6 +3,7 @@ package com.erdal.helpdeskpro.repository;
 import java.util.List;
 
 import com.erdal.helpdeskpro.domain.Ticket;
+import com.erdal.helpdeskpro.domain.User;
 
 public interface TicketRepository  {
 	
@@ -11,7 +12,11 @@ public interface TicketRepository  {
 	 Ticket findById( Long id);
 	
 	 List<Ticket> findAll();
+	 
+	 List<Ticket> findByCreatedBy(User user);
+	 
+	 List<Ticket> findAllActive();
 	
-	 Ticket deleteById(Long id);
+	 void deleteById(Long id);
 
 }

@@ -7,6 +7,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 import com.erdal.helpdeskpro.domain.Ticket;
+import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.repository.TicketRepository;
 
 public class TicketDAO implements TicketRepository {
@@ -56,7 +57,7 @@ public class TicketDAO implements TicketRepository {
 	}
 	
 	@Override
-	public Ticket deleteById(Long id) {
+	public void deleteById(Long id) {
 		Session session = sessionFactory.openSession();
 		Transaction tx = session.beginTransaction();
 
@@ -64,13 +65,23 @@ public class TicketDAO implements TicketRepository {
 		if (ticket != null) {
 		    ticket.setDeleted(true);
 		}
-		if (ticket != null && !ticket.isDeleted()) {
-		    ticket.setDeleted(true);
-		}
+		
 		tx.commit();
 		session.close();
 		
-		return ticket;
+		
+	}
+
+	@Override
+	public List<Ticket> findByCreatedBy(User user) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Ticket> findAllActive() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
