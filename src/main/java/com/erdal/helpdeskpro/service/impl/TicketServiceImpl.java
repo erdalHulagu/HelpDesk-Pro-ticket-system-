@@ -30,25 +30,46 @@ public class TicketServiceImpl implements TicketService {
 
 	@Override
 	public void updateStatus(Long ticketId, TicketStatus newStatus, User user) {
-		Ticket ticket = ticketRepository.findById(ticketId);
-		
-		if (ticket == null) {
-		    throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-		}
 
-		// Role kontrol
-		if (user.getRole() == Role.EMPLOYEE &&
-			    !ticket.getCreatedBy().getId().equals(user.getId())) {
-			    throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-			}
+	    Ticket ticket = ticketRepository.findById(ticketId);
 
-		// Lifecycle kuralı
-		if (ticket.getStatus() == TicketStatus.CLOSED) {
-			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
-		}
+	    //  ticket var mı
+	    if (ticket == null) {
+	        throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+	    }
 
-		ticket.setStatus(newStatus); // Hibernate dirty checking
+	    //  soft delete
+	    if (ticket.isDeleted()) {
+	        throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
+	    }
+
+	    // role kontrol
+	    if (user.getRole() == Role.EMPLOYEE) {
+	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	    }
+
+	    //  CLOSED ise dokunulmaz
+	    if (ticket.getStatus() == TicketStatus.CLOSED) {
+	        throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
+	    }
+
+	    //  lifecycle validation
+	    TicketStatus current = ticket.getStatus();
+
+	    boolean valid =
+	            (current == TicketStatus.OPEN && newStatus == TicketStatus.IN_PROGRESS) ||
+	            (current == TicketStatus.IN_PROGRESS && newStatus == TicketStatus.RESOLVED) ||
+	            (current == TicketStatus.RESOLVED && newStatus == TicketStatus.CLOSED);
+
+	    if (!valid) {
+	        throw new BadRequestExeption(ExceptionMessage.INVALID_STATUS_TRANSITION);
+	    }
+
+	    //  update
+	    ticket.setStatus(newStatus);
+	    ticketRepository.save(ticket);
 	}
+
 
 	@Override
 	public Ticket getTicketById(Long ticketId, User user) {
@@ -96,12 +117,38 @@ public class TicketServiceImpl implements TicketService {
 
 	}
 
-	@Override
-	public void deleteTicket(Long ticketId) {
-		 ticketRepository.deleteById(ticketId);
 
-		
+	@Override
+	public void deleteTicket(Long ticketId, User user) {
+
+	    Ticket ticket = ticketRepository.findById(ticketId);
+
+	    //  ticket var mı
+	    if (ticket == null) {
+	        throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+	    }
+
+	    // lifecycle kontrolü
+	    if (ticket.getStatus() == TicketStatus.CLOSED) {
+	        throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
+	    }
+
+	    // yetki kontrolü
+	    // EMPLOYEE sadece kendi ticket’ını silebilir
+	    if (user.getRole() == Role.EMPLOYEE &&
+	        !ticket.getCreatedBy().getId().equals(user.getId())) {
+	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	    }
+
+	    // soft delete
+	    ticket.setDeleted(true);
+
+	    // persist
+	    ticketRepository.save(ticket);
+
+	
 	}
+
 
 	
 }
