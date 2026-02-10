@@ -22,13 +22,13 @@ public class  Comment{
 	
 	@ManyToOne()
 	@JoinColumn(name = "ticket_id")
-	private Ticket ticketId;
+	private Ticket ticket;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")
 	private User author;
 	
-	private String message;
+	private String content;
 	
 	private LocalDateTime createdAt;
 	
@@ -39,91 +39,63 @@ public class  Comment{
 		
 	}
 
-	
-
-	public Comment(Long id, Ticket ticketId, User author, String message, LocalDateTime createdAt,boolean isDeleted) {
+	public Comment(Long id, Ticket ticket, User author, String content, LocalDateTime createdAt, boolean isDeleted) {
 		super();
 		this.id = id;
-		this.ticketId = ticketId;
+		this.ticket = ticket;
 		this.author = author;
-		this.message = message;
+		this.content = content;
 		this.createdAt = createdAt;
 		this.isDeleted = isDeleted;
-		
 	}
-
-
 
 	public Long getId() {
 		return id;
 	}
 
-
-
 	public void setId(Long id) {
 		this.id = id;
 	}
 
-
-
-	public Ticket getTicketId() {
-		return ticketId;
+	public Ticket getTicket() {
+		return ticket;
 	}
 
-
-
-	public void setTicketId(Ticket ticketId) {
-		this.ticketId = ticketId;
+	public void setTicket(Ticket ticket) {
+		this.ticket = ticket;
 	}
-
-
 
 	public User getAuthor() {
 		return author;
 	}
 
-
-
 	public void setAuthor(User author) {
 		this.author = author;
 	}
 
-
-
-	public String getMessage() {
-		return message;
+	public String getContent() {
+		return content;
 	}
 
-
-
-	public void setMessage(String message) {
-		this.message = message;
+	public void setContent(String content) {
+		this.content = content;
 	}
-
-
 
 	public LocalDateTime getCreatedAt() {
 		return createdAt;
 	}
 
-
-
 	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
 	}
-	
+
 	public boolean isDeleted() {
 		return isDeleted;
 	}
-	
-	
-	
+
 	public void setDeleted(boolean isDeleted) {
 		this.isDeleted = isDeleted;
 	}
 
-
-
-	
 	
 }

@@ -14,6 +14,7 @@ public  class  ExceptionMessage {
 	public static final String TICKET_NOT_FOUND = "Ticket not found";
 	public static final String TICKET_IS_DELETED = "Ticket was deleted";
 	public static final String INVALID_STATUS_TRANSITION = "Invalid satatus";
+	public static final String NO_PERMITION = "You dont have permition";
 	public static String USER_IS_NULL="It can't be blank";
 	public static String USER_NOT_FOUND= "User not found";
 	public static String TICKET_IS_CLOSED= "Ticket is already CLOSED";

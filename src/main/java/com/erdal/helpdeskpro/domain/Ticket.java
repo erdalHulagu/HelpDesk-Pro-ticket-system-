@@ -44,8 +44,11 @@ public class Ticket {
 	 @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
 	 private List<Attachment> attachments = new ArrayList<>();
 	 
+	 @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
+	 private List<Comment> comments=new ArrayList<>();
 	 
 	private LocalDateTime createdAt;
+	
 	private boolean isDeleted;
 	
 	public Ticket() {

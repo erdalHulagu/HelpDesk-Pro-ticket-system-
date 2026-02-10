@@ -106,7 +106,7 @@ public class TicketServiceImpl implements TicketService {
 		if (ticket == null) {
 			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
 		}
-		if (user.getRole() != Role.ADMIN) {
+		if (user.getRole() != Role.ADMIN || user.getRole() != Role.IT_SUPPORT) {
 		    throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
 		if (ticket.getStatus() == TicketStatus.CLOSED) {
