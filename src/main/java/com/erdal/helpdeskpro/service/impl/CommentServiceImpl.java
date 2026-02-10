@@ -1,5 +1,7 @@
 package com.erdal.helpdeskpro.service.impl;
 
+import java.util.List;
+
 import com.erdal.helpdeskpro.domain.Comment;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
@@ -45,6 +47,12 @@ public class CommentServiceImpl implements CommentService {
 		}
 		User autherUser = userRepository.findById(ticket.getCreatedBy().getId());
 
+		if (autherUser == null) {
+
+			throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
+
+		}
+
 		if (!(user.equals(autherUser) && user.getRole() == Role.EMPLOYEE) || user.getRole() == Role.EMPLOYEE) {
 			throw new BadRequestExeption(ExceptionMessage.NO_PERMITION);
 
@@ -57,6 +65,35 @@ public class CommentServiceImpl implements CommentService {
 		comment.setAuthor(user);
 		comment.setTicket(ticket);
 		commentRepository.save(comment);
+
+	}
+
+	@Override
+	public Comment findCommentById(Long commentId) {
+		Comment comment = commentRepository.findById(commentId);
+		if (comment == null) {
+
+			throw new ResourceNotFoundExeption(ExceptionMessage.COMMENT_NOT_FOUND);
+		}
+
+		if (comment.isDeleted() == true) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.COMMENT_IS_DELETED);
+
+		}
+		
+		
+		return comment;
+	}
+
+	@Override
+	public List<Comment> findAllComments() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteCommentById(Long commentId) {
+		// TODO Auto-generated method stub
 
 	}
 

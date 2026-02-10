@@ -12,9 +12,11 @@ public  class  ExceptionMessage {
 	public static final String USER_ALREADY_EXIST = "Username already exist, type diffrent username please";
 	public static final String NO_TICKETS_FOUND_FOR_USER = "There is no tickets for this user";
 	public static final String TICKET_NOT_FOUND = "Ticket not found";
-	public static final String TICKET_IS_DELETED = "Ticket was deleted";
+	public static final String TICKET_IS_DELETED = "Ticket was already deleted";
 	public static final String INVALID_STATUS_TRANSITION = "Invalid satatus";
 	public static final String NO_PERMITION = "You dont have permition";
+	public static final String COMMENT_NOT_FOUND = "Comment not found";
+	public static final String COMMENT_IS_DELETED = "Comment was already deleted";
 	public static String USER_IS_NULL="It can't be blank";
 	public static String USER_NOT_FOUND= "User not found";
 	public static String TICKET_IS_CLOSED= "Ticket is already CLOSED";
