@@ -19,7 +19,7 @@ public class TicketServiceImpl implements TicketService {
 	private TicketRepository ticketRepository;
 	private Authorization authorization;
 
-	public TicketServiceImpl(TicketRepository ticketRepository, Authorization ticketAuthorization) {
+	public TicketServiceImpl(TicketRepository ticketRepository, Authorization authorization) {
 		this.ticketRepository = ticketRepository;
 		this.authorization = authorization;
 	}

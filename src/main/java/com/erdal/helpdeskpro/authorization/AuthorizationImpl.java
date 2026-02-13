@@ -97,25 +97,24 @@ public class AuthorizationImpl implements Authorization {
 	@Override
 	public void canComment(Ticket ticket, User user) {
 		// ticket var mı
-				if (ticket == null) {
-					throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-				}
-				// soft delete
-				if (ticket.isDeleted()) {
-					throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
-				}
-				// lifecycle kontrolü
-				if (ticket.getStatus() == TicketStatus.CLOSED) {
-					throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
-				}
+		if (ticket == null) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+		}
+		// soft delete
+		if (ticket.isDeleted()) {
+			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
+		}
+		// lifecycle kontrolü
+		if (ticket.getStatus() == TicketStatus.CLOSED) {
+			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
+		}
 
-				// yetki kontrolü
-				// EMPLOYEE sadece kendi ticket’ını silebilir
-				if (user.getRole() == Role.EMPLOYEE && !ticket.getCreatedBy().getId().equals(user.getId())) {
-					throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-				}
-				
-				
+		// yetki kontrolü
+		// EMPLOYEE sadece kendi ticket’ını silebilir
+		if (user.getRole() == Role.EMPLOYEE && !ticket.getCreatedBy().getId().equals(user.getId())) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
+
 	}
 
 }

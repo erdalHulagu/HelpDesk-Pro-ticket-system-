@@ -1,29 +1,24 @@
 package com.erdal.helpdeskpro.dtos;
 
-import java.time.LocalDateTime;
+import com.erdal.helpdeskpro.enums.Role;
 
 public class UserDTO {
 	private Long id;
 	private String username;
 	private String email;
-	private String password;
-	private String role;
+	private Role role;
 	private boolean isActive;
-	private LocalDateTime createdAt;
 
 	public UserDTO() {
 	}
 
-	public UserDTO(Long id, String username, String email, String password, String role, boolean isActive,
-			LocalDateTime createdAt) {
+	public UserDTO(Long id, String username, String email, Role role, boolean isActive) {
 		super();
 		this.id = id;
 		this.username = username;
 		this.email = email;
-		this.password = password;
 		this.role = role;
 		this.isActive = isActive;
-		this.createdAt = createdAt;
 	}
 
 	public Long getId() {
@@ -50,13 +45,6 @@ public class UserDTO {
 		this.email = email;
 	}
 
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
 
 	public String getRole() {
 		return role;
@@ -74,12 +62,6 @@ public class UserDTO {
 		this.isActive = isActive;
 	}
 
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
-	}
+	
 
 }

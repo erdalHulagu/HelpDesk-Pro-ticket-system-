@@ -1,6 +1,8 @@
 package com.erdal.helpdeskpro.service.impl;
 
 import java.util.List;
+
+import com.erdal.helpdeskpro.authorization.Authorization;
 import com.erdal.helpdeskpro.domain.Comment;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
@@ -16,15 +18,17 @@ import com.erdal.helpdeskpro.service.CommentService;
 
 public class CommentServiceImpl implements CommentService {
 
-	CommentRepository commentRepository;
-	TicketRepository ticketRepository;
-	UserRepository userRepository;
+	private CommentRepository commentRepository;
+	private TicketRepository ticketRepository;
+	private UserRepository userRepository;
+	private Authorization authorization;
 
 	public CommentServiceImpl(CommentRepository commentRepository, TicketRepository ticketRepository,
-			UserRepository userRepository) {
+			UserRepository userRepository, Authorization authorization) {
 		this.commentRepository = commentRepository;
 		this.ticketRepository = ticketRepository;
 		this.userRepository = userRepository;
+		this.authorization = authorization;
 
 	}
 
@@ -34,35 +38,7 @@ public class CommentServiceImpl implements CommentService {
 	public void createComment(Comment comment, User user) {
 
 		Ticket ticket = ticketRepository.findById(comment.getTicket().getId());
-
-		if (ticket == null) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-
-		}
-		if (ticket.isDeleted() == true) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_IS_DELETED);
-
-		}
-		if (ticket.getStatus() == TicketStatus.CLOSED) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_IS_CLOSED);
-
-		}
-		User autherUser = userRepository.findById(ticket.getCreatedBy().getId());
-
-		if (autherUser == null) {
-
-			throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
-
-		}
-
-		if (!(user.equals(autherUser) && user.getRole() == Role.EMPLOYEE) || user.getRole() == Role.EMPLOYEE) {
-			throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
-
-		}
-
-		if (user.getRole() == Role.EMPLOYEE && !ticket.getCreatedBy().getId().equals(user.getId())) {
-			throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
-		}
+		authorization.canComment(ticket, user);
 
 		comment.setAuthor(user);
 		comment.setTicket(ticket);
