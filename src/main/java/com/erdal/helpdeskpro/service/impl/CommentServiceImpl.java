@@ -173,6 +173,35 @@ public class CommentServiceImpl implements CommentService {
 	    
 		comment.setContent(trimmedContent);
 	}
+
+
+	@Override
+	public List<Comment> getCommentsByTicket(Long ticketId, User user) {
+		Ticket ticket =ticketRepository.findById(ticketId);
+		if (ticket==null) {
+			 throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+		}
+		if (ticket.isDeleted()==true) {
+			
+			 throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
+		}
+		if (ticket.getStatus()==TicketStatus.CLOSED) {
+			
+			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		return null;
+	}
 	
 	
 

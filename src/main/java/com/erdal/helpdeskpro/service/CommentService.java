@@ -17,5 +17,7 @@ public interface CommentService {
 	
 	void updateComment(Long commentId, String newContent, User user);
 	
+	List<Comment> getCommentsByTicket(Long ticketId, User user);
+	
 
 }
