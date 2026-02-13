@@ -49,6 +49,8 @@ public class  Comment{
 		this.isDeleted = isDeleted;
 	}
 
+	
+
 	public Long getId() {
 		return id;
 	}
