@@ -18,6 +18,8 @@ public interface CommentRepository {
 
 	List<Comment> findAllByAuthorId(Long id);
 	
+	List<Comment> findAllByTicketId(Long ticketId);
+	
 	
 	
 }

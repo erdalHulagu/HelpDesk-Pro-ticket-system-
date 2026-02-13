@@ -189,18 +189,14 @@ public class CommentServiceImpl implements CommentService {
 			
 			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
 		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		return null;
+		if (user.getRole() == Role.EMPLOYEE && !ticket.getCreatedBy().getId().equals(user.getId())) {
+			throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
+		}
+		List<Comment> comments=commentRepository.findAllByTicketId(ticketId);
+		if (comments.isEmpty()) {
+			throw new BadRequestExeption(ExceptionMessage.NO_COMMENT_FOUND);
+		}
+		return comments;
 	}
 	
 	
