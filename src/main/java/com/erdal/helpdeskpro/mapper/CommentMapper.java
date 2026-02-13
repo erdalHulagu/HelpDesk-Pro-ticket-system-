@@ -32,70 +32,32 @@ public class CommentMapper {
 		return comment;
 
 	}
-	public static CommentDTO commentoCommentdto(Comment comment) {
-		
-		User user = new User();
+	 public static CommentDTO commentToCommentDTO(Comment comment) {
+	        CommentDTO dto = new CommentDTO();
 
-		Ticket ticket = new Ticket();
-		
-		CommentDTO commentDTO = new CommentDTO();
-		
-		commentDTO.setId(comment.getId());
-		commentDTO.setAuthorId(user.getId());
-		commentDTO.setTicketId(ticket.getId());
-		commentDTO.setContent(comment.getContent());
-		commentDTO.setDeleted(comment.isDeleted());
-		
-		
-		return commentDTO;
-		
-	}
+	        dto.setId(comment.getId());
+	        dto.setContent(comment.getContent());
+	        dto.setAuthorId(comment.getAuthor().getId());
+	        dto.setTicketId(comment.getTicket().getId());
+	        dto.setDeleted(comment.isDeleted());
+
+	        return dto;
+	    }
+
 	
-		
-		public static List<CommentDTO> commentListToCommentDTOList(List<Comment> comments) {
+	public static List<CommentDTO> commentListToCommentDTOList(List<Comment> comments) {
+        if (comments == null || comments.isEmpty()) return Collections.emptyList();
+        return comments.stream()
+                .map(CommentMapper::commentToCommentDTO)
+                .collect(Collectors.toList());
+    }
 
-		    if (comments == null || comments.isEmpty()) {
-		        return Collections.emptyList();
-		    }
-
-		    return comments.stream()
-		            .map(comment -> {
-		                CommentDTO dto = new CommentDTO();
-		                dto.setId(comment.getId());
-		                dto.setContent(comment.getContent());
-		                dto.setAuthorId(comment.getAuthor().getId());
-		                dto.setTicketId(comment.getTicket().getId());
-		                return dto;
-		            })
-		            .collect(Collectors.toList());
-		}
-		
-		
-		
-	
-		public static List<Comment> commentDTOListToCommentList(List<CommentDTO> commentDTOs) {
-
-		    if (commentDTOs == null || commentDTOs.isEmpty()) {
-		        return Collections.emptyList();
-		    }
-		    User user = new User();
-		
-			Ticket ticket = new Ticket();
-			
-		    return commentDTOs.stream()
-		            .map(commentDTO -> {
-		                Comment comment = new Comment();
-		                user.setId(commentDTO.getAuthorId());
-		                ticket.setId(commentDTO.getTicketId());
-		                comment.setId(commentDTO.getId());
-		                comment.setContent(commentDTO.getContent());
-		                comment.setAuthor(user);
-		                comment.setTicket(ticket);
-		                return comment;
-		            })
-		            .collect(Collectors.toList());
-		}
-		
+    public static List<Comment> commentDTOListToCommentList(List<CommentDTO> commentDTOs) {
+        if (commentDTOs == null || commentDTOs.isEmpty()) return Collections.emptyList();
+        return commentDTOs.stream()
+                .map(CommentMapper::commentDTOtoComment)
+                .collect(Collectors.toList());
+    }
 	
 
 }
