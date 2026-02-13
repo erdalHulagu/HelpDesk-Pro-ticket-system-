@@ -3,7 +3,7 @@ package com.erdal.helpdeskpro.authorization;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
 
-public interface TicketAuthorization {
+public interface Authorization {
 	
 	void canViewTicket(Ticket ticket, User user);
 

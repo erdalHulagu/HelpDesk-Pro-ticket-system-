@@ -3,7 +3,7 @@ package com.erdal.helpdeskpro.service.impl;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.erdal.helpdeskpro.authorization.TicketAuthorization;
+import com.erdal.helpdeskpro.authorization.Authorization;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.enums.Role;
@@ -17,11 +17,11 @@ import com.erdal.helpdeskpro.service.TicketService;
 public class TicketServiceImpl implements TicketService {
 
 	private TicketRepository ticketRepository;
-	private TicketAuthorization ticketAuthorization;
+	private Authorization authorization;
 
-	public TicketServiceImpl(TicketRepository ticketRepository, TicketAuthorization ticketAuthorization) {
+	public TicketServiceImpl(TicketRepository ticketRepository, Authorization ticketAuthorization) {
 		this.ticketRepository = ticketRepository;
-		this.ticketAuthorization = ticketAuthorization;
+		this.authorization = authorization;
 	}
 
 	@Override
@@ -35,7 +35,7 @@ public class TicketServiceImpl implements TicketService {
 	public void updateStatus(Long ticketId, TicketStatus newStatus, User user) {
 
 		Ticket ticket = ticketRepository.findById(ticketId);
-		ticketAuthorization.canUpdateStatus(ticket, user);
+		authorization.canUpdateStatus(ticket, user);
 
 		// lifecycle validation
 
@@ -81,16 +81,7 @@ public class TicketServiceImpl implements TicketService {
 	public void assignTicket(Long ticketId, User user) {
 
 		Ticket ticket = ticketRepository.findById(ticketId);
-
-		if (ticket == null) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-		}
-		if (user.getRole() != Role.ADMIN || user.getRole() != Role.IT_SUPPORT) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
-		if (ticket.getStatus() == TicketStatus.CLOSED) {
-			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
-		}
+		authorization.canAssignTicket(ticket, user);
 
 		ticket.setAssignedTo(user);
 
@@ -101,8 +92,8 @@ public class TicketServiceImpl implements TicketService {
 
 		Ticket ticket = ticketRepository.findById(ticketId);
 
-		ticketAuthorization.canDeleteTicket(ticket, user);
-		
+		authorization.canDeleteTicket(ticket, user);
+
 		ticket.setDeleted(true);
 
 		// persist
