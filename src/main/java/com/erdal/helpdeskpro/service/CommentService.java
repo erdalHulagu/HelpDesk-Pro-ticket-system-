@@ -11,9 +11,11 @@ public interface CommentService {
 	
 	Comment findCommentById(Long commentId);
 	
-	List<Comment> findAllComments();
+	List<Comment> findAllUsersComments(User user);
 	
-	void deleteCommentById(Long commentId);
+	void deleteCommentById(Long commentId, User user);
+	
+	void updateComment(Long commentId, String newContent, User user);
 	
 
 }

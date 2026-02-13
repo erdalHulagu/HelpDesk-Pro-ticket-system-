@@ -62,5 +62,20 @@ public class CommentDAO implements CommentRepository {
 		session.close();
 		
 	}
+	@Override
+	public List<Comment> findAllByAuthorId(Long authorId) {
+
+	    Session session = sessionFactory.openSession();
+
+	    List<Comment> comments = session.createQuery(
+	            "from Comment c where c.author.id = :authorId and c.deleted = false",
+	            Comment.class)
+	            .setParameter("authorId", authorId)
+	            .list();
+
+	    session.close();
+
+	    return comments;
+	}
 
 }

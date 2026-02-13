@@ -1,7 +1,6 @@
 package com.erdal.helpdeskpro.service.impl;
 
 import java.util.List;
-
 import com.erdal.helpdeskpro.domain.Comment;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
@@ -29,6 +28,9 @@ public class CommentServiceImpl implements CommentService {
 
 	}
 
+	
+	// --------------- Create Comment ----------------
+	@Override
 	public void createComment(Comment comment, User user) {
 
 		Ticket ticket = ticketRepository.findById(comment.getTicket().getId());
@@ -54,12 +56,12 @@ public class CommentServiceImpl implements CommentService {
 		}
 
 		if (!(user.equals(autherUser) && user.getRole() == Role.EMPLOYEE) || user.getRole() == Role.EMPLOYEE) {
-			throw new BadRequestExeption(ExceptionMessage.NO_PERMITION);
+			throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
 
 		}
 
 		if (user.getRole() == Role.EMPLOYEE && !ticket.getCreatedBy().getId().equals(user.getId())) {
-			throw new BadRequestExeption(ExceptionMessage.NO_PERMITION);
+			throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
 		}
 
 		comment.setAuthor(user);
@@ -68,6 +70,8 @@ public class CommentServiceImpl implements CommentService {
 
 	}
 
+	
+	// --------------- Find Comment By Id ----------------
 	@Override
 	public Comment findCommentById(Long commentId) {
 		Comment comment = commentRepository.findById(commentId);
@@ -85,16 +89,92 @@ public class CommentServiceImpl implements CommentService {
 		return comment;
 	}
 
+	
+	// --------------- Find All Users Comments ----------------
 	@Override
-	public List<Comment> findAllComments() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	public List<Comment> findAllUsersComments(User user) {
 
+	    if (user == null) {
+	        throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
+	    }
+
+	    return commentRepository.findAllByAuthorId(user.getId());
+	}
+	
+	// ---------------Delete Comment By Id----------------
 	@Override
-	public void deleteCommentById(Long commentId) {
-		// TODO Auto-generated method stub
+	public void deleteCommentById(Long commentId, User user) {
 
+	    Comment comment = commentRepository.findById(commentId);
+
+	    if (comment == null) {
+	        throw new ResourceNotFoundExeption(ExceptionMessage.COMMENT_NOT_FOUND);
+	    }
+
+	    if (comment.isDeleted()) {
+	        throw new BadRequestExeption(ExceptionMessage.COMMENT_IS_DELETED);
+	    }
+
+	    if (comment.getTicket().getStatus() == TicketStatus.CLOSED) {
+	        throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
+	    }
+
+	    // Yetki kontrolü
+	    if (user.getRole() == Role.EMPLOYEE &&
+	        !comment.getAuthor().getId().equals(user.getId())) {
+
+	        throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
+	    }
+
+	    comment.setDeleted(true);
+	    commentRepository.save(comment);
 	}
+	
+	// ---------------Update Comment----------------
+	@Override
+	public void updateComment(Long commentId, String newContent, User user) {
+		
+		Comment comment=commentRepository.findById(commentId);
+		if (comment==null) {
+			   throw new ResourceNotFoundExeption(ExceptionMessage.COMMENT_NOT_FOUND);
+			
+		}
+		if (comment.isDeleted()==true) {
+			
+			 throw new BadRequestExeption(ExceptionMessage.COMMENT_IS_DELETED);
+		}
+
+	    if (comment.getTicket().getStatus() == TicketStatus.CLOSED) {
+	        throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
+	    }
+	    
+	    if (user.getRole() == Role.EMPLOYEE &&
+	        !comment.getAuthor().getId().equals(user.getId())) {
+
+	        throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
+	    }
+	    if (newContent == null) {
+	        throw new BadRequestExeption(ExceptionMessage.CONTENT_CANNOT_BE_NULL);
+	    }
+
+	    String trimmedContent = newContent.trim();
+
+	    if (trimmedContent.isEmpty()) {
+	        throw new BadRequestExeption(ExceptionMessage.CONTENT_CANNOT_BE_EMPTY);
+	    }
+
+	    if (trimmedContent.length() < 3) {
+	        throw new BadRequestExeption(ExceptionMessage.CONTENT_TOO_SHORT);
+	    }
+
+	    if (trimmedContent.length() > 1000) {
+	        throw new BadRequestExeption(ExceptionMessage.CONTENT_TOO_LONG);
+	    }
+	    
+		comment.setContent(trimmedContent);
+	}
+	
+	
+
 
 }

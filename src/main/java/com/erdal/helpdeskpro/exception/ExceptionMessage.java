@@ -14,12 +14,17 @@ public  class  ExceptionMessage {
 	public static final String TICKET_NOT_FOUND = "Ticket not found";
 	public static final String TICKET_IS_DELETED = "Ticket was already deleted";
 	public static final String INVALID_STATUS_TRANSITION = "Invalid satatus";
-	public static final String NO_PERMITION = "You dont have permition";
+	public static final String NO_PERMISSION = "You dont have permition";
 	public static final String COMMENT_NOT_FOUND = "Comment not found";
 	public static final String COMMENT_IS_DELETED = "Comment was already deleted";
-	public static String USER_IS_NULL="It can't be blank";
-	public static String USER_NOT_FOUND= "User not found";
-	public static String TICKET_IS_CLOSED= "Ticket is already CLOSED";
+	public static final String NO_COMMENT_FOUND = "You don't have comment found";
+	public static final String USER_IS_NULL="It can't be blank";
+	public static final String USER_NOT_FOUND= "User not found";
+	public static final String TICKET_IS_CLOSED= "Ticket is already CLOSED";
+	public static final String CONTENT_CANNOT_BE_NULL = "Contetnt can't be null";
+	public static final String CONTENT_CANNOT_BE_EMPTY = "Contetnt can't be blank";
+	public static final String CONTENT_TOO_SHORT = "Content is too short";
+	public static final String CONTENT_TOO_LONG = "Content is too long";
 		
 	
 

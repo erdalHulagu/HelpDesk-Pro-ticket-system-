@@ -15,6 +15,8 @@ public interface CommentRepository {
 	 List<Comment> findAll();
 	
 	 void deleteById(Long id);
+
+	List<Comment> findAllByAuthorId(Long id);
 	
 	
 	
