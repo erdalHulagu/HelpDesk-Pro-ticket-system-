@@ -44,9 +44,10 @@ public class TicketServiceImpl implements TicketService {
 	    }
 
 	    // role kontrol
-	    if (user.getRole() == Role.EMPLOYEE) {
-	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-	    }
+	    if (user.getRole() == Role.EMPLOYEE &&
+	    	    !ticket.getCreatedBy().getId().equals(user.getId())) {
+	    	    throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	    	}
 
 	    //  CLOSED ise dokunulmaz
 	    if (ticket.getStatus() == TicketStatus.CLOSED) {
@@ -54,14 +55,8 @@ public class TicketServiceImpl implements TicketService {
 	    }
 
 	    //  lifecycle validation
-	    TicketStatus current = ticket.getStatus();
-
-	    boolean valid =
-	            (current == TicketStatus.OPEN && newStatus == TicketStatus.IN_PROGRESS) ||
-	            (current == TicketStatus.IN_PROGRESS && newStatus == TicketStatus.RESOLVED) ||
-	            (current == TicketStatus.RESOLVED && newStatus == TicketStatus.CLOSED);
-
-	    if (!valid) {
+	   
+	    if (!isValidTransition(ticket.getStatus(), newStatus)) {
 	        throw new BadRequestExeption(ExceptionMessage.INVALID_STATUS_TRANSITION);
 	    }
 
@@ -70,6 +65,11 @@ public class TicketServiceImpl implements TicketService {
 	    ticketRepository.save(ticket);
 	}
 
+	 private boolean isValidTransition(TicketStatus current, TicketStatus next) {
+	        return (current == TicketStatus.OPEN && next == TicketStatus.IN_PROGRESS) ||
+	               (current == TicketStatus.IN_PROGRESS && next == TicketStatus.RESOLVED) ||
+	               (current == TicketStatus.RESOLVED && next == TicketStatus.CLOSED);
+	    }
 
 	@Override
 	public Ticket getTicketById(Long ticketId, User user) {
