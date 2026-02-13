@@ -177,26 +177,25 @@ public class CommentServiceImpl implements CommentService {
 
 	@Override
 	public List<Comment> getCommentsByTicket(Long ticketId, User user) {
-		Ticket ticket =ticketRepository.findById(ticketId);
-		if (ticket==null) {
-			 throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-		}
-		if (ticket.isDeleted()==true) {
-			
-			 throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
-		}
-		if (ticket.getStatus()==TicketStatus.CLOSED) {
-			
-			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
-		}
-		if (user.getRole() == Role.EMPLOYEE && !ticket.getCreatedBy().getId().equals(user.getId())) {
-			throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
-		}
-		List<Comment> comments=commentRepository.findAllByTicketId(ticketId);
-		if (comments.isEmpty()) {
-			throw new BadRequestExeption(ExceptionMessage.NO_COMMENT_FOUND);
-		}
-		return comments;
+
+	    Ticket ticket = ticketRepository.findById(ticketId);
+
+	    if (ticket == null) {
+	        throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+	    }
+
+	    if (ticket.isDeleted()) {
+	        throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
+	    }
+
+	    // Yetki
+	    if (user.getRole() == Role.EMPLOYEE &&
+	        !ticket.getCreatedBy().getId().equals(user.getId())) {
+
+	        throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
+	    }
+
+	    return commentRepository.findAllByTicketId(ticketId);
 	}
 	
 	

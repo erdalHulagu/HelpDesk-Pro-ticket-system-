@@ -7,7 +7,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 import com.erdal.helpdeskpro.domain.Comment;
-import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.repository.CommentRepository;
 
 public class CommentDAO implements CommentRepository {
@@ -19,11 +18,10 @@ public class CommentDAO implements CommentRepository {
 		this.sessionFactory=sessionFactory;
 	}
 	
-	private Session session=sessionFactory.openSession();
 
 	@Override
 	public void save(Comment comment) {
-//		Session session=sessionFactory.openSession();
+		Session session=sessionFactory.openSession();
 		Transaction transaction=session.beginTransaction();
 		
 		session.persist(comment);
@@ -35,7 +33,7 @@ public class CommentDAO implements CommentRepository {
 
 	@Override
 	public Comment findById(Long id) {
-//		Session session =sessionFactory.openSession();
+		Session session =sessionFactory.openSession();
 		Comment comment=session.get(Comment.class, id);
 		
 		session.close();
@@ -45,7 +43,7 @@ public class CommentDAO implements CommentRepository {
 
 	@Override
 	public List<Comment> findAll() {
-//		Session session=sessionFactory.openSession();
+		Session session=sessionFactory.openSession();
 		List<Comment>comments=session.createQuery("from Comment",Comment.class).list();
 		
 		session.close();
@@ -55,7 +53,7 @@ public class CommentDAO implements CommentRepository {
 
 	@Override
 	public void deleteById(Long id) {
-//		Session session=sessionFactory.openSession();
+		Session session=sessionFactory.openSession();
 		Transaction transaction=session.beginTransaction();
 		Comment comment = session.get(Comment.class, id);
 		if (comment != null && !comment.isDeleted()) {
@@ -68,7 +66,7 @@ public class CommentDAO implements CommentRepository {
 	@Override
 	public List<Comment> findAllByAuthorId(Long authorId) {
 
-//	    Session session = sessionFactory.openSession();
+	    Session session = sessionFactory.openSession();
 
 	    List<Comment> comments = session.createQuery(
 	            "from Comment c where c.author.id = :authorId and c.deleted = false",
@@ -81,16 +79,19 @@ public class CommentDAO implements CommentRepository {
 	    return comments;
 	}
 	@Override
-	public List<Comment> findAllByTicketId(Long ticketId){
-//		Session session=sessionFactory.openSession();
-		
-		
-		List<Comment> comments =session.createQuery(
-				"form Comment c where c.ticket.id :=ticketId and c.ticket.isDeleted = false",Comment.class)
-				.setParameter("ticketId", ticketId)
-				.list();
-		session.close();
-		return comments;
+	public List<Comment> findAllByTicketId(Long ticketId) {
+
+	    Session session = sessionFactory.openSession();
+
+	    List<Comment> comments = session.createQuery(
+	            "from Comment c where c.ticket.id = :ticketId and c.deleted = false",
+	            Comment.class)
+	            .setParameter("ticketId", ticketId)
+	            .list();
+
+	    session.close();
+
+	    return comments;
 	}
 
 }
