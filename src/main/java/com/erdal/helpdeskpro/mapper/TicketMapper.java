@@ -1,5 +1,7 @@
 package com.erdal.helpdeskpro.mapper;
 
+import java.util.List;
+
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.dtos.TicketDTO;
@@ -27,6 +29,7 @@ public class TicketMapper {
 		return ticket;
 
 	}
+	
 	public static TicketDTO ticketToTicketDTO(Ticket ticket) {
 		
 		
@@ -43,5 +46,39 @@ public class TicketMapper {
 		return ticketDTO;
 		
 	}
+	public static List<TicketDTO> ticketListToTicketDTOList(List<Ticket> tickets) {
+		
+		
+		TicketDTO ticketDTO = new TicketDTO();
+		
+		ticketDTO.setId(ticket.getId());
+		ticketDTO.setStatus(ticket.getStatus());
+		ticketDTO.setDescription(ticket.getDescription());
+		ticketDTO.setDeleted(ticket.isDeleted());
+		ticketDTO.setCreatedById(ticket.getCreatedBy().getId());
+		ticketDTO.setAssignedToId(ticket.getAssignedTo().getId());
+		ticketDTO.setTitle(ticket.getTitle());
+		
+		return ticketDTO;
+		
+	}
+	public static List<Ticket> ticketDTOListToTicketList(List<TicketDTO> ticketDTOs) {
+		
+		
+		TicketDTO ticketDTO = new TicketDTO();
+		
+		ticketDTO.setId(ticket.getId());
+		ticketDTO.setStatus(ticket.getStatus());
+		ticketDTO.setDescription(ticket.getDescription());
+		ticketDTO.setDeleted(ticket.isDeleted());
+		ticketDTO.setCreatedById(ticket.getCreatedBy().getId());
+		ticketDTO.setAssignedToId(ticket.getAssignedTo().getId());
+		ticketDTO.setTitle(ticket.getTitle());
+		
+		return ticketDTO;
+		
+	}
+	
+	
 
 }
