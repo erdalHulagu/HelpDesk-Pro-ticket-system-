@@ -47,11 +47,12 @@ public class User {
 	
 	public User() {
 	}
-	public User(Long id, String username, String email, String password) {
+	public User(Long id, String username, String email,Role role,boolean isActive) {
 		this.id=id;
 		this.username = username;
 		this.email = email;
-		this.password = password;
+		this.role = role;
+		this.isActive = isActive;
 	}
 	
 	
@@ -69,6 +70,15 @@ public class User {
 		this.createdAt = createdAt;
 	}
 	
+	public User(Long id, String username, Role role, String email, boolean isActive) {
+		super();
+		this.id = id;
+		this.username = username;
+		this.email = email;
+		this.role = role;
+		this.isActive = isActive;
+		
+	}
 	public Long getId() {
 		return id;
 	}

@@ -21,6 +21,7 @@ public class UserDTO {
 		this.isActive = isActive;
 	}
 
+	
 	public Long getId() {
 		return id;
 	}

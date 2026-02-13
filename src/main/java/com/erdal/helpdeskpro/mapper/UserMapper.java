@@ -12,14 +12,12 @@ public final class UserMapper {
 
 	public static User userDTOtoUser(UserDTO userDTO) {
 
-		User user = new User();
-
-		user.setId(userDTO.getId());
-		user.setUsername(userDTO.getUsername());
-		user.setEmail(userDTO.getEmail());
-		user.setPassword(userDTO.getPassword());
-
-		return user;
+		return new User(userDTO.getId(), 
+		                userDTO.getUsername(), 
+		                userDTO.getEmail(), 
+		                userDTO.getRole(),
+		                userDTO.isActive());
+	
 
 	}
 
@@ -28,10 +26,8 @@ public final class UserMapper {
 		return new UserDTO(user.getId(), 
 				           user.getUsername(), 
 				           user.getEmail(), 
-				           user.getPassword(), 
 				           user.getRole(),
-				           user.isActive(), 
-				           user.getCreatedAt());
+				           user.isActive());
 
 	}
 	
@@ -39,9 +35,10 @@ public final class UserMapper {
 	public static List<User> userDTOlistToUserList(List<UserDTO> userDTOs) {
 
 		return userDTOs.stream().map(u -> new User(u.getId(), 
-				                                   u.getUsername(), 
-				                                   u.getEmail(), 
-				                                   u.getPassword()))
+				                                   u.getUsername(),
+				                                   u.getRole(),
+				                                   u.getEmail(),
+				                                   u.isActive()))
 				.collect(Collectors.toList());
 
 	}
@@ -51,11 +48,9 @@ public final class UserMapper {
 		
 		return users.stream().map(user -> new UserDTO(user.getId(), 
 		                                              user.getUsername(), 
-		                                              user.getEmail(), 
-		                                              user.getPassword(), 
+		                                              user.getEmail(),
 		                                              user.getRole(),
-		                                              user.isActive(), 
-		                                              user.getCreatedAt())).collect(Collectors.toList());
+		                                              user.isActive())).collect(Collectors.toList());
 		
 	}
 
