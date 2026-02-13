@@ -3,6 +3,7 @@ package com.erdal.helpdeskpro.service.impl;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.erdal.helpdeskpro.authorization.TicketAuthorization;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.enums.Role;
@@ -15,10 +16,12 @@ import com.erdal.helpdeskpro.service.TicketService;
 
 public class TicketServiceImpl implements TicketService {
 
-	TicketRepository ticketRepository;
+	private TicketRepository ticketRepository;
+	private TicketAuthorization ticketAuthorization;
 
-	public TicketServiceImpl(TicketRepository ticketRepository) {
+	public TicketServiceImpl(TicketRepository ticketRepository, TicketAuthorization ticketAuthorization) {
 		this.ticketRepository = ticketRepository;
+		this.ticketAuthorization = ticketAuthorization;
 	}
 
 	@Override
@@ -31,45 +34,25 @@ public class TicketServiceImpl implements TicketService {
 	@Override
 	public void updateStatus(Long ticketId, TicketStatus newStatus, User user) {
 
-	    Ticket ticket = ticketRepository.findById(ticketId);
+		Ticket ticket = ticketRepository.findById(ticketId);
+		ticketAuthorization.canUpdateStatus(ticket, user);
 
-	    //  ticket var mı
-	    if (ticket == null) {
-	        throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-	    }
+		// lifecycle validation
 
-	    //  soft delete
-	    if (ticket.isDeleted()) {
-	        throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
-	    }
+		if (!isValidTransition(ticket.getStatus(), newStatus)) {
+			throw new BadRequestExeption(ExceptionMessage.INVALID_STATUS_TRANSITION);
+		}
 
-	    // role kontrol
-	    if (user.getRole() == Role.EMPLOYEE &&
-	    	    !ticket.getCreatedBy().getId().equals(user.getId())) {
-	    	    throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-	    	}
-
-	    //  CLOSED ise dokunulmaz
-	    if (ticket.getStatus() == TicketStatus.CLOSED) {
-	        throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
-	    }
-
-	    //  lifecycle validation
-	   
-	    if (!isValidTransition(ticket.getStatus(), newStatus)) {
-	        throw new BadRequestExeption(ExceptionMessage.INVALID_STATUS_TRANSITION);
-	    }
-
-	    //  update
-	    ticket.setStatus(newStatus);
-	    ticketRepository.save(ticket);
+		// update
+		ticket.setStatus(newStatus);
+		ticketRepository.save(ticket);
 	}
 
-	 private boolean isValidTransition(TicketStatus current, TicketStatus next) {
-	        return (current == TicketStatus.OPEN && next == TicketStatus.IN_PROGRESS) ||
-	               (current == TicketStatus.IN_PROGRESS && next == TicketStatus.RESOLVED) ||
-	               (current == TicketStatus.RESOLVED && next == TicketStatus.CLOSED);
-	    }
+	private boolean isValidTransition(TicketStatus current, TicketStatus next) {
+		return (current == TicketStatus.OPEN && next == TicketStatus.IN_PROGRESS)
+				|| (current == TicketStatus.IN_PROGRESS && next == TicketStatus.RESOLVED)
+				|| (current == TicketStatus.RESOLVED && next == TicketStatus.CLOSED);
+	}
 
 	@Override
 	public Ticket getTicketById(Long ticketId, User user) {
@@ -81,7 +64,7 @@ public class TicketServiceImpl implements TicketService {
 		if (!ticket.getCreatedBy().getId().equals(user.getId())) {
 			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
-		
+
 		return ticket;
 	}
 
@@ -89,12 +72,8 @@ public class TicketServiceImpl implements TicketService {
 	public List<Ticket> getTicketsForUser(User user) {
 		List<Ticket> tickets = ticketRepository.findAll();
 
-		return tickets.stream()
-			    .filter(t -> t.getCreatedBy().getId().equals(user.getId()))
-			    .filter(t -> !t.isDeleted())
-			    .collect(Collectors.toList());
-
-		
+		return tickets.stream().filter(t -> t.getCreatedBy().getId().equals(user.getId())).filter(t -> !t.isDeleted())
+				.collect(Collectors.toList());
 
 	}
 
@@ -107,7 +86,7 @@ public class TicketServiceImpl implements TicketService {
 			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
 		}
 		if (user.getRole() != Role.ADMIN || user.getRole() != Role.IT_SUPPORT) {
-		    throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
 		if (ticket.getStatus() == TicketStatus.CLOSED) {
 			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
@@ -117,38 +96,18 @@ public class TicketServiceImpl implements TicketService {
 
 	}
 
-
 	@Override
 	public void deleteTicket(Long ticketId, User user) {
 
-	    Ticket ticket = ticketRepository.findById(ticketId);
+		Ticket ticket = ticketRepository.findById(ticketId);
 
-	    //  ticket var mı
-	    if (ticket == null) {
-	        throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-	    }
+		ticketAuthorization.canDeleteTicket(ticket, user);
+		
+		ticket.setDeleted(true);
 
-	    // lifecycle kontrolü
-	    if (ticket.getStatus() == TicketStatus.CLOSED) {
-	        throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
-	    }
+		// persist
+		ticketRepository.save(ticket);
 
-	    // yetki kontrolü
-	    // EMPLOYEE sadece kendi ticket’ını silebilir
-	    if (user.getRole() == Role.EMPLOYEE &&
-	        !ticket.getCreatedBy().getId().equals(user.getId())) {
-	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-	    }
-
-	    // soft delete
-	    ticket.setDeleted(true);
-
-	    // persist
-	    ticketRepository.save(ticket);
-
-	
 	}
 
-
-	
 }
