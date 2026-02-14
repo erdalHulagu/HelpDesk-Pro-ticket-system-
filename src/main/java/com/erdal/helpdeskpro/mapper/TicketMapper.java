@@ -1,6 +1,8 @@
 package com.erdal.helpdeskpro.mapper;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
@@ -47,38 +49,25 @@ public class TicketMapper {
 		
 	}
 	public static List<TicketDTO> ticketListToTicketDTOList(List<Ticket> tickets) {
+		if (tickets==null || tickets.isEmpty()) {
+			return Collections.emptyList();
+		}
 		
-		
-		TicketDTO ticketDTO = new TicketDTO();
-		
-		ticketDTO.setId(ticket.getId());
-		ticketDTO.setStatus(ticket.getStatus());
-		ticketDTO.setDescription(ticket.getDescription());
-		ticketDTO.setDeleted(ticket.isDeleted());
-		ticketDTO.setCreatedById(ticket.getCreatedBy().getId());
-		ticketDTO.setAssignedToId(ticket.getAssignedTo().getId());
-		ticketDTO.setTitle(ticket.getTitle());
-		
-		return ticketDTO;
+		return tickets.stream()
+				      .map(TicketMapper::ticketToTicketDTO)
+				      .collect(Collectors.toList());
 		
 	}
 	public static List<Ticket> ticketDTOListToTicketList(List<TicketDTO> ticketDTOs) {
 		
-		
-		TicketDTO ticketDTO = new TicketDTO();
-		
-		ticketDTO.setId(ticket.getId());
-		ticketDTO.setStatus(ticket.getStatus());
-		ticketDTO.setDescription(ticket.getDescription());
-		ticketDTO.setDeleted(ticket.isDeleted());
-		ticketDTO.setCreatedById(ticket.getCreatedBy().getId());
-		ticketDTO.setAssignedToId(ticket.getAssignedTo().getId());
-		ticketDTO.setTitle(ticket.getTitle());
-		
-		return ticketDTO;
+		if (ticketDTOs==null || ticketDTOs.isEmpty()) {
+			return Collections.emptyList();
 		
 	}
+		return ticketDTOs.stream()
+				         .map(TicketMapper::ticketDTOtoTicket)
+				         .collect(Collectors.toList());
 	
 	
-
+	}
 }
