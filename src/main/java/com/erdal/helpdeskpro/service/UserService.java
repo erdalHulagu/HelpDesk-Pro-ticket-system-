@@ -2,11 +2,12 @@ package com.erdal.helpdeskpro.service;
 
 import java.util.List;
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.dtos.UserDTO;
 import com.erdal.helpdeskpro.enums.Role;
 
 public interface UserService {
 	
-	void createUser(String username, String email, String password, Role role);
+	void createUser(User user);
 	
 	User getUser(Long id);
 	
@@ -14,6 +15,8 @@ public interface UserService {
 	
 	void deactivateUser(Long id);
 	
-	User validateLogin(String username, String password);
+	User login(String username, String password);
+
+	User updateUser(User user);
 
 }

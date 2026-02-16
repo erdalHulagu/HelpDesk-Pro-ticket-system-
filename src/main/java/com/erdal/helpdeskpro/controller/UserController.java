@@ -5,7 +5,7 @@ import java.util.List;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.dtos.UserDTO;
 import com.erdal.helpdeskpro.mapper.UserMapper;
-import com.erdal.helpdeskpro.request.UserRequest;
+import com.erdal.helpdeskpro.repository.UserRepository;
 import com.erdal.helpdeskpro.service.UserService;
 
 public class UserController {
@@ -14,41 +14,42 @@ public class UserController {
 	
 	
 	
-	public UserController() {
-		this.userService = new UserService();
+	public UserController(UserService userService) {
+		this.userService = userService;
 	}
 	
 	public void register(UserDTO userDTO) {
 	 	
-	 	userService.registerUser(UserMapper.userDTOtoUser(userDTO));
+	 	userService.createUser(UserMapper.userDTOtoUser(userDTO));
 	}
 	
 	public UserDTO findUserById(Long id) {
 		
-		User user=userService.findById(id);
+		User user=userService.getUser(id);
 		
 		return  UserMapper.userToUserDTO(user);
 		
 	}
 	public List<UserDTO> findAllUsers() {
 		
-		 List<User> users=userService.findAll();
+		 List<User> users=userService.getAllUsers();
 		
 		return  UserMapper.userListToUserDTOList(users);
 		
 	}
-	public UserDTO updateUser(UserRequest userRequest) {
+	public UserDTO updateUser(User user) {
 		
-		User user=userService.updateUser(userRequest);
 		
-		return UserMapper.userToUserDTO(user);
+		User usr=userService.updateUser(user);
+		
+		return UserMapper.userToUserDTO(usr);
 		
 		
 		
 	}
-	public UserDTO findUserByEmail(String email) {
+	public UserDTO login(String username, String password) {
 		
-		User user=userService.findUserByEmail(email);
+		User user=userService.login(username,password);
 		
 		return UserMapper.userToUserDTO(user);
 		
@@ -56,9 +57,9 @@ public class UserController {
 		
 	}
 	
-	public void deleteUserById(Long id) {
+	public void deActiveUser(Long id) {
 		
-		userService.deleteUserById(id);
+		userService.deactivateUser(id);
 		
 		
 		

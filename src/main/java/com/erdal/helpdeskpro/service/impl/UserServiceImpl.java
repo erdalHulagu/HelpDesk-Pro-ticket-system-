@@ -3,6 +3,7 @@ package com.erdal.helpdeskpro.service.impl;
 import java.util.List;
 
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.dtos.UserDTO;
 import com.erdal.helpdeskpro.enums.Role;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ExceptionMessage;
@@ -20,14 +21,14 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public void createUser(String username, String email, String password, Role role) {
+	public void createUser(User user) {
 		
-		User user=new User();
-		user.setUsername(username);
-		user.setEmail(email);
-		user.setPassword(password);
-		user.setRole(role);
-		user.setActive(true);
+		User craeteduser=new User();
+		craeteduser.setUsername(user.getUsername());
+		craeteduser.setEmail(user.getEmail());
+		craeteduser.setPassword(user.getPassword());
+		craeteduser.setRole(user.getRole());
+		craeteduser.setActive(true);
 		
 		userRepository.save(user);
 		
@@ -56,6 +57,15 @@ public class UserServiceImpl implements UserService {
 		
 		return users;
 	}
+	
+	@Override
+	public User updateUser(User user) {
+		User upDatedUser=new User();
+		upDatedUser.setUsername(user.getUsername());
+		upDatedUser.setPassword(user.getPassword());
+		userRepository.save(upDatedUser);
+		return upDatedUser;
+	}
 
 	@Override
 	public void deactivateUser(Long id) {
@@ -66,7 +76,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public User validateLogin(String username, String password) {
+	public User login(String username, String password) {
 		User user=userRepository.findByUserName(username);
 		if (user==null) {
 			throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
@@ -77,5 +87,7 @@ public class UserServiceImpl implements UserService {
 		}else
 		return user;
 	}
+
+	
 
 }
