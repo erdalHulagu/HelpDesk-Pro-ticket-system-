@@ -30,7 +30,7 @@ public class TicketController {
 	}
 	
 	public List<TicketDTO> getAllTicketsForAdmin(User user) {
-		List<Ticket> ticketList=ticketService.getAllTickets( user);
+		List<Ticket> ticketList=ticketService.getAllTicketsForAdmin( user);
 		return TicketMapper.ticketListToTicketDTOList(ticketList);	
 	}
 	
