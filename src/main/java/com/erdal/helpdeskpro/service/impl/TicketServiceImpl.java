@@ -101,4 +101,13 @@ public class TicketServiceImpl implements TicketService {
 
 	}
 
+	@Override
+	public List<Ticket> getAllTickets(Long ticketId, User user) {
+		if (user.getRole()!=Role.ADMIN) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
+		
+		return ticketRepository.findAll();
+	}
+
 }

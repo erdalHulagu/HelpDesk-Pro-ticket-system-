@@ -5,7 +5,6 @@ import java.util.List;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.dtos.UserDTO;
 import com.erdal.helpdeskpro.mapper.UserMapper;
-import com.erdal.helpdeskpro.repository.UserRepository;
 import com.erdal.helpdeskpro.service.UserService;
 
 public class UserController {
