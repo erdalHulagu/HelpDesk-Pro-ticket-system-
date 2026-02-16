@@ -20,6 +20,6 @@ public interface TicketService {
 	
 	void  deleteTicket(Long ticketId, User user);
 
-	List<Ticket> getAllTickets(Long ticketId, User user);
+	List<Ticket> getAllTicketsForAdmin( User user);
 
 }
