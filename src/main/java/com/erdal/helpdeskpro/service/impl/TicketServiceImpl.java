@@ -25,17 +25,17 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	@Override
-	public void createTicket(Ticket ticket, User user) {
-		ticket.setCreatedBy(user);
+	public void createTicket(Ticket ticket, User currentUser) {
+		ticket.setCreatedBy(currentUser);
 		ticket.setStatus(TicketStatus.OPEN);
 		ticketRepository.save(ticket);
 	}
 
 	@Override
-	public void updateStatus(Long ticketId, TicketStatus newStatus, User user) {
+	public void updateStatus(Long ticketId, TicketStatus newStatus, User currentUser) {
 
 		Ticket ticket = ticketRepository.findById(ticketId);
-		authorization.canUpdateStatus(ticket, user);
+		authorization.canUpdateStatus(ticket, currentUser);
 
 		// lifecycle validation
 
@@ -55,13 +55,13 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	@Override
-	public Ticket getTicketById(Long ticketId, User user) {
+	public Ticket getTicketById(Long ticketId, User currentUser) {
 
 		Ticket ticket = ticketRepository.findById(ticketId);
 		if (ticket == null) {
 			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
 		}
-		if (!ticket.getCreatedBy().getId().equals(user.getId())) {
+		if (!ticket.getCreatedBy().getId().equals(currentUser.getId())) {
 			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
 
@@ -69,30 +69,30 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	@Override
-	public List<Ticket> getTicketsForUser(User user) {
+	public List<Ticket> getTicketsForUser(User currentUser) {
 		List<Ticket> tickets = ticketRepository.findAll();
 
-		return tickets.stream().filter(t -> t.getCreatedBy().getId().equals(user.getId())).filter(t -> !t.isDeleted())
+		return tickets.stream().filter(t -> t.getCreatedBy().getId().equals(currentUser.getId())).filter(t -> !t.isDeleted())
 				.collect(Collectors.toList());
 
 	}
 
 	@Override
-	public void assignTicket(Long ticketId, User user) {
+	public void assignTicket(Long ticketId, User currentUser) {
 
 		Ticket ticket = ticketRepository.findById(ticketId);
-		authorization.canAssignTicket(ticket, user);
+		authorization.canAssignTicket(ticket, currentUser);
 
-		ticket.setAssignedTo(user);
+		ticket.setAssignedTo(currentUser);
 
 	}
 
 	@Override
-	public void deleteTicket(Long ticketId, User user) {
+	public void deleteTicket(Long ticketId, User currentUser) {
 
 		Ticket ticket = ticketRepository.findById(ticketId);
 
-		authorization.canDeleteTicket(ticket, user);
+		authorization.canDeleteTicket(ticket, currentUser);
 
 		ticket.setDeleted(true);
 
@@ -102,8 +102,8 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	@Override
-	public List<Ticket> getAllTicketsForAdmin(User user) {
-		if (user.getRole()!=Role.ADMIN) {
+	public List<Ticket> getAllTicketsForAdmin(User currentUser) {
+		if (currentUser.getRole()!=Role.ADMIN) {
 			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
 		

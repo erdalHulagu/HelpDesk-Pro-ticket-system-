@@ -8,18 +8,18 @@ import com.erdal.helpdeskpro.enums.TicketStatus;
 
 public interface TicketService {
 	
-	void createTicket(Ticket ticket, User user);
+	void createTicket(Ticket ticket, User currentUser);
 	
-	Ticket getTicketById(Long ticketId, User user);
+	Ticket getTicketById(Long ticketId, User currentUser);
 	
-	List<Ticket> getTicketsForUser(User user);
+	List<Ticket> getTicketsForUser(User currentUser);
 	
-	void assignTicket(Long ticketId,User user);
+	void assignTicket(Long ticketId,User currentUser);
 	
-	void updateStatus(Long ticketId,TicketStatus ticketStatus,User user);
+	void updateStatus(Long ticketId,TicketStatus ticketStatus,User currentUser);
 	
-	void  deleteTicket(Long ticketId, User user);
+	void  deleteTicket(Long ticketId, User currentUser);
 
-	List<Ticket> getAllTicketsForAdmin( User user);
+	List<Ticket> getAllTicketsForAdmin( User currentUser);
 
 }
