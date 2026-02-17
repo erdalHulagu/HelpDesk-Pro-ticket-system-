@@ -80,8 +80,8 @@ public class UserServiceImpl implements UserService {
 		User user=userRepository.findByUserName(username);
 		if (user==null) {
 			throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
-		}else if (user.getPassword().equalsIgnoreCase(password)) {
-			throw new BadRequestExeption(ExceptionMessage.WRONG_PASSWORD);
+		}if (!user.getPassword().equals(password)) {
+		    throw new BadRequestExeption(ExceptionMessage.WRONG_PASSWORD);
 		}else if (user.isActive()==false) {
 			throw new BadRequestExeption(ExceptionMessage.USER_NOT_ACTIVE);
 		}else
