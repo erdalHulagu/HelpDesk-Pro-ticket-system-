@@ -10,6 +10,7 @@ import org.hibernate.Transaction;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ExceptionMessage;
+import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
 import com.erdal.helpdeskpro.repository.UserRepository;
 
 public class UserDAO implements UserRepository {
@@ -25,11 +26,17 @@ public class UserDAO implements UserRepository {
 		
 		Session session =sessionFactory.openSession();
 		Transaction transaction=session.beginTransaction();
+		
 		User usr=findByUserName(user.getUsername());
+		if (usr==null) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.USER_IS_NULL);
+			
+		}
 		if (usr.getUsername().equalsIgnoreCase(user.getUsername())) {
 			throw new BadRequestExeption(ExceptionMessage.USER_ALREADY_EXIST);
 			
 		}
+		
 		session.persist(user);
 		transaction.commit();
 		session.close();
@@ -85,7 +92,7 @@ public class UserDAO implements UserRepository {
 		User user= session.createQuery(hql,User.class).setParameter("username", username).uniqueResult();
 
 		if (user==null) {
-			throw new BadRequestExeption(ExceptionMessage.USER_NOT_FOUND);
+			return user;
 			
 		}
 		session.close();
