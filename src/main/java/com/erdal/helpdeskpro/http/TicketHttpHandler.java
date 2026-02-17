@@ -1,142 +1,134 @@
 package com.erdal.helpdeskpro.http;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-
 import com.erdal.helpdeskpro.controller.TicketController;
 import com.erdal.helpdeskpro.dtos.TicketDTO;
-import com.erdal.helpdeskpro.enums.TicketStatus;
-import com.erdal.helpdeskpro.util.JsonUtil;
+import com.erdal.helpdeskpro.domain.User;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
 /**
- * Handles all HTTP requests related to tickets.
- * Works like a REST controller but without Spring.
+ * HTTP Handler for Ticket REST API.
+ * Supports GET, POST, PUT, DELETE
  */
 public class TicketHttpHandler implements HttpHandler {
 
-    private TicketController ticketController;
+    private final TicketController ticketController;
+    private final User authenticatedUser; // In real app, get this from auth
 
-    public TicketHttpHandler() {
-        // Normally you would inject dependencies here
-        this.ticketController = DependencyContainer.getTicketController();
+    public TicketHttpHandler(TicketController ticketController, User authenticatedUser) {
+        this.ticketController = ticketController;
+        this.authenticatedUser = authenticatedUser;
     }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-
+        String path = exchange.getRequestURI().getPath();
         String method = exchange.getRequestMethod();
 
-        /**
-         * Route request based on HTTP method
-         */
-        switch (method) {
-
-            case "GET":
-                handleGetTickets(exchange);
-                break;
-
-            case "POST":
+        try {
+            // ---------------- POST /tickets ----------------
+            if ("POST".equalsIgnoreCase(method) && path.equals("/tickets")) {
                 handleCreateTicket(exchange);
-                break;
+                return;
+            }
 
-            case "PUT":
+            // ---------------- GET /tickets ----------------
+            if ("GET".equalsIgnoreCase(method) && path.equals("/tickets")) {
+                handleGetAllTickets(exchange);
+                return;
+            }
+
+            // ---------------- GET /tickets/{id} ----------------
+            if ("GET".equalsIgnoreCase(method) && path.matches("/tickets/\\d+")) {
+                handleGetTicketById(exchange);
+                return;
+            }
+
+            // ---------------- PUT /tickets/{id}/status ----------------
+            if ("PUT".equalsIgnoreCase(method) && path.matches("/tickets/\\d+/status")) {
                 handleUpdateStatus(exchange);
-                break;
+                return;
+            }
 
-            case "DELETE":
+            // ---------------- DELETE /tickets/{id} ----------------
+            if ("DELETE".equalsIgnoreCase(method) && path.matches("/tickets/\\d+")) {
                 handleDeleteTicket(exchange);
-                break;
+                return;
+            }
 
-            default:
-                sendResponse(exchange, 405, "Method Not Allowed");
+            // 404 for unknown paths
+            exchange.sendResponseHeaders(404, -1);
+
+        } catch (Exception e) {
+            // Exception handling: return JSON error
+            String errorJson = "{\"error\":\"" + e.getMessage() + "\"}";
+            exchange.getResponseHeaders().add("Content-Type", "application/json");
+            exchange.sendResponseHeaders(400, errorJson.getBytes().length);
+            exchange.getResponseBody().write(errorJson.getBytes());
+            exchange.close();
         }
     }
 
-    /**
-     * GET /tickets
-     */
-    private void handleGetTickets(HttpExchange exchange) throws IOException {
+    // ---------------- Helper methods ----------------
 
-        // In real app user would come from auth token
-        var user = AuthContext.getCurrentUser();
-
-        var tickets = ticketController.getAllTickets(user);
-
-        String json = JsonUtil.toJson(tickets);
-
-        sendResponse(exchange, 200, json);
-    }
-
-    /**
-     * POST /tickets
-     */
-    private void handleCreateTicket(HttpExchange exchange) throws IOException {
-
+    private void handleCreateTicket(HttpExchange exchange) throws Exception {
         InputStream is = exchange.getRequestBody();
-        String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        TicketDTO ticketDTO = JsonUtil.fromJson(new String(is.readAllBytes()), TicketDTO.class);
 
-        TicketDTO dto = JsonUtil.fromJson(body, TicketDTO.class);
+        ticketController.createTicket(ticketDTO, authenticatedUser);
 
-        var user = AuthContext.getCurrentUser();
-
-        ticketController.creaetTicket(dto, user);
-
-        sendResponse(exchange, 201, "Ticket created");
+        String response = JsonUtil.toJson(ticketDTO);
+        exchange.getResponseHeaders().add("Content-Type", "application/json");
+        exchange.sendResponseHeaders(201, response.getBytes().length);
+        exchange.getResponseBody().write(response.getBytes());
+        exchange.close();
     }
 
-    /**
-     * PUT /tickets/status
-     */
-    private void handleUpdateStatus(HttpExchange exchange) throws IOException {
+    private void handleGetAllTickets(HttpExchange exchange) throws Exception {
+        List<TicketDTO> tickets = ticketController.getAllTicketsForAdmin(authenticatedUser);
 
-        String query = exchange.getRequestURI().getQuery();
-        Long ticketId = Long.parseLong(query.split("=")[1]);
-
-        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-        TicketStatus status = TicketStatus.valueOf(body);
-
-        var user = AuthContext.getCurrentUser();
-
-        ticketController.uspDateTicetsStatus(ticketId, status, user);
-
-        sendResponse(exchange, 200, "Status updated");
+        String response = JsonUtil.toJson(tickets);
+        exchange.getResponseHeaders().add("Content-Type", "application/json");
+        exchange.sendResponseHeaders(200, response.getBytes().length);
+        exchange.getResponseBody().write(response.getBytes());
+        exchange.close();
     }
 
-    /**
-     * DELETE /tickets?id=1
-     */
-    private void handleDeleteTicket(HttpExchange exchange) throws IOException {
+    private void handleGetTicketById(HttpExchange exchange) throws Exception {
+        String path = exchange.getRequestURI().getPath();
+        Long ticketId = Long.parseLong(path.substring("/tickets/".length()));
 
-        String query = exchange.getRequestURI().getQuery();
-        Long ticketId = Long.parseLong(query.split("=")[1]);
+        TicketDTO ticketDTO = ticketController.getTicket(ticketId, authenticatedUser);
 
-        var user = AuthContext.getCurrentUser();
-
-        ticketController.deleteTicket(ticketId, user);
-
-        sendResponse(exchange, 200, "Ticket deleted");
+        String response = JsonUtil.toJson(ticketDTO);
+        exchange.getResponseHeaders().add("Content-Type", "application/json");
+        exchange.sendResponseHeaders(200, response.getBytes().length);
+        exchange.getResponseBody().write(response.getBytes());
+        exchange.close();
     }
 
-    /**
-     * Utility method to send HTTP response
-     */
-    private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
+    private void handleUpdateStatus(HttpExchange exchange) throws Exception {
+        String path = exchange.getRequestURI().getPath();
+        Long ticketId = Long.parseLong(path.split("/")[2]);
 
-        exchange.sendResponseHeaders(statusCode, response.getBytes().length);
+        TicketDTO request = JsonUtil.fromJson(new String(exchange.getRequestBody().readAllBytes()), TicketDTO.class);
+        ticketController.uspDateTicetsStatus(ticketId, request.getStatus(), authenticatedUser);
 
-        OutputStream os = exchange.getResponseBody();
-        os.write(response.getBytes());
-        os.close();
+        exchange.sendResponseHeaders(204, -1); // No content
+        exchange.close();
+    }
+
+    private void handleDeleteTicket(HttpExchange exchange) throws Exception {
+        String path = exchange.getRequestURI().getPath();
+        Long ticketId = Long.parseLong(path.substring("/tickets/".length()));
+
+        ticketController.deleteTicket(ticketId, authenticatedUser);
+
+        exchange.sendResponseHeaders(204, -1); // No content
+        exchange.close();
     }
 }
-//Bu Handler ne yapıyor?
-//✔ HTTP method okuyor
-//✔ Body parse ediyor
-//✔ Controller çağırıyor
-//✔ JSON response dönüyor
-//Yani tam olarak:
-//Spring’deki @RestController davranışı
