@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserService {
 		craeteduser.setRole(user.getRole());
 		craeteduser.setActive(true);
 		
-		userRepository.save(user);
+		userRepository.save(craeteduser);
 		
 	}
 
