@@ -28,10 +28,7 @@ public class UserDAO implements UserRepository {
 		Transaction transaction=session.beginTransaction();
 		
 		User usr=findByUserName(user.getUsername());
-		if (usr==null) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.USER_IS_NULL);
-			
-		}
+		
 		if (usr.getUsername().equalsIgnoreCase(user.getUsername())) {
 			throw new BadRequestExeption(ExceptionMessage.USER_ALREADY_EXIST);
 			

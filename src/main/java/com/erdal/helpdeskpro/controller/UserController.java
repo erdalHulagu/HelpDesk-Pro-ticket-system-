@@ -36,10 +36,10 @@ public class UserController {
 		return  UserMapper.userListToUserDTOList(users);
 		
 	}
-	public UserDTO updateUser(User user) {
+	public UserDTO updateUser(User currentUser) {
 		
 		
-		User usr=userService.updateUser(user);
+		User usr=userService.updateUser(currentUser);
 		
 		return UserMapper.userToUserDTO(usr);
 		

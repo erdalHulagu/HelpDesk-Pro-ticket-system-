@@ -18,39 +18,39 @@ public class TicketController {
 		
 	}
 	
-	public TicketDTO createTicket(TicketDTO ticketDTO, User user) {
+	public TicketDTO createTicket(TicketDTO ticketDTO, User currentUser) {
         Ticket ticket = TicketMapper.ticketDTOtoTicket(ticketDTO);
-        ticketService.createTicket(ticket, user);
+        ticketService.createTicket(ticket, currentUser);
         return TicketMapper.ticketToTicketDTO(ticket);
     }
 	
-	public TicketDTO getTicket(Long ticketId,User user) {
-		Ticket ticket=ticketService.getTicketById(ticketId, user);
+	public TicketDTO getTicket(Long ticketId,User currentUser) {
+		Ticket ticket=ticketService.getTicketById(ticketId, currentUser);
 		return TicketMapper.ticketToTicketDTO(ticket);
 	}
 	
-	public List<TicketDTO> getAllTicketsForAdmin(User user) {
-		List<Ticket> ticketList=ticketService.getAllTicketsForAdmin( user);
+	public List<TicketDTO> getAllTicketsForAdmin(User currentUser) {
+		List<Ticket> ticketList=ticketService.getAllTicketsForAdmin( currentUser);
 		return TicketMapper.ticketListToTicketDTOList(ticketList);	
 	}
 	
-	public List<TicketDTO> getusersTickets(User user) {
-		List<Ticket> ticketList=ticketService.getTicketsForUser( user);
+	public List<TicketDTO> getusersTickets(User currentUser) {
+		List<Ticket> ticketList=ticketService.getTicketsForUser( currentUser);
 		return TicketMapper.ticketListToTicketDTOList(ticketList);
 	}
 	
-	public void uspDateTicetsStatus(Long ticketId,TicketStatus ticketStatus,User user) {
-		ticketService.updateStatus(ticketId,ticketStatus, user);
+	public void uspDateTicetsStatus(Long ticketId,TicketStatus ticketStatus,User currentUser) {
+		ticketService.updateStatus(ticketId,ticketStatus, currentUser);
 	}
 	
-	public void assignedUserTickets(Long ticketId,User user) {
+	public void assignedUserTickets(Long ticketId,User currentUser) {
 				
-		ticketService.assignTicket(ticketId, user);
+		ticketService.assignTicket(ticketId, currentUser);
 	}
 	
-	public void deleteTicket(Long ticketId,User user) {
+	public void deleteTicket(Long ticketId,User currentUser) {
 		
-		ticketService.deleteTicket(ticketId, user);
+		ticketService.deleteTicket(ticketId, currentUser);
 		
 	}
 	
