@@ -33,6 +33,12 @@ public class CommentServiceImpl implements CommentService {
 	}
 
 	
+	public CommentServiceImpl(CommentRepository commentrepository, TicketRepository ticketrepository,
+			UserRepository userrepository) {
+		
+	}
+
+
 	// --------------- Create Comment ----------------
 	@Override
 	public void createComment(Comment comment, User user) {

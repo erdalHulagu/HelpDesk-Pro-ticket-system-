@@ -1,4 +1,4 @@
-package com.erdal.helpdeskpro.httpHandler;
+package com.erdal.helpdeskpro.http;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -133,3 +133,10 @@ public class TicketHttpHandler implements HttpHandler {
         os.close();
     }
 }
+//Bu Handler ne yapıyor?
+//✔ HTTP method okuyor
+//✔ Body parse ediyor
+//✔ Controller çağırıyor
+//✔ JSON response dönüyor
+//Yani tam olarak:
+//Spring’deki @RestController davranışı

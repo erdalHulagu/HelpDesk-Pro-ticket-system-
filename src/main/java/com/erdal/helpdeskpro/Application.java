@@ -32,4 +32,11 @@ package com.erdal.helpdeskpro;
 	        System.out.println("🚀 Server started on http://localhost:8080");
 	    }
 	}
-
+//	Ne Yaptık (kısa mantık)
+//	• Java’nın built-in HTTP server’ını başlattık
+//	• Port → 8080
+//	• Endpoint mapping yaptık
+//	/tickets   → TicketHttpHandler
+//	/users     → UserHttpHandler
+//	/comments  → CommentHttpHandler
+//	Yani artık uygulaman gerçek REST server gibi çalışacak

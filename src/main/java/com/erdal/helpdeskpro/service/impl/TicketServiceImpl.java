@@ -24,6 +24,10 @@ public class TicketServiceImpl implements TicketService {
 		this.authorization = authorization;
 	}
 
+	public TicketServiceImpl(TicketRepository ticketrepository) {
+		this.ticketRepository = ticketRepository;
+	}
+
 	@Override
 	public void createTicket(Ticket ticket, User currentUser) {
 		ticket.setCreatedBy(currentUser);
@@ -111,3 +115,10 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 }
+/*
+ * Bu class ne kazandırıyor?
+✔ New keyword karmaşası yok
+✔ Tüm bağımlılıklar tek yerde
+✔ Spring olmadan DI mantığı
+✔ Test yazmak kolay 
+*/
