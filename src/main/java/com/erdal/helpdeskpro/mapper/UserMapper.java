@@ -26,6 +26,7 @@ public final class UserMapper {
 		return new UserDTO(user.getId(), 
 				           user.getUsername(), 
 				           user.getEmail(), 
+				           user.getPassword(),
 				           user.getRole(),
 				           user.isActive());
 
@@ -49,6 +50,7 @@ public final class UserMapper {
 		return users.stream().map(user -> new UserDTO(user.getId(), 
 		                                              user.getUsername(), 
 		                                              user.getEmail(),
+		                                              user.getPassword(),
 		                                              user.getRole(),
 		                                              user.isActive())).collect(Collectors.toList());
 		

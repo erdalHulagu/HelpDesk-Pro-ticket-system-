@@ -48,14 +48,12 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public List<User> getAllUsers() {
-		
-		List<User> users=userRepository.findAll();
-		if (users.isEmpty()) {
-			throw new BadRequestExeption(ExceptionMessage.NO_USERS);
-		}
-		
-		return users;
+	public List<User> getAllUsers(User currentUser) {
+	    if (currentUser.getRole() != Role.ADMIN) {
+	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	    }
+
+	    return userRepository.findAll();
 	}
 	
 	@Override

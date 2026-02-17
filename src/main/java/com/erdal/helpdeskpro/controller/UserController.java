@@ -29,13 +29,11 @@ public class UserController {
 		return  UserMapper.userToUserDTO(user);
 		
 	}
-	public List<UserDTO> findAllUsers() {
-		
-		 List<User> users=userService.getAllUsers();
-		
-		return  UserMapper.userListToUserDTOList(users);
-		
+	public List<UserDTO> getAllUsers(User adminUser) {
+	    List<User> users = userService.getAllUsers(adminUser);
+	    return UserMapper.userListToUserDTOList(users);
 	}
+
 	public UserDTO updateUser(User currentUser) {
 		
 		

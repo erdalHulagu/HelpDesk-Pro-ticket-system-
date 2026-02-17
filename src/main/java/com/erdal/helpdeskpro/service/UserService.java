@@ -11,12 +11,12 @@ public interface UserService {
 	
 	User getUser(Long id);
 	
-	List<User> getAllUsers();
-	
 	void deactivateUser(Long id);
 	
 	User login(String username, String password);
 
 	User updateUser(User user);
+
+	List<User> getAllUsers(User currentUser);
 
 }

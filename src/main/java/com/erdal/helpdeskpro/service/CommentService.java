@@ -15,7 +15,7 @@ public interface CommentService {
 	
 	void deleteCommentById(Long commentId, User user);
 	
-	void updateComment(Long commentId, String newContent, User user);
+	Comment updateComment(Long commentId, String newContent, User user);
 	
 	List<Comment> getCommentsByTicket(Long ticketId, User user);
 	

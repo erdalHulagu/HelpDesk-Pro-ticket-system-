@@ -108,7 +108,7 @@ public class CommentServiceImpl implements CommentService {
 	
 	// ---------------Update Comment----------------
 	@Override
-	public void updateComment(Long commentId, String newContent, User user) {
+	public Comment updateComment(Long commentId, String newContent, User user) {
 		
 		Comment comment=commentRepository.findById(commentId);
 		if (comment==null) {
@@ -148,6 +148,10 @@ public class CommentServiceImpl implements CommentService {
 	    }
 	    
 		comment.setContent(trimmedContent);
+		
+		 commentRepository.save(comment);
+		 
+		 return comment;
 	}
 
 
