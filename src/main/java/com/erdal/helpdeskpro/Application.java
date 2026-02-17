@@ -1,34 +1,35 @@
 package com.erdal.helpdeskpro;
 
-import com.erdal.helpdeskpro.config.HibernateUtil;
-import com.erdal.helpdeskpro.controller.UserController;
-import com.erdal.helpdeskpro.service.UserService;
-import com.erdal.helpdeskpro.service.impl.UserServiceImpl;
-import com.erdal.helpdeskpro.dtos.UserDTO;
-import com.erdal.helpdeskpro.exception.GlobalExceptionHandler;
-import com.erdal.helpdeskpro.repository.dao.UserDAO;
+	import java.net.InetSocketAddress;
 
-public class Application {
+	import com.sun.net.httpserver.HttpServer;
 
-	public static void main(String[] args) {
+	/**
+	 * Main class responsible for starting the embedded HTTP server.
+	 * This replaces Spring Boot's auto configuration.
+	 */
+	public class Application {
 
-        try {
+	    public static void main(String[] args) throws Exception {
 
-            UserService userService = new UserServiceImpl(new UserDAO(HibernateUtil.getSessionFactory()));
-            UserController userController = new UserController(userService);
+	        // Create HTTP server on port 8080
+	        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
-            UserDTO user = new UserDTO();
-            user.setUsername("erdal");
-            user.setPassword("1234");
-            user.setEmail("erdal@mail.com");
+	        /**
+	         * Register endpoint contexts.
+	         * Each context acts like a REST controller mapping.
+	         */
+	        server.createContext("/tickets", new TicketHttpHandler());
+	        server.createContext("/users", new UserHttpHandler());
+	        server.createContext("/comments", new CommentHttpHandler());
 
-            userController.register(user);
+	        // Default executor (creates a thread pool automatically)
+	        server.setExecutor(null);
 
-            System.out.println(" User created");
+	        // Start server
+	        server.start();
 
-        } catch (Exception e) {
-            GlobalExceptionHandler.handle(e);
-        }
-    }
+	        System.out.println("🚀 Server started on http://localhost:8080");
+	    }
+	}
 
-}
