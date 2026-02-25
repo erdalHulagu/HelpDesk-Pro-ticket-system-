@@ -3,6 +3,7 @@ package com.erdal.helpdeskpro.http;
 import com.erdal.helpdeskpro.controller.UserController;
 import com.erdal.helpdeskpro.dtos.UserDTO;
 import com.erdal.helpdeskpro.mapper.TicketMapper;
+import com.erdal.helpdeskpro.mapper.UserMapper;
 import com.erdal.helpdeskpro.domain.User;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -131,7 +132,8 @@ public class UserHttpHandler implements HttpHandler {
         UserDTO userDTO = JsonUtil.fromJson(new String(is.readAllBytes()), UserDTO.class);
 
         userDTO.setId(id); // make sure id is correct
-        UserDTO updated = userController.updateUser(TicketMapper.ticketDTOtoTicket(userDTO)); // <-- adapt mapping
+        UserDTO updated =
+                userController.updateUser(UserMapper.userDTOtoUser(userDTO)); // <-- adapt mapping
 
         String response = JsonUtil.toJson(updated);
         exchange.getResponseHeaders().add("Content-Type", "application/json");
