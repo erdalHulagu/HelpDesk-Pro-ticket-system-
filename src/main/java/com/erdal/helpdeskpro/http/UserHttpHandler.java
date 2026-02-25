@@ -106,7 +106,7 @@ public class UserHttpHandler implements HttpHandler {
     }
 
     private void handleGetAllUsers(HttpExchange exchange) throws Exception {
-        List<UserDTO> users = userController.findAllUsers();
+        List<UserDTO> users = userController.getAllUsers();
 
         String response = JsonUtil.toJson(users);
         exchange.getResponseHeaders().add("Content-Type", "application/json");
@@ -132,8 +132,7 @@ public class UserHttpHandler implements HttpHandler {
         UserDTO userDTO = JsonUtil.fromJson(new String(is.readAllBytes()), UserDTO.class);
 
         userDTO.setId(id); // make sure id is correct
-        UserDTO updated =
-                userController.updateUser(UserMapper.userDTOtoUser(userDTO)); // <-- adapt mapping
+        UserDTO updated =userController.updateUser(UserMapper.userDTOtoUser(userDTO)); // <-- adapt mapping
 
         String response = JsonUtil.toJson(updated);
         exchange.getResponseHeaders().add("Content-Type", "application/json");

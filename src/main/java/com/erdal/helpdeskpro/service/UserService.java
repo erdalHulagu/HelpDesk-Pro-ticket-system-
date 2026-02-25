@@ -19,4 +19,6 @@ public interface UserService {
 
 	List<User> getAllUsers(User currentUser);
 
+	List<User> findAllUsers();
+
 }

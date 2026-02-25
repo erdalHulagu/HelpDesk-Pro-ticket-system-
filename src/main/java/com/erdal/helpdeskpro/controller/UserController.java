@@ -33,6 +33,9 @@ public class UserController {
 	    List<User> users = userService.getAllUsers(adminUser);
 	    return UserMapper.userListToUserDTOList(users);
 	}
+	
+	
+	
 
 	public UserDTO updateUser(User currentUser) {
 		
@@ -60,6 +63,10 @@ public class UserController {
 		
 		
 		
+	}
+	public List<UserDTO> getAllUsers() {
+		List<User> users = userService.findAllUsers();
+		return UserMapper.userListToUserDTOList(users);
 	}
 	
 
