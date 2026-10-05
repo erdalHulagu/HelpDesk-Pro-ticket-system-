@@ -1,12 +1,15 @@
 package com.erdal.helpdeskpro.domain;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.erdal.helpdeskpro.enums.TicketCategory;
 import com.erdal.helpdeskpro.enums.TicketStatus;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -17,7 +20,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-
+@Entity
 @Table(name="tickets")
 public class Ticket {
 	
@@ -47,8 +50,10 @@ public class Ticket {
 	 @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
 	 private List<Comment> comments=new ArrayList<>();
 	 
-	private LocalDateTime createdAt;
+	@Column(name="created_at")
+	private LocalDateTime createdAt=LocalDateTime.now();
 	
+	@Column(name="is_deleted")
 	private boolean isDeleted;
 	
 	public Ticket() {

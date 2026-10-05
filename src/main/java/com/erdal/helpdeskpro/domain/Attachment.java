@@ -2,6 +2,7 @@ package com.erdal.helpdeskpro.domain;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+@Entity
 @Table(name="attachments")
 public class Attachment {
 
@@ -27,7 +29,7 @@ public class Attachment {
 	
 	private String filePath;
 	
-	private LocalDateTime uploadedAt;
+	private LocalDateTime uploadedAt=LocalDateTime.now();
 
 	public Attachment() {
 	}
