@@ -22,16 +22,16 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void createUser(User user) {
-		
-		User craeteduser=new User();
-		craeteduser.setUsername(user.getUsername());
-		craeteduser.setEmail(user.getEmail());
-		craeteduser.setPassword(user.getPassword());
-		craeteduser.setRole(user.getRole());
-		craeteduser.setActive(true);
-		
-		userRepository.save(craeteduser);
-		
+
+	    User createdUser = new User();
+
+	    createdUser.setUsername(user.getUsername());
+	    createdUser.setEmail(user.getEmail());
+	    createdUser.setPassword(user.getPassword());
+	    createdUser.setRole(Role.EMPLOYEE);
+	    createdUser.setActive(true);
+
+	    userRepository.save(createdUser);
 	}
 
 	@Override

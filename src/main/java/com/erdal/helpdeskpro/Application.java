@@ -1,45 +1,61 @@
 package com.erdal.helpdeskpro;
 
-	import java.net.InetSocketAddress;
+import java.net.InetSocketAddress;
 
+import org.hibernate.SessionFactory;
+
+import com.erdal.helpdeskpro.config.HibernateUtil;
+import com.erdal.helpdeskpro.controller.UserController;
 import com.erdal.helpdeskpro.http.CommentHttpHandler;
 import com.erdal.helpdeskpro.http.TicketHttpHandler;
 import com.erdal.helpdeskpro.http.UserHttpHandler;
+import com.erdal.helpdeskpro.repository.UserRepository;
+import com.erdal.helpdeskpro.repository.dao.UserDAO;
+import com.erdal.helpdeskpro.service.UserService;
+import com.erdal.helpdeskpro.service.impl.UserServiceImpl;
 import com.sun.net.httpserver.HttpServer;
 
-	/**
-	 * Main class responsible for starting the embedded HTTP server.
-	 * This replaces Spring Boot's auto configuration.
-	 */
-	public class Application {
+public class Application {
 
-	    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
 
-	        // Create HTTP server on port 8080
-	        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+        // Hibernate
+        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
 
-	        /**
-	         * Register endpoint contexts.
-	         * Each context acts like a REST controller mapping.
-	         */
-	        server.createContext("/tickets", new TicketHttpHandler());
-	        server.createContext("/users", new UserHttpHandler());
-	        server.createContext("/comments", new CommentHttpHandler());
+        // User dependency chain
+        UserRepository userRepository = new UserDAO(sessionFactory);
 
-	        // Default executor (creates a thread pool automatically)
-	        server.setExecutor(null);
+        UserService userService = new UserServiceImpl(userRepository);
 
-	        // Start server
-	        server.start();
+        UserController userController = new UserController(userService);
+        
+       
 
-	        System.out.println("🚀 Server started on http://localhost:8080");
-	    }
-	}
-//	Ne Yaptık (kısa mantık)
-//	• Java’nın built-in HTTP server’ını başlattık
-//	• Port → 8080
-//	• Endpoint mapping yaptık
-//	/tickets   → TicketHttpHandler
-//	/users     → UserHttpHandler
-//	/comments  → CommentHttpHandler
-//	Yani artık uygulaman gerçek REST server gibi çalışacak
+        // HTTP Server
+        HttpServer server = HttpServer.create(
+                new InetSocketAddress(8080), 0
+        );
+
+        server.createContext(
+                "/users",
+                new UserHttpHandler(userController)
+        );
+
+//        // Şimdilik bunları mevcut haliyle bırakıyoruz
+//        server.createContext(
+//                "/tickets",
+//                new TicketHttpHandler(ticket)
+//        );
+//
+//        server.createContext(
+//                "/comments",
+//                new CommentHttpHandler()
+//        );
+
+        server.setExecutor(null);
+
+        server.start();
+
+        System.out.println("🚀 Server started on http://localhost:8080");
+    }
+}
