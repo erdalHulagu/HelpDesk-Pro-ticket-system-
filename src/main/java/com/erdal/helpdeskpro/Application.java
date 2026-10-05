@@ -2,7 +2,10 @@ package com.erdal.helpdeskpro;
 
 	import java.net.InetSocketAddress;
 
-	import com.sun.net.httpserver.HttpServer;
+import com.erdal.helpdeskpro.http.CommentHttpHandler;
+import com.erdal.helpdeskpro.http.TicketHttpHandler;
+import com.erdal.helpdeskpro.http.UserHttpHandler;
+import com.sun.net.httpserver.HttpServer;
 
 	/**
 	 * Main class responsible for starting the embedded HTTP server.
