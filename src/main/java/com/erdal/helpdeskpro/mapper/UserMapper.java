@@ -12,13 +12,16 @@ public final class UserMapper {
 
 	public static User userDTOtoUser(UserDTO userDTO) {
 
-		return new User(userDTO.getId(), 
-		                userDTO.getUsername(), 
-		                userDTO.getEmail(), 
-		                userDTO.getRole(),
-		                userDTO.isActive());
-	
+	    User user = new User();
 
+	    user.setId(userDTO.getId());
+	    user.setUsername(userDTO.getUsername());
+	    user.setEmail(userDTO.getEmail());
+	    user.setPassword(userDTO.getPassword());
+	    user.setRole(userDTO.getRole());
+	    user.setActive(userDTO.isActive());
+
+	    return user;
 	}
 
 	public static UserDTO userToUserDTO(User user) {
