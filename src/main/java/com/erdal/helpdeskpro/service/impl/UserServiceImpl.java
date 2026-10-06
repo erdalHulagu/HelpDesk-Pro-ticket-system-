@@ -74,18 +74,24 @@ public class UserServiceImpl implements UserService {
 		
 		
 	}
-
 	@Override
 	public User login(String email, String password) {
-		User user=userRepository.findByEmail(email);
-		if (user==null) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
-		}if (!user.getPassword().equals(password)) {
-		    throw new BadRequestExeption(ExceptionMessage.WRONG_PASSWORD);
-		}else if (user.isActive()==false) {
-			throw new BadRequestExeption(ExceptionMessage.USER_NOT_ACTIVE);
-		}else
-		return user;
+
+	    User user = userRepository.findByEmail(email);
+
+	    if (user == null) {
+	        throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
+	    }
+
+	    if (!BCrypt.checkpw(password, user.getPassword())) {
+	        throw new BadRequestExeption(ExceptionMessage.WRONG_PASSWORD);
+	    }
+
+	    if (!user.isActive()) {
+	        throw new BadRequestExeption(ExceptionMessage.USER_NOT_ACTIVE);
+	    }
+
+	    return user;
 	}
 
 	@Override

@@ -26,9 +26,11 @@ public class UserDAO implements UserRepository {
         Session session = sessionFactory.openSession();
         Transaction transaction = session.beginTransaction();
 
-        User usr = findByEmail(user.getEmail());
+        User existingUser = findByEmail(user.getEmail());
 
-        if (usr != null) {
+        if (existingUser != null) {
+            transaction.rollback();
+            session.close();
             throw new BadRequestExeption(ExceptionMessage.USER_ALREADY_EXIST);
         }
 
@@ -96,7 +98,7 @@ public class UserDAO implements UserRepository {
         Session session = sessionFactory.openSession();
 
         User user = session.createQuery(hql, User.class)
-                .setParameter("username", email)
+                .setParameter("email", email)
                 .uniqueResult();
 
         session.close();
