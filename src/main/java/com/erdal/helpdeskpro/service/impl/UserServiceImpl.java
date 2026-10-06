@@ -2,6 +2,8 @@ package com.erdal.helpdeskpro.service.impl;
 
 import java.util.List;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.dtos.UserDTO;
 import com.erdal.helpdeskpro.enums.Role;
@@ -27,7 +29,7 @@ public class UserServiceImpl implements UserService {
 
 	    createdUser.setUsername(user.getUsername());
 	    createdUser.setEmail(user.getEmail());
-	    createdUser.setPassword(user.getPassword());
+	    createdUser.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
 	    createdUser.setRole(Role.EMPLOYEE);
 	    createdUser.setActive(true);
 
@@ -74,8 +76,8 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public User login(String username, String password) {
-		User user=userRepository.findByUserName(username);
+	public User login(String email, String password) {
+		User user=userRepository.findByEmail(email);
 		if (user==null) {
 			throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
 		}if (!user.getPassword().equals(password)) {

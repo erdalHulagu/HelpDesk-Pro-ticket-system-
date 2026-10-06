@@ -13,7 +13,7 @@ public interface UserService {
 	
 	void deactivateUser(Long id);
 	
-	User login(String username, String password);
+	User login(String email, String password);
 
 	User updateUser(User user);
 

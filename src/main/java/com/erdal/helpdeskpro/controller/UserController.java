@@ -47,9 +47,9 @@ public class UserController {
 		
 		
 	}
-	public UserDTO login(String username, String password) {
+	public UserDTO login(String email, String password) {
 		
-		User user=userService.login(username,password);
+		User user=userService.login(email,password);
 		
 		return UserMapper.userToUserDTO(user);
 		

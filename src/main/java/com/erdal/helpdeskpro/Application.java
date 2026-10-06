@@ -56,6 +56,6 @@ public class Application {
 
         server.start();
 
-        System.out.println("🚀 Server started on http://localhost:8080");
+        System.out.println("Server started on http://localhost:8080");
     }
 }
