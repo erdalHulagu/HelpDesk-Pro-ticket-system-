@@ -96,7 +96,7 @@ public class UserHttpHandler implements HttpHandler {
         InputStream is = exchange.getRequestBody();
         UserDTO loginDTO = JsonUtil.fromJson(new String(is.readAllBytes()), UserDTO.class);
 
-        UserDTO userDTO = userController.login(loginDTO.getUsername(), loginDTO.getPassword());
+        UserDTO userDTO = userController.login(loginDTO.getEmail(), loginDTO.getPassword());
 
         String response = JsonUtil.toJson(userDTO);
         exchange.getResponseHeaders().add("Content-Type", "application/json");
