@@ -1,11 +1,13 @@
 package com.erdal.helpdeskpro.dtos;
 
+import com.erdal.helpdeskpro.enums.TicketCategory;
 import com.erdal.helpdeskpro.enums.TicketStatus;
 
 public class TicketDTO {
 	private Long id;
 	private String title;
 	private String description;
+	private TicketCategory category;
 	private TicketStatus status;
 	private Long createdById;
 	private Long assignedToId;
@@ -15,7 +17,7 @@ public class TicketDTO {
 		super();
 	}
 
-	public TicketDTO(Long id, String title, String description, TicketStatus status, Long createdById,
+	public TicketDTO(Long id, String title, String description, TicketStatus status, TicketCategory category, Long createdById,
 			Long assignedToId, boolean deleted) {
 		super();
 		this.id = id;
@@ -25,6 +27,7 @@ public class TicketDTO {
 		this.createdById = createdById;
 		this.assignedToId = assignedToId;
 		this.deleted = deleted;
+		this.category=category;
 	}
 
 	public Long getId() {
@@ -57,6 +60,13 @@ public class TicketDTO {
 
 	public void setStatus(TicketStatus status) {
 		this.status = status;
+	}
+	public TicketCategory getCategory() {
+		return category;
+	}
+	
+	public void setCategory(TicketCategory category) {
+		this.category = category;
 	}
 
 	public Long getCreatedById() {
