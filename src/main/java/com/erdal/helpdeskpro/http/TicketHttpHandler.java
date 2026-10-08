@@ -78,10 +78,9 @@ public class TicketHttpHandler implements HttpHandler {
     private void handleCreateTicket(HttpExchange exchange) throws Exception {
         InputStream is = exchange.getRequestBody();
         TicketDTO ticketDTO = JsonUtil.fromJson(new String(is.readAllBytes()), TicketDTO.class);
-
-        ticketController.createTicket(ticketDTO, authenticatedUser);
-
-        String response = JsonUtil.toJson(ticketDTO);
+        TicketDTO createdTicket =
+                ticketController.createTicket(ticketDTO, authenticatedUser);
+        String response = JsonUtil.toJson(createdTicket);
         exchange.getResponseHeaders().add("Content-Type", "application/json");
         exchange.sendResponseHeaders(201, response.getBytes().length);
         exchange.getResponseBody().write(response.getBytes());

@@ -37,6 +37,7 @@ public class TicketDAO implements TicketRepository {
 	    session.persist(ticket);
 
 	    transaction.commit();
+	 
 	    session.close();
 	}
 	@Override
