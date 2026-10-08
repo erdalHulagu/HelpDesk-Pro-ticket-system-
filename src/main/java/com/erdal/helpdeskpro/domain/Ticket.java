@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.erdal.helpdeskpro.enums.TicketCategory;
+import com.erdal.helpdeskpro.enums.TicketPriority;
 import com.erdal.helpdeskpro.enums.TicketStatus;
 
 import jakarta.persistence.Column;
@@ -36,6 +37,10 @@ public class Ticket {
 	@Enumerated(EnumType.STRING)
 	private TicketStatus status;
 	
+	@Enumerated(EnumType.STRING)
+	private TicketPriority priority;
+	
+	
 	 @ManyToOne
 	 @JoinColumn(name = "created_by")
 	private User createdBy;
@@ -61,13 +66,14 @@ public class Ticket {
 	}
 
 	public Ticket(Long id, String title, String description, TicketCategory category, TicketStatus status,
-			User createdBy, User assignedTo, LocalDateTime createdAt, boolean isDeleted) {
+			TicketPriority priority,User createdBy, User assignedTo, LocalDateTime createdAt, boolean isDeleted) {
 		super();
 		this.id = id;
 		this.title = title;
 		this.description = description;
 		this.category = category;
 		this.status = status;
+		this.priority = priority;
 		this.createdBy = createdBy;
 		this.assignedTo = assignedTo;
 		this.createdAt = createdAt;
@@ -113,6 +119,14 @@ public class Ticket {
 	public void setStatus(TicketStatus status) {
 		this.status = status;
 	}
+	
+	public TicketPriority getPriority() {
+		return priority;
+	}
+	
+	public void setPriority(TicketPriority priority) {
+		this.priority = priority;
+	}
 
 	public User getCreatedBy() {
 		return createdBy;
@@ -137,7 +151,7 @@ public class Ticket {
 	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
 	}
-
+	
 	public boolean isDeleted() {
 		return isDeleted;
 	}

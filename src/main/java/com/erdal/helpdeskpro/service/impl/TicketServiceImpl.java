@@ -7,6 +7,7 @@ import com.erdal.helpdeskpro.authorization.Authorization;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.enums.Role;
+import com.erdal.helpdeskpro.enums.TicketPriority;
 import com.erdal.helpdeskpro.enums.TicketStatus;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ExceptionMessage;
@@ -32,6 +33,10 @@ public class TicketServiceImpl implements TicketService {
 	public void createTicket(Ticket ticket, User currentUser) {
 		ticket.setCreatedBy(currentUser);
 		ticket.setStatus(TicketStatus.OPEN);
+		ticket.setDeleted(false);
+		if (ticket.getPriority() == null) {
+		    ticket.setPriority(TicketPriority.MEDIUM);
+		}
 		ticketRepository.save(ticket);
 	}
 

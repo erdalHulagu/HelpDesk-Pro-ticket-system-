@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 
 import org.hibernate.SessionFactory;
 
+import com.erdal.helpdeskpro.authorization.*;
 import com.erdal.helpdeskpro.config.HibernateUtil;
 import com.erdal.helpdeskpro.controller.TicketController;
 import com.erdal.helpdeskpro.controller.UserController;
@@ -34,13 +35,18 @@ public class Application {
         UserService userService = new UserServiceImpl(userRepository);
 
         UserController userController = new UserController(userService);
-        
         TicketRepository ticketRepository = new TicketDAO(sessionFactory);
         
-        TicketService ticketService=new TicketServiceImpl(ticketRepository);
+        Authorization authorization = new AuthorizationImpl();
+        TicketService ticketService =
+                new TicketServiceImpl(ticketRepository, authorization);
+
+        TicketController ticketController =
+                new TicketController(ticketService);
+        
         System.out.println("TicketRepository: " + ticketRepository);
         System.out.println("TicketService: " + ticketService);
-        TicketController ticketController = new TicketController(ticketService);
+  
         
      // Ticket testi icin gecici olarak buraya bir user id cektik
         User authenticatedUser = userRepository.findById(7L);  
@@ -56,9 +62,10 @@ public class Application {
         );
 
         // Şimdilik bunları mevcut haliyle bırakıyoruz
+
         server.createContext(
                 "/tickets",
-                new TicketHttpHandler(ticketController,authenticatedUser)
+                new TicketHttpHandler(ticketController, authenticatedUser)
         );
 //
 //        server.createContext(

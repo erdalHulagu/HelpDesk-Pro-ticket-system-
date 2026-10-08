@@ -46,24 +46,17 @@ public class TicketMapper {
 
 	public static Ticket ticketDTOtoTicket(TicketDTO ticketDTO) {
 
-		User assignedUser = new User();
-		assignedUser.setId(ticketDTO.getAssignedToId());
+	    Ticket ticket = new Ticket();
 
-		User createdByUser = new User();
-		createdByUser.setId(ticketDTO.getCreatedById());
+	    ticket.setId(ticketDTO.getId());
+	    ticket.setStatus(ticketDTO.getStatus());
+	    ticket.setDescription(ticketDTO.getDescription());
+	    ticket.setCategory(ticketDTO.getCategory());
+	    ticket.setPriority(ticketDTO.getPriority());
+	    ticket.setDeleted(ticketDTO.isDeleted());
+	    ticket.setTitle(ticketDTO.getTitle());
 
-		Ticket ticket = new Ticket();
-
-		ticket.setId(ticketDTO.getId());
-		ticket.setStatus(ticketDTO.getStatus());
-		ticket.setDescription(ticketDTO.getDescription());
-		ticket.setDeleted(ticketDTO.isDeleted());
-		ticket.setCreatedBy(createdByUser);
-		ticket.setAssignedTo(assignedUser);
-		ticket.setTitle(ticketDTO.getTitle());
-		
-		return ticket;
-
+	    return ticket;
 	}
 	
 	public static TicketDTO ticketToTicketDTO(Ticket ticket) {
@@ -74,9 +67,18 @@ public class TicketMapper {
 		ticketDTO.setId(ticket.getId());
 		ticketDTO.setStatus(ticket.getStatus());
 		ticketDTO.setDescription(ticket.getDescription());
+		ticketDTO.setCategory(ticket.getCategory());
+		ticketDTO.setPriority(ticket.getPriority());
 		ticketDTO.setDeleted(ticket.isDeleted());
-		ticketDTO.setCreatedById(ticket.getCreatedBy().getId());
-		ticketDTO.setAssignedToId(ticket.getAssignedTo().getId());
+		ticketDTO.setCreatedById(
+			    ticket.getCreatedBy() != null
+			        ? ticket.getCreatedBy().getId()
+			        : null
+			);
+		ticketDTO.setAssignedToId(
+			    ticket.getAssignedTo() != null
+			        ? ticket.getAssignedTo().getId()
+			        : null);	
 		ticketDTO.setTitle(ticket.getTitle());
 		
 		return ticketDTO;

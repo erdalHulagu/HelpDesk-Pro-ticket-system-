@@ -1,6 +1,7 @@
 package com.erdal.helpdeskpro.dtos;
 
 import com.erdal.helpdeskpro.enums.TicketCategory;
+import com.erdal.helpdeskpro.enums.TicketPriority;
 import com.erdal.helpdeskpro.enums.TicketStatus;
 
 public class TicketDTO {
@@ -9,6 +10,7 @@ public class TicketDTO {
 	private String description;
 	private TicketCategory category;
 	private TicketStatus status;
+	private TicketPriority priority;
 	private Long createdById;
 	private Long assignedToId;
 	private boolean deleted;
@@ -17,13 +19,14 @@ public class TicketDTO {
 		super();
 	}
 
-	public TicketDTO(Long id, String title, String description, TicketStatus status, TicketCategory category, Long createdById,
+	public TicketDTO(Long id, String title, String description, TicketStatus status, TicketCategory category, TicketPriority priority,Long createdById,
 			Long assignedToId, boolean deleted) {
 		super();
 		this.id = id;
 		this.title = title;
 		this.description = description;
 		this.status = status;
+		this.priority = priority;
 		this.createdById = createdById;
 		this.assignedToId = assignedToId;
 		this.deleted = deleted;
@@ -67,6 +70,13 @@ public class TicketDTO {
 	
 	public void setCategory(TicketCategory category) {
 		this.category = category;
+	}
+	public TicketPriority getPriority() {
+		return priority;
+	}
+	
+	public void setPriority(TicketPriority priority) {
+		this.priority = priority;
 	}
 
 	public Long getCreatedById() {

@@ -21,16 +21,24 @@ public class TicketDAO implements TicketRepository {
 	
 	@Override
 	public void save(Ticket ticket) {
-		Session session =sessionFactory.openSession();
-		Transaction transaction=session.beginTransaction();
-		session.persist(ticket);
-		
-		transaction.commit();
-		
-		session.close();
-		
+
+	    Session session = sessionFactory.openSession();
+	    Transaction transaction = session.beginTransaction();
+
+	    if (ticket.getCreatedBy() != null) {
+	        User user = session.getReference(
+	                User.class,
+	                ticket.getCreatedBy().getId()
+	        );
+
+	        ticket.setCreatedBy(user);
+	    }
+
+	    session.persist(ticket);
+
+	    transaction.commit();
+	    session.close();
 	}
-	
 	@Override
 	public Ticket findById( Long id) {
 		Session session =sessionFactory.openSession();
