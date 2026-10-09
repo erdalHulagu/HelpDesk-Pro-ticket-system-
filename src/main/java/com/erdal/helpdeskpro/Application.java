@@ -52,21 +52,13 @@ public class Application {
         User authenticatedUser = userRepository.findById(7L);  
 
         // HTTP Server
-        HttpServer server = HttpServer.create(
-                new InetSocketAddress(8080), 0
-        );
+        HttpServer server = HttpServer.create( new InetSocketAddress(8080), 0);
 
-        server.createContext(
-                "/users",
-                new UserHttpHandler(userController)
-        );
+        server.createContext("/users",new UserHttpHandler(userController));
 
         // Şimdilik bunları mevcut haliyle bırakıyoruz
 
-        server.createContext(
-                "/tickets",
-                new TicketHttpHandler(ticketController, authenticatedUser)
-        );
+        server.createContext("/tickets",new TicketHttpHandler(ticketController, authenticatedUser));
 //
 //        server.createContext(
 //                "/comments",

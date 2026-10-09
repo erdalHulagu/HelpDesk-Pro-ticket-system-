@@ -13,8 +13,8 @@ public class JsonUtil {
         return objectMapper.writeValueAsString(obj);
     }
 
-    public static <T> T fromJson(String json, Class<T> clazz) throws Exception {
-        return objectMapper.readValue(json, clazz);
+    public static <T> T fromJson(String json, Class<T> cls) throws Exception {
+        return objectMapper.readValue(json, cls);
     }
 }
 
