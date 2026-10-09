@@ -34,11 +34,26 @@ public class TicketDAO implements TicketRepository {
 	        ticket.setCreatedBy(user);
 	    }
 
-	    session.persist(ticket);
-
+	    session.persist(ticket);// hibernate (persist) save icin kullanilir
 	    transaction.commit();
 	 
 	    session.close();
+	}
+	@Override
+	public void update(Ticket ticket) {
+	    try (Session session = sessionFactory.openSession()) {
+	        Transaction transaction = session.beginTransaction();
+
+	        try {
+	            session.merge(ticket); // hibernate (merge) update icin kullanilir
+	            transaction.commit();
+	        } catch (RuntimeException e) {
+	            if (transaction.isActive()) {
+	                transaction.rollback();
+	            }
+	            throw e;
+	        }
+	    }
 	}
 	@Override
 	public Ticket findById( Long id) {

@@ -13,6 +13,8 @@ public interface TicketRepository  {
 	
 	 List<Ticket> findAll();
 	 
+	 void update(Ticket ticket);
+	 
 	 List<Ticket> findByCreatedBy(User user);
 	 
 	 List<Ticket> findAllActive();

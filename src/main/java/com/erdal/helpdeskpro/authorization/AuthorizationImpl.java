@@ -35,24 +35,21 @@ public class AuthorizationImpl implements Authorization {
 	@Override
 	public void canUpdateStatus(Ticket ticket, User user) {
 
-		// soft delete
+		if (ticket == null) {
+			throw new BadRequestExeption(ExceptionMessage.TICKET_NOT_FOUND);
+		}
+
 		if (ticket.isDeleted()) {
 			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
 		}
-		// CLOSED ise dokunulmaz
+
 		if (ticket.getStatus() == TicketStatus.CLOSED) {
 			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
 		}
 
-		if (user.getRole() == Role.EMPLOYEE && (!ticket.getCreatedBy().getId().equals(user.getId()))) {
+		if (user.getRole() == Role.EMPLOYEE && !ticket.getCreatedBy().getId().equals(user.getId())) {
 			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-
 		}
-		if (user.getRole() == Role.EMPLOYEE && (!ticket.getCreatedBy().getId().equals(user.getId()))) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-
-		}
-
 	}
 
 	@Override

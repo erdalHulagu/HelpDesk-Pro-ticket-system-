@@ -47,6 +47,11 @@ public class TicketHttpHandler implements HttpHandler {
                 handleGetTicketById(exchange);
                 return;
             }
+            // ---------------- GET /tickets/{id} ----------------
+            if ("GET".equalsIgnoreCase(method) && path.matches("/tickets/user")) {
+            	handleGetUsersTicketById(exchange);
+            	return;
+            }
 
             // ---------------- PUT /tickets/{id}/status ----------------
             if ("PUT".equalsIgnoreCase(method) && path.matches("/tickets/\\d+/status")) {
@@ -73,7 +78,9 @@ public class TicketHttpHandler implements HttpHandler {
         }
     }
 
-    // ---------------- Helper methods ----------------
+  
+
+	// ---------------- Helper methods ----------------
 
     private void handleCreateTicket(HttpExchange exchange) throws Exception {
         InputStream is = exchange.getRequestBody();
@@ -96,6 +103,18 @@ public class TicketHttpHandler implements HttpHandler {
         exchange.getResponseBody().write(response.getBytes());
         exchange.close();
     }
+    private void handleGetUsersTicketById(HttpExchange exchange) throws Exception {
+
+        List<TicketDTO> ticketDTOs = ticketController.getusersTickets(authenticatedUser);
+
+        String response = JsonUtil.toJson(ticketDTOs);
+        exchange.getResponseHeaders().add("Content-Type", "application/json");
+        exchange.sendResponseHeaders(200, response.getBytes().length);
+        exchange.getResponseBody().write(response.getBytes());
+        exchange.close();
+		
+		
+	}
 
     private void handleGetTicketById(HttpExchange exchange) throws Exception {
         String path = exchange.getRequestURI().getPath();
