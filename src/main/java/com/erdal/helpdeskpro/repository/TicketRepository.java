@@ -23,4 +23,6 @@ public interface TicketRepository  {
 	
 	 void deleteById(Long id);
 
+	Ticket findByIdIncludingDeleted(Long id);
+
 }

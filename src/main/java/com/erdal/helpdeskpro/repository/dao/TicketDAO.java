@@ -90,6 +90,18 @@ public class TicketDAO implements TicketRepository {
 			return session.createQuery("from Ticket", Ticket.class).list();
 		}
 	}
+	
+	@Override
+	public Ticket findByIdIncludingDeleted(Long id) {
+	    try (Session session = sessionFactory.openSession()) {
+	        return session.createQuery(
+	                "from Ticket t where t.id = :id",
+	                Ticket.class
+	        )
+	        .setParameter("id", id)
+	        .uniqueResult();
+	    }
+	}
 
 	@Override
 	public List<Ticket> findByCreatedBy(User user) {
@@ -102,5 +114,8 @@ public class TicketDAO implements TicketRepository {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	
+
 
 }

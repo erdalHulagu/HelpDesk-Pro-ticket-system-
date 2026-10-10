@@ -135,7 +135,15 @@ public List<Ticket> findAllIncludingDeleted(User currentUser) {
 
     return ticketRepository.findAllIncludingDeleted();
 }
+@Override
+public Ticket findByIdIncludingDeleted(Long id, User currentUser) {
 
+    if (currentUser == null || currentUser.getRole() != Role.ADMIN) {
+        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+    }
+
+    return ticketRepository.findByIdIncludingDeleted(id);
+}
 
 }
 

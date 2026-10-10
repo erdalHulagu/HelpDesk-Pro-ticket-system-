@@ -18,6 +18,8 @@ public interface TicketService {
 	
 	List<Ticket> findAllIncludingDeleted(User currentUser);
 	
+	Ticket findByIdIncludingDeleted(Long id,User currentUser);
+	
 	void updateStatus(Long ticketId,TicketStatus ticketStatus,User currentUser);
 	
 	void  deleteTicket(Long ticketId, User currentUser);
