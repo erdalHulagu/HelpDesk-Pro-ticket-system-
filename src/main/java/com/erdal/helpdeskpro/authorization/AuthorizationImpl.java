@@ -58,8 +58,9 @@ public class AuthorizationImpl implements Authorization {
 		if (ticket == null) {
 			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
 		}
-		if (user.getRole() != Role.ADMIN || user.getRole() != Role.IT_SUPPORT) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		if (user.getRole() != Role.ADMIN
+		        && user.getRole() != Role.IT_SUPPORT) {
+		    throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
 		if (ticket.getStatus() == TicketStatus.CLOSED) {
 			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
@@ -112,6 +113,18 @@ public class AuthorizationImpl implements Authorization {
 			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
 
+	}
+
+	@Override
+	public void canViewAllActiveTickets(User user) {
+
+		if (user == null) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
+
+		if (user.getRole() != Role.ADMIN && user.getRole() != Role.IT_SUPPORT && user.getRole() != Role.EMPLOYEE) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
 	}
 
 }

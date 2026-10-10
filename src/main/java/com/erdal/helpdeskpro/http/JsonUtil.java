@@ -1,5 +1,7 @@
 package com.erdal.helpdeskpro.http;
 
+import java.io.IOException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -16,5 +18,7 @@ public class JsonUtil {
     public static <T> T fromJson(String json, Class<T> cls) throws Exception {
         return objectMapper.readValue(json, cls);
     }
+    
+    
 }
 

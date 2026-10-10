@@ -102,15 +102,32 @@ public class TicketDAO implements TicketRepository {
 	        .uniqueResult();
 	    }
 	}
-
+	
 	@Override
-	public List<Ticket> findByCreatedBy(User user) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Ticket> findAllActiveByCreatedBy(Long userId) {
+
+	    try (Session session = sessionFactory.openSession()) {
+	        return session.createQuery(
+	                "from Ticket t where t.isDeleted = false and t.createdBy.id = :userId",
+	                Ticket.class
+	        )
+	        .setParameter("userId", userId)
+	        .list();
+	    }
 	}
+	
+	
 
 	@Override
 	public List<Ticket> findAllActive() {
+
+		try (Session session = sessionFactory.openSession()) {
+			return session.createQuery("from Ticket t where t.isDeleted = false", Ticket.class).list();
+		}
+	}
+	
+	@Override
+	public List<Ticket> findByCreatedBy(User user) {
 		// TODO Auto-generated method stub
 		return null;
 	}

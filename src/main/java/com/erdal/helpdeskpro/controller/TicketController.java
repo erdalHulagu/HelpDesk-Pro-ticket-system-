@@ -49,6 +49,17 @@ public class TicketController {
 				.toList();
 	}
 
+	public TicketDTO findTicketByIdIncludingDeleted(Long id, User currentUser) {
+
+		Ticket ticket = ticketService.findByIdIncludingDeleted(id, currentUser);
+
+		if (ticket == null) {
+			return null;
+		}
+
+		return TicketMapper.ticketToTicketDTO(ticket);
+	}
+
 	public void assignedUserTickets(Long ticketId, User currentUser) {
 
 		ticketService.assignTicket(ticketId, currentUser);
@@ -58,6 +69,14 @@ public class TicketController {
 
 		ticketService.deleteTicket(ticketId, currentUser);
 
+	}
+	
+	public List<TicketDTO> findAllActive(User currentUser) {
+
+	    return ticketService.findAllActive(currentUser)
+	            .stream()
+	            .map(TicketMapper::ticketToTicketDTO)
+	            .toList();
 	}
 
 }

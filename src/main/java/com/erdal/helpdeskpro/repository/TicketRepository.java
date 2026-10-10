@@ -19,10 +19,14 @@ public interface TicketRepository  {
 	 
 	 List<Ticket> findByCreatedBy(User user);
 	 
-	 List<Ticket> findAllActive();
-	
+
 	 void deleteById(Long id);
 
 	Ticket findByIdIncludingDeleted(Long id);
+	 
+	 List<Ticket> findAllActive();
+
+	List<Ticket> findAllActiveByCreatedBy(Long id);
+	
 
 }

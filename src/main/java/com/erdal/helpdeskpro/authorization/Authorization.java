@@ -14,5 +14,7 @@ public interface Authorization {
 	void canDeleteTicket(Ticket ticket, User user);
 
 	void canComment(Ticket ticket, User user);
+	
+	void canViewAllActiveTickets(User user);
 
 }

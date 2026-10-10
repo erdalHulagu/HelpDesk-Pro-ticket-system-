@@ -20,10 +20,13 @@ public interface TicketService {
 	
 	Ticket findByIdIncludingDeleted(Long id,User currentUser);
 	
+	List<Ticket> getAllTicketsForAdmin( User currentUser);
+	
+
 	void updateStatus(Long ticketId,TicketStatus ticketStatus,User currentUser);
 	
 	void  deleteTicket(Long ticketId, User currentUser);
 
-	List<Ticket> getAllTicketsForAdmin( User currentUser);
+	List<Ticket> findAllActive(User currentUser);
 
 }

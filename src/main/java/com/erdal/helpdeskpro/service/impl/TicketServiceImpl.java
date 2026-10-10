@@ -35,7 +35,7 @@ public class TicketServiceImpl implements TicketService {
 		ticket.setStatus(TicketStatus.OPEN);
 		ticket.setDeleted(false);
 		if (ticket.getPriority() == null) {
-		    ticket.setPriority(TicketPriority.MEDIUM);
+			ticket.setPriority(TicketPriority.MEDIUM);
 		}
 		ticketRepository.save(ticket);
 	}
@@ -45,8 +45,6 @@ public class TicketServiceImpl implements TicketService {
 
 		Ticket ticket = ticketRepository.findById(ticketId);
 		authorization.canUpdateStatus(ticket, currentUser);
-		
-	
 
 		// lifecycle validation
 
@@ -59,7 +57,6 @@ public class TicketServiceImpl implements TicketService {
 		ticketRepository.update(ticket);
 	}
 
-	
 	private boolean isValidTransition(TicketStatus current, TicketStatus next) {
 		return (current == TicketStatus.OPEN && next == TicketStatus.IN_PROGRESS)
 				|| (current == TicketStatus.IN_PROGRESS && next == TicketStatus.RESOLVED)
@@ -83,11 +80,11 @@ public class TicketServiceImpl implements TicketService {
 	@Override
 	public List<Ticket> getTicketsForUser(User currentUser) {
 		List<Ticket> tickets = ticketRepository.findAll();
-		
+
 		currentUser.setId(7L);
 
-		return tickets.stream().filter(t -> t.getCreatedBy().getId().equals(currentUser.getId())).filter(t -> !t.isDeleted())
-				.collect(Collectors.toList());
+		return tickets.stream().filter(t -> t.getCreatedBy().getId().equals(currentUser.getId()))
+				.filter(t -> !t.isDeleted()).collect(Collectors.toList());
 
 	}
 
@@ -117,33 +114,42 @@ public class TicketServiceImpl implements TicketService {
 
 	@Override
 	public List<Ticket> getAllTicketsForAdmin(User currentUser) {
-		if (currentUser.getRole()!=Role.ADMIN) {
+		if (currentUser.getRole() != Role.ADMIN) {
 			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
-		
+
 		return ticketRepository.findAll();
 	}
 
+	@Override
+	public List<Ticket> findAllIncludingDeleted(User currentUser) {
 
+		if (currentUser == null || currentUser.getRole() != Role.ADMIN) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
 
-@Override
-public List<Ticket> findAllIncludingDeleted(User currentUser) {
+		return ticketRepository.findAllIncludingDeleted();
+	}
 
-    if (currentUser == null || currentUser.getRole() != Role.ADMIN) {
-        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-    }
+	@Override
+	public Ticket findByIdIncludingDeleted(Long id, User currentUser) {
 
-    return ticketRepository.findAllIncludingDeleted();
+		if (currentUser == null || currentUser.getRole() != Role.ADMIN) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
+
+		return ticketRepository.findByIdIncludingDeleted(id);
+	}
+
+	@Override
+	public List<Ticket> findAllActive(User currentUser) {
+
+	    authorization.canViewAllActiveTickets(currentUser);
+
+	    if (currentUser.getRole() == Role.EMPLOYEE) {
+	        return ticketRepository.findAllActiveByCreatedBy(currentUser.getId());
+	    }
+
+	    return ticketRepository.findAllActive();
+	}
 }
-@Override
-public Ticket findByIdIncludingDeleted(Long id, User currentUser) {
-
-    if (currentUser == null || currentUser.getRole() != Role.ADMIN) {
-        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-    }
-
-    return ticketRepository.findByIdIncludingDeleted(id);
-}
-
-}
-

@@ -65,10 +65,22 @@ public class TicketHttpHandler implements HttpHandler {
 				handleDeleteTicket(exchange);
 				return;
 			}
-			// ---------------- DELETEBBYADMIN /admin/tickets ----------------
+			// ---------------- getAllticketByAdminDeletedIncluded /admin/tickets ----------------
 			if ("GET".equalsIgnoreCase(method) && path.equals("/admin/tickets")) {
 				handleGetAllTicketsIncludingDeleted(exchange);
 				return;
+			}
+			
+			// ---------------- getByIdticketByAdminDeletedIncluded /admin/tickets ----------------
+			if ("GET".equalsIgnoreCase(method) && path.matches("/admin/tickets/\\d+")) {
+			    handleGetTicketIncludingDeleted(exchange);
+			    return;
+			}
+			
+			// ---------------- getAllActiveTickets ----------------
+			if ("GET".equalsIgnoreCase(method) && path.equals("/tickets/active")) {
+			    handleGetActiveTickets(exchange);
+			    return;
 			}
 
 			// 404 for unknown paths
@@ -153,37 +165,99 @@ public class TicketHttpHandler implements HttpHandler {
 		exchange.close();
 	}
 
+	private void handleGetAllTicketsIncludingDeleted(HttpExchange exchange) throws Exception {
 
-private void handleGetAllTicketsIncludingDeleted(
-        HttpExchange exchange) throws Exception {
+		try {
+			List<TicketDTO> tickets = ticketController.findAllIncludingDeleted(authenticatedUser);
 
-    try {
-        List<TicketDTO> tickets =
-                ticketController.findAllIncludingDeleted(authenticatedUser);
+			String response = JsonUtil.toJson(tickets);
+			byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
 
-        String response = JsonUtil.toJson(tickets);
-        byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+			exchange.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
 
-        exchange.getResponseHeaders().add(
-                "Content-Type", "application/json; charset=UTF-8");
+			exchange.sendResponseHeaders(200, bytes.length);
+			exchange.getResponseBody().write(bytes);
 
-        exchange.sendResponseHeaders(200, bytes.length);
+		} catch (BadRequestExeption e) {
+			byte[] bytes = "{\"error\":\"Not allowed\"}".getBytes(StandardCharsets.UTF_8);
+
+			exchange.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+
+			exchange.sendResponseHeaders(403, bytes.length);
+			exchange.getResponseBody().write(bytes);
+
+		} finally {
+			exchange.close();
+		}
+	}
+
+	private void handleGetTicketIncludingDeleted(HttpExchange exchange) throws Exception {
+
+		try {
+			String path = exchange.getRequestURI().getPath();
+			String idPart = path.substring("/admin/tickets/".length());
+			Long id = Long.parseLong(idPart);
+
+			TicketDTO ticket = ticketController.findTicketByIdIncludingDeleted(id, authenticatedUser);
+
+			if (ticket == null) {
+				sendResponse(exchange, 404, "Ticket not found");
+				return;
+			}
+
+			sendJson(exchange, 200, JsonUtil.toJson(ticket));
+
+		} catch (BadRequestExeption e) {
+			sendResponse(exchange, 403, "Not allowed");
+		} catch (NumberFormatException e) {
+			sendResponse(exchange, 400, "Invalid ticket ID");
+		} finally {
+			exchange.close();
+		}
+	}
+	
+	private void handleGetActiveTickets(HttpExchange exchange) throws Exception {
+
+	    try {
+	        List<TicketDTO> tickets =
+	                ticketController.findAllActive(authenticatedUser);
+
+	        sendJson(exchange, 200, JsonUtil.toJson(tickets));
+
+	    } catch (BadRequestExeption e) {
+	        sendJson(exchange, 403, "{\"error\":\"Not allowed\"}");
+
+	    } finally {
+	        exchange.close();
+	    }
+	}
+
+	
+	private void sendResponse(HttpExchange exchange, int statusCode, String message)
+            throws IOException {
+
+        byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
+
+        exchange.getResponseHeaders().set(
+                "Content-Type", "text/plain; charset=UTF-8"
+        );
+
+        exchange.sendResponseHeaders(statusCode, bytes.length);
         exchange.getResponseBody().write(bytes);
-
-    } catch (BadRequestExeption e) {
-        byte[] bytes = "{\"error\":\"Not allowed\"}"
-                .getBytes(StandardCharsets.UTF_8);
-
-        exchange.getResponseHeaders().add(
-                "Content-Type", "application/json; charset=UTF-8");
-
-        exchange.sendResponseHeaders(403, bytes.length);
-        exchange.getResponseBody().write(bytes);
-
-    } finally {
-        exchange.close();
     }
-}
+	
+	private void sendJson(HttpExchange exchange, int statusCode, String json)
+	        throws IOException {
 
+	    byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
 
+	    exchange.getResponseHeaders().set(
+	            "Content-Type", "application/json; charset=UTF-8"
+	    );
+
+	    exchange.sendResponseHeaders(statusCode, bytes.length);
+	    exchange.getResponseBody().write(bytes);
+	}
+	
+	
 }
