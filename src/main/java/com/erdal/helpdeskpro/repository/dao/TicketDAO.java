@@ -11,75 +11,64 @@ import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.repository.TicketRepository;
 
 public class TicketDAO implements TicketRepository {
-	
+
 	private SessionFactory sessionFactory;
-	
+
 	public TicketDAO(SessionFactory sessionFactory) {
-		this.sessionFactory=sessionFactory;
-		
+		this.sessionFactory = sessionFactory;
+
 	}
-	
+
 	@Override
 	public void save(Ticket ticket) {
 
-	    Session session = sessionFactory.openSession();
-	    Transaction transaction = session.beginTransaction();
+		Session session = sessionFactory.openSession();
+		Transaction transaction = session.beginTransaction();
 
-	    if (ticket.getCreatedBy() != null) {
-	        User user = session.getReference(
-	                User.class,
-	                ticket.getCreatedBy().getId()
-	        );
+		if (ticket.getCreatedBy() != null) {
+			User user = session.getReference(User.class, ticket.getCreatedBy().getId());
 
-	        ticket.setCreatedBy(user);
-	    }
+			ticket.setCreatedBy(user);
+		}
 
-	    session.persist(ticket);// hibernate (persist) save icin kullanilir
-	    transaction.commit();
-	 
-	    session.close();
-	}
-	@Override
-	public void update(Ticket ticket) {
-	    try (Session session = sessionFactory.openSession()) {
-	        Transaction transaction = session.beginTransaction();
+		session.persist(ticket);// hibernate (persist) save icin kullanilir
+		transaction.commit();
 
-	        try {
-	            session.merge(ticket); // hibernate (merge) update icin kullanilir
-	            transaction.commit();
-	        } catch (RuntimeException e) {
-	            if (transaction.isActive()) {
-	                transaction.rollback();
-	            }
-	            throw e;
-	        }
-	    }
-	}
-	@Override
-	public Ticket findById( Long id) {
-		Session session =sessionFactory.openSession();
-		
-		Ticket ticket=session.get(Ticket.class, id);
-		
 		session.close();
-		return ticket;
-		
 	}
-	
+
+	@Override
+	public Ticket findById(Long id) {
+		try (Session session = sessionFactory.openSession()) {
+			return session.createQuery("from Ticket t where t.id = :id and t.isDeleted = false", Ticket.class)
+					.setParameter("id", id).uniqueResult();
+		}
+	}
+
 	@Override
 	public List<Ticket> findAll() {
-		
-		Session session =sessionFactory.openSession();
-		
-		List<Ticket> tickets=session.createQuery("from Ticket",Ticket.class).list();
-		
-		session.close();
-		
-		return tickets;
-		
-		
+		try (Session session = sessionFactory.openSession()) {
+			return session.createQuery("from Ticket t where t.isDeleted = false", Ticket.class).list();
+		}
 	}
-	
+
+	@Override
+	public void update(Ticket ticket) {
+		try (Session session = sessionFactory.openSession()) {
+			Transaction transaction = session.beginTransaction();
+
+			try {
+				session.merge(ticket); // hibernate (merge) update icin kullanilir
+				transaction.commit();
+			} catch (RuntimeException e) {
+				if (transaction.isActive()) {
+					transaction.rollback();
+				}
+				throw e;
+			}
+		}
+	}
+
 	@Override
 	public void deleteById(Long id) {
 		Session session = sessionFactory.openSession();
@@ -87,13 +76,19 @@ public class TicketDAO implements TicketRepository {
 
 		Ticket ticket = session.get(Ticket.class, id);
 		if (ticket != null) {
-		    ticket.setDeleted(true);
+			ticket.setDeleted(true);
 		}
-		
+
 		tx.commit();
 		session.close();
-		
-		
+
+	}
+
+	@Override
+	public List<Ticket> findAllIncludingDeleted() {
+		try (Session session = sessionFactory.openSession()) {
+			return session.createQuery("from Ticket", Ticket.class).list();
+		}
 	}
 
 	@Override

@@ -15,6 +15,8 @@ public interface TicketRepository  {
 	 
 	 void update(Ticket ticket);
 	 
+	 List<Ticket> findAllIncludingDeleted();
+	 
 	 List<Ticket> findByCreatedBy(User user);
 	 
 	 List<Ticket> findAllActive();

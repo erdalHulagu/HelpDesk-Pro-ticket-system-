@@ -111,7 +111,7 @@ public class TicketServiceImpl implements TicketService {
 		ticket.setDeleted(true);
 
 		// persist
-		ticketRepository.save(ticket);
+		ticketRepository.update(ticket);
 
 	}
 
@@ -124,11 +124,18 @@ public class TicketServiceImpl implements TicketService {
 		return ticketRepository.findAll();
 	}
 
+
+
+@Override
+public List<Ticket> findAllIncludingDeleted(User currentUser) {
+
+    if (currentUser == null || currentUser.getRole() != Role.ADMIN) {
+        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+    }
+
+    return ticketRepository.findAllIncludingDeleted();
 }
-/*
- * Bu class ne kazandırıyor?
-✔ New keyword karmaşası yok
-✔ Tüm bağımlılıklar tek yerde
-✔ Spring olmadan DI mantığı
-✔ Test yazmak kolay 
-*/
+
+
+}
+

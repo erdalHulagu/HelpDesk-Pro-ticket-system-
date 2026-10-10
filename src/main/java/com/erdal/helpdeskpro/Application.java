@@ -59,6 +59,9 @@ public class Application {
         // Şimdilik bunları mevcut haliyle bırakıyoruz
 
         server.createContext("/tickets",new TicketHttpHandler(ticketController, authenticatedUser));
+        
+        server.createContext("/admin/tickets",
+                new TicketHttpHandler(ticketController, authenticatedUser));
 //
 //        server.createContext(
 //                "/comments",

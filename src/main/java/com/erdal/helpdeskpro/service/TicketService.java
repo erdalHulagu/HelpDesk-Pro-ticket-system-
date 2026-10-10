@@ -16,6 +16,8 @@ public interface TicketService {
 	
 	void assignTicket(Long ticketId,User currentUser);
 	
+	List<Ticket> findAllIncludingDeleted(User currentUser);
+	
 	void updateStatus(Long ticketId,TicketStatus ticketStatus,User currentUser);
 	
 	void  deleteTicket(Long ticketId, User currentUser);
