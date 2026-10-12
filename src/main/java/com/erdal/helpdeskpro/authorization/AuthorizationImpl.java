@@ -39,6 +39,8 @@ public class AuthorizationImpl implements Authorization {
 			throw new BadRequestExeption(ExceptionMessage.TICKET_NOT_FOUND);
 		}
 
+		checkUser(user);
+		
 		if (ticket.isDeleted()) {
 			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
 		}
@@ -46,7 +48,8 @@ public class AuthorizationImpl implements Authorization {
 		if (ticket.getStatus() == TicketStatus.CLOSED) {
 			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
 		}
-
+		
+		
 		if (user.getRole() == Role.EMPLOYEE && !ticket.getCreatedBy().getId().equals(user.getId())) {
 			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
@@ -58,12 +61,16 @@ public class AuthorizationImpl implements Authorization {
 		if (ticket == null) {
 			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
 		}
-		if (user.getRole() != Role.ADMIN
-		        && user.getRole() != Role.IT_SUPPORT) {
-		    throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
+		
+		checkUser(user);
+		
 		if (ticket.getStatus() == TicketStatus.CLOSED) {
 			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
+		}
+		
+
+		if (user.getRole() != Role.ADMIN && user.getRole() != Role.IT_SUPPORT) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
 
 	}
@@ -75,6 +82,8 @@ public class AuthorizationImpl implements Authorization {
 		if (ticket == null) {
 			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
 		}
+		
+		checkUser(user);
 		// soft delete
 		if (ticket.isDeleted()) {
 			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
@@ -98,6 +107,8 @@ public class AuthorizationImpl implements Authorization {
 		if (ticket == null) {
 			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
 		}
+		
+		checkUser(user);
 		// soft delete
 		if (ticket.isDeleted()) {
 			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
@@ -121,8 +132,17 @@ public class AuthorizationImpl implements Authorization {
 		if (user == null) {
 			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
-
+		
+		checkUser(user);
+		
 		if (user.getRole() != Role.ADMIN && user.getRole() != Role.IT_SUPPORT && user.getRole() != Role.EMPLOYEE) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
+		
+	}
+
+	private void checkUser(User user) {
+		if (user == null || user.getRole() == null) {
 			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
 	}
