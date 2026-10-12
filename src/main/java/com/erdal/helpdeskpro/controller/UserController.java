@@ -8,66 +8,56 @@ import com.erdal.helpdeskpro.mapper.UserMapper;
 import com.erdal.helpdeskpro.service.UserService;
 
 public class UserController {
-	 
+
 	private final UserService userService;
-	
-	
-	
+
 	public UserController(UserService userService) {
 		this.userService = userService;
 	}
-	
+
 	public void register(UserDTO userDTO) {
-	 	
-	 	userService.createUser(UserMapper.userDTOtoUser(userDTO));
+
+		userService.registerUser(UserMapper.userDTOtoUser(userDTO));
 	}
-	
+
+	public UserDTO login(String email, String password) {
+
+		User user = userService.login(email, password);
+
+		return UserMapper.userToUserDTO(user);
+
+	}
+
 	public UserDTO findUserById(Long id) {
-		
-		User user=userService.getUser(id);
-		
-		return  UserMapper.userToUserDTO(user);
-		
+
+		User user = userService.getUser(id);
+
+		return UserMapper.userToUserDTO(user);
+
 	}
+
 	public List<UserDTO> getAllUsers(User adminUser) {
-	    List<User> users = userService.getAllUsers(adminUser);
-	    return UserMapper.userListToUserDTOList(users);
+		List<User> users = userService.getAllUsers(adminUser);
+		return UserMapper.userListToUserDTOList(users);
 	}
-	
-	
-	
 
 	public UserDTO updateUser(User currentUser) {
-		
-		
-		User usr=userService.updateUser(currentUser);
-		
+
+		User usr = userService.updateUser(currentUser);
+
 		return UserMapper.userToUserDTO(usr);
-		
-		
-		
+
 	}
-	public UserDTO login(String email, String password) {
-		
-		User user=userService.login(email,password);
-		
-		return UserMapper.userToUserDTO(user);
-		
-		
-		
-	}
-	
+
 	public void deActiveUser(Long id) {
-		
+
 		userService.deactivateUser(id);
-		
-		
-		
+
 	}
+
 	public List<UserDTO> getAllUsers() {
 		List<User> users = userService.findAllUsers();
 		return UserMapper.userListToUserDTOList(users);
 	}
-	
 
 }

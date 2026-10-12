@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
 
+import com.erdal.helpdeskpro.authorization.TokenService;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.dtos.UserDTO;
 import com.erdal.helpdeskpro.enums.Role;
@@ -17,13 +18,16 @@ public class UserServiceImpl implements UserService {
 	
 	private final UserRepository userRepository;
 	
+	// Kullanıcı oturum token'larını üretmek ve yönetmek için kullanılır.
+	private final TokenService tokenService = new TokenService();
+	
 	public UserServiceImpl(UserRepository userRepository) {
 		this.userRepository=userRepository;
 		
 	}
 
 	@Override
-	public void createUser(User user) {
+	public void registerUser(User user) {
 
 	    User createdUser = new User();
 
@@ -34,6 +38,26 @@ public class UserServiceImpl implements UserService {
 	    createdUser.setActive(true);
 
 	    userRepository.save(createdUser);
+	}
+	
+	@Override
+	public User login(String email, String password) {
+
+	    User user = userRepository.findByEmail(email);
+
+	    if (user == null) {
+	        throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
+	    }
+
+	    if (!BCrypt.checkpw(password, user.getPassword())) {
+	        throw new BadRequestExeption(ExceptionMessage.WRONG_PASSWORD);
+	    }
+
+	    if (!user.isActive()) {
+	        throw new BadRequestExeption(ExceptionMessage.USER_NOT_ACTIVE);
+	    }
+
+	    return user;
 	}
 
 	@Override
@@ -74,25 +98,7 @@ public class UserServiceImpl implements UserService {
 		
 		
 	}
-	@Override
-	public User login(String email, String password) {
-
-	    User user = userRepository.findByEmail(email);
-
-	    if (user == null) {
-	        throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
-	    }
-
-	    if (!BCrypt.checkpw(password, user.getPassword())) {
-	        throw new BadRequestExeption(ExceptionMessage.WRONG_PASSWORD);
-	    }
-
-	    if (!user.isActive()) {
-	        throw new BadRequestExeption(ExceptionMessage.USER_NOT_ACTIVE);
-	    }
-
-	    return user;
-	}
+	
 
 	@Override
 	public List<User> findAllUsers() {

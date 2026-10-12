@@ -7,8 +7,6 @@ import com.erdal.helpdeskpro.enums.Role;
 
 public interface UserService {
 	
-	void createUser(User user);
-	
 	User getUser(Long id);
 	
 	void deactivateUser(Long id);
@@ -20,5 +18,7 @@ public interface UserService {
 	List<User> getAllUsers(User currentUser);
 
 	List<User> findAllUsers();
+
+	void registerUser(User user);
 
 }
