@@ -1,3 +1,4 @@
+
 package com.erdal.helpdeskpro.authorization;
 
 import com.erdal.helpdeskpro.domain.Ticket;
@@ -10,141 +11,113 @@ import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
 
 public class AuthorizationImpl implements Authorization {
 
-	@Override
-	public void canViewTicket(Ticket ticket, User user) {
-		if (ticket == null) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-		}
+    // =========================
+    // PUBLIC AUTHORIZATION METHODS
+    // =========================
 
-		// soft delete
-		if (ticket.isDeleted()) {
-			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
-		}
-		// CLOSED ise dokunulmaz
-		if (ticket.getStatus() == TicketStatus.CLOSED) {
-			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
-		}
+    @Override
+    public void canViewTicket(Ticket ticket, User user) {
+        checkTicketAndUser(ticket, user);
+        checkNotDeleted(ticket);
+        checkNotClosed(ticket);
+        checkTicketOwner(ticket, user);
+    }
 
-		if (user.getRole() == Role.EMPLOYEE && (!ticket.getCreatedBy().getId().equals(user.getId()))) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+    @Override
+    public void canUpdateStatus(Ticket ticket, User user) {
+        checkTicketAndUser(ticket, user);
+        checkNotDeleted(ticket);
+        checkNotClosed(ticket);
+        checkTicketOwner(ticket, user);
+    }
 
-		}
+    @Override
+    public void canAssignTicket(Ticket ticket, User user) {
+        checkTicketAndUser(ticket, user);
+        checkAdminOrSupport(user);
+        checkNotDeleted(ticket);
+        checkNotClosed(ticket);
+    }
 
-	}
+    @Override
+    public void canDeleteTicket(Ticket ticket, User user) {
+        checkTicketAndUser(ticket, user);
+        checkNotDeleted(ticket);
+        checkNotClosed(ticket);
+        checkTicketOwner(ticket, user);
+    }
 
-	@Override
-	public void canUpdateStatus(Ticket ticket, User user) {
+    @Override
+    public void canComment(Ticket ticket, User user) {
+        checkTicketAndUser(ticket, user);
+        checkNotDeleted(ticket);
+        checkNotClosed(ticket);
+        checkTicketOwner(ticket, user);
+    }
 
-		if (ticket == null) {
-			throw new BadRequestExeption(ExceptionMessage.TICKET_NOT_FOUND);
-		}
+    @Override
+    public void canViewAllActiveTickets(User user) {
+        checkUser(user);
+    }
 
-		checkUser(user);
-		
-		if (ticket.isDeleted()) {
-			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
-		}
+    // =========================
+    // HELPER METHODS
+    // =========================
 
-		if (ticket.getStatus() == TicketStatus.CLOSED) {
-			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
-		}
-		
-		
-		if (user.getRole() == Role.EMPLOYEE && !ticket.getCreatedBy().getId().equals(user.getId())) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
-	}
+    private void checkTicketAndUser(Ticket ticket, User user) {
+        if (ticket == null) {
+            throw new ResourceNotFoundExeption(
+                    ExceptionMessage.TICKET_NOT_FOUND
+            );
+        }
 
-	@Override
-	public void canAssignTicket(Ticket ticket, User user) {
+        checkUser(user);
+    }
 
-		if (ticket == null) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-		}
-		
-		checkUser(user);
-		
-		if (ticket.getStatus() == TicketStatus.CLOSED) {
-			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
-		}
-		
+    private void checkUser(User user) {
+        if (user == null || user.getRole() == null) {
+            throw new BadRequestExeption(
+                    ExceptionMessage.NOT_ALLOWED
+            );
+        }
+    }
 
-		if (user.getRole() != Role.ADMIN && user.getRole() != Role.IT_SUPPORT) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
+    private void checkNotDeleted(Ticket ticket) {
+        if (ticket.isDeleted()) {
+            throw new BadRequestExeption(
+                    ExceptionMessage.TICKET_IS_DELETED
+            );
+        }
+    }
 
-	}
+    private void checkNotClosed(Ticket ticket) {
+        if (ticket.getStatus() == TicketStatus.CLOSED) {
+            throw new BadRequestExeption(
+                    ExceptionMessage.TICKET_IS_CLOSED
+            );
+        }
+    }
 
-	@Override
-	public void canDeleteTicket(Ticket ticket, User user) {
+    private void checkTicketOwner(Ticket ticket, User user) {
+        if (user.getRole() != Role.EMPLOYEE) {
+            return;
+        }
 
-		// ticket var mı
-		if (ticket == null) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-		}
-		
-		checkUser(user);
-		// soft delete
-		if (ticket.isDeleted()) {
-			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
-		}
-		// lifecycle kontrolü
-		if (ticket.getStatus() == TicketStatus.CLOSED) {
-			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
-		}
+        if (user.getId() == null
+                || ticket.getCreatedBy() == null
+                || !user.getId().equals(ticket.getCreatedBy().getId())) {
+            throw new BadRequestExeption(
+                    ExceptionMessage.NOT_ALLOWED
+            );
+        }
+    }
 
-		// yetki kontrolü
-		// EMPLOYEE sadece kendi ticket’ını silebilir
-		if (user.getRole() == Role.EMPLOYEE && !ticket.getCreatedBy().getId().equals(user.getId())) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
-
-	}
-
-	@Override
-	public void canComment(Ticket ticket, User user) {
-		// ticket var mı
-		if (ticket == null) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-		}
-		
-		checkUser(user);
-		// soft delete
-		if (ticket.isDeleted()) {
-			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
-		}
-		// lifecycle kontrolü
-		if (ticket.getStatus() == TicketStatus.CLOSED) {
-			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
-		}
-
-		// yetki kontrolü
-		// EMPLOYEE sadece kendi ticket’ını silebilir
-		if (user.getRole() == Role.EMPLOYEE && !ticket.getCreatedBy().getId().equals(user.getId())) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
-
-	}
-
-	@Override
-	public void canViewAllActiveTickets(User user) {
-
-		if (user == null) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
-		
-		checkUser(user);
-		
-		if (user.getRole() != Role.ADMIN && user.getRole() != Role.IT_SUPPORT && user.getRole() != Role.EMPLOYEE) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
-		
-	}
-
-	private void checkUser(User user) {
-		if (user == null || user.getRole() == null) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
-	}
-
+    private void checkAdminOrSupport(User user) {
+        if (user.getRole() != Role.ADMIN
+                && user.getRole() != Role.IT_SUPPORT) {
+            throw new BadRequestExeption(
+                    ExceptionMessage.NOT_ALLOWED);
+        }
+    }
 }
+
