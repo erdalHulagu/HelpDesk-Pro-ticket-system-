@@ -1,6 +1,9 @@
 package com.erdal.helpdeskpro;
 
 import java.net.InetSocketAddress;
+import com.erdal.helpdeskpro.auth.AuthService;
+import com.erdal.helpdeskpro.auth.AuthServiceImpl;
+import com.erdal.helpdeskpro.auth.TokenService;
 
 import org.hibernate.SessionFactory;
 
@@ -44,8 +47,12 @@ public class Application {
         TicketController ticketController =
                 new TicketController(ticketService);
         
-        System.out.println("TicketRepository: " + ticketRepository);
-        System.out.println("TicketService: " + ticketService);
+     // Tek bir TokenService örneği oluştur.
+        TokenService tokenService = new TokenService();
+
+        // Mevcut UserService örneğini kullan.
+        AuthService authService =
+                new AuthServiceImpl(userService, tokenService);
   
         
      // Ticket testi icin gecici olarak buraya bir user id cektik
