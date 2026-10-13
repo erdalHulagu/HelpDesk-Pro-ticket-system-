@@ -9,7 +9,7 @@ public class GlobalExceptionHandler {
             System.out.println(" NOT FOUND: " + exception.getMessage());
 
         } else if (exception instanceof BadRequestExeption) {
-            System.out.println("⚠ BAD REQUEST: " + exception.getMessage());
+            System.out.println(" BAD REQUEST: " + exception.getMessage());
 
         } else {
             System.out.println(" UNKNOWN ERROR: " + exception.getMessage());

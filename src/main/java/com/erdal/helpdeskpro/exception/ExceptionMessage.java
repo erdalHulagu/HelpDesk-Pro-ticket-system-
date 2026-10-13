@@ -25,6 +25,7 @@ public  class  ExceptionMessage {
 	public static final String CONTENT_CANNOT_BE_EMPTY = "Contetnt can't be blank";
 	public static final String CONTENT_TOO_SHORT = "Content is too short";
 	public static final String CONTENT_TOO_LONG = "Content is too long";
+	public static final String USER_CANNOT_BE_NULL = "User cannot be null";
 		
 	
 
