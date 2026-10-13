@@ -1,14 +1,14 @@
-package com.erdal.helpdeskpro.response;
+package com.erdal.helpdeskpro.web.response;
 
 public class LoginResponse {
 
-    // Kullanıcının sonraki isteklerde göndereceği token.
+    // Kimliği doğrulanmış kullanıcının Bearer token'ı.
     private final String token;
 
-    // Giriş yapan kullanıcının kimliği.
+    // Token'ın hangi kullanıcıya ait olduğunu gösteren kullanıcı ID'si.
     private final Long userId;
 
-    // Kullanıcıya ait görünen ad.
+    // İstemciye gösterilebilecek kullanıcı adı.
     private final String username;
 
     public LoginResponse(String token, Long userId, String username) {
