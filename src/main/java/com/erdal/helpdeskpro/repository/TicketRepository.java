@@ -27,6 +27,8 @@ public interface TicketRepository  {
 	 List<Ticket> findAllActive();
 
 	List<Ticket> findAllActiveByCreatedBy(Long id);
+
+	
 	
 
 }

@@ -78,5 +78,6 @@ public class TicketController {
 	            .map(TicketMapper::ticketToTicketDTO)
 	            .toList();
 	}
+	
 
 }

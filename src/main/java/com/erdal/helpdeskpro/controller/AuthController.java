@@ -10,6 +10,7 @@ public class AuthController {
 
     private final AuthService authService;
 
+    // AuthService dışarıdan verilir.
     public AuthController(AuthService authService) {
         this.authService = authService;
     }

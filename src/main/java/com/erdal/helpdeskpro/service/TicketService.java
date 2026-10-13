@@ -29,4 +29,6 @@ public interface TicketService {
 
 	List<Ticket> findAllActive(User currentUser);
 
+	List<Ticket> getAllTickets(User currentUser);
+
 }

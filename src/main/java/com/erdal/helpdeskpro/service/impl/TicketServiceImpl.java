@@ -122,6 +122,19 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	@Override
+	public List<Ticket> getAllTickets(User currentUser) {
+
+	    if (currentUser == null) {
+	        throw new IllegalArgumentException("User cannot be null");
+	    }
+
+	    if (currentUser.getRole() == Role.ADMIN) {
+	        return ticketRepository.findAll();
+	    }
+
+	    return ticketRepository.findAllActiveByCreatedBy(currentUser.getId());
+	}
+	@Override
 	public List<Ticket> findAllIncludingDeleted(User currentUser) {
 
 		if (currentUser == null || currentUser.getRole() != Role.ADMIN) {

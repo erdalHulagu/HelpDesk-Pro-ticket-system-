@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-import com.erdal.helpdeskpro.authorization.TokenService;
+import com.erdal.helpdeskpro.auth.TokenService;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.dtos.UserDTO;
 import com.erdal.helpdeskpro.enums.Role;
