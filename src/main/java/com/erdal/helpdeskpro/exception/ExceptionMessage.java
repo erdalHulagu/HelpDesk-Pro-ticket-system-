@@ -26,6 +26,7 @@ public  class  ExceptionMessage {
 	public static final String CONTENT_TOO_SHORT = "Content is too short";
 	public static final String CONTENT_TOO_LONG = "Content is too long";
 	public static final String USER_CANNOT_BE_NULL = "User cannot be null";
+	public static final String JSON_BODY_CANNOT_BE_EMPTY = "JSON body cannot be empty";
 		
 	
 

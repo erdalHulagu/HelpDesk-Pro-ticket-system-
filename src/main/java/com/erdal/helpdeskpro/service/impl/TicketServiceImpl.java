@@ -44,24 +44,41 @@ public class TicketServiceImpl implements TicketService {
 	@Override
 	public void updateStatus(Long ticketId, TicketStatus newStatus, User currentUser) {
 
-		Ticket ticket = ticketRepository.findById(ticketId);
-		authorization.canUpdateStatus(ticket, currentUser);
+	    Ticket ticket = ticketRepository.findById(ticketId);
 
-		// lifecycle validation
+	    if (ticket == null) {
+	        throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+	    }
 
-		if (!isValidTransition(ticket.getStatus(), newStatus)) {
-			throw new BadRequestExeption(ExceptionMessage.INVALID_STATUS_TRANSITION);
-		}
+	    if (newStatus == null) {
+	        throw new BadRequestExeption(ExceptionMessage.INVALID_STATUS_TRANSITION);
+	    }
 
-		// update
-		ticket.setStatus(newStatus);
-		ticketRepository.update(ticket);
+	    authorization.canUpdateStatus(ticket, currentUser);
+
+	    // Status yaşam döngüsü kontrolü
+	    if (!isValidTransition(ticket.getStatus(), newStatus)) {
+	        throw new BadRequestExeption(
+	            ExceptionMessage.INVALID_STATUS_TRANSITION
+	        );
+	    }
+
+	    // Güncelleme
+	    ticket.setStatus(newStatus);
+	    ticketRepository.update(ticket);
 	}
 
 	private boolean isValidTransition(TicketStatus current, TicketStatus next) {
-		return (current == TicketStatus.OPEN && next == TicketStatus.IN_PROGRESS)
-				|| (current == TicketStatus.IN_PROGRESS && next == TicketStatus.RESOLVED)
-				|| (current == TicketStatus.RESOLVED && next == TicketStatus.CLOSED);
+	    if (current == null || next == null) {
+	        return false;
+	    }
+
+	    return switch (current) {
+	        case OPEN -> next == TicketStatus.IN_PROGRESS;
+	        case IN_PROGRESS -> next == TicketStatus.RESOLVED;
+	        case RESOLVED -> next == TicketStatus.CLOSED;
+	        case CLOSED -> false;
+	    };
 	}
 
 	@Override

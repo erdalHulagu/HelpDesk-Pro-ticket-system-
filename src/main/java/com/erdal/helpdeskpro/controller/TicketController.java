@@ -39,7 +39,7 @@ public class TicketController {
 		return TicketMapper.ticketListToTicketDTOList(ticketList);
 	}
 
-	public void uspDateTicetsStatus(Long ticketId, TicketStatus ticketStatus, User currentUser) {
+	public void updateTicketStatus(Long ticketId, TicketStatus ticketStatus, User currentUser) {
 		ticketService.updateStatus(ticketId, ticketStatus, currentUser);
 	}
 
