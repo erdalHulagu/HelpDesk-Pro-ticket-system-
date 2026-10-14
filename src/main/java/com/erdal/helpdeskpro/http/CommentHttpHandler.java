@@ -19,7 +19,10 @@ public class CommentHttpHandler implements HttpHandler {
     private final CommentController commentController;
     private final User authenticatedUser;
 
-    public CommentHttpHandler(CommentController commentController, User authenticatedUser) {
+    public CommentHttpHandler(
+            CommentController commentController,
+            User authenticatedUser
+    ) {
         this.commentController = commentController;
         this.authenticatedUser = authenticatedUser;
     }

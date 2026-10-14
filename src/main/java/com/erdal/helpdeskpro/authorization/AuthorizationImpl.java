@@ -40,10 +40,10 @@ public class AuthorizationImpl implements Authorization {
 
 	@Override
 	public void canDeleteTicket(Ticket ticket, User user) {
-	    checkTicketAndUser(ticket, user);
-	    checkNotDeleted(ticket);
-	    checkNotClosed(ticket);
-	    checkAdmin(user);
+		checkTicketAndUser(ticket, user);
+		checkNotDeleted(ticket);
+		checkAdmin(user);
+		checkClosed(ticket);
 	}
 
 	@Override
@@ -72,7 +72,7 @@ public class AuthorizationImpl implements Authorization {
 	}
 
 	private void checkUser(User user) {
-		if (user == null || user.getRole() == null||user.getRole()!=Role.ADMIN) {
+		if (user == null || user.getRole() == null || user.getRole() != Role.ADMIN) {
 			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
 	}
@@ -101,10 +101,17 @@ public class AuthorizationImpl implements Authorization {
 	}
 
 	private void checkAdmin(User user) {
-	    if (user.getRole() != Role.ADMIN) {
-	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-	    }
+		if (user.getRole() != Role.ADMIN) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
 	}
+
+	private void checkClosed(Ticket ticket) {
+		if (ticket.getStatus() != TicketStatus.CLOSED) {
+			throw new BadRequestExeption(ExceptionMessage.TICKET_NOT_CLOSED);
+		}
+	}
+
 	private void checkAdminOrSupport(User user) {
 		if (user.getRole() != Role.ADMIN && user.getRole() != Role.IT_SUPPORT) {
 			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
