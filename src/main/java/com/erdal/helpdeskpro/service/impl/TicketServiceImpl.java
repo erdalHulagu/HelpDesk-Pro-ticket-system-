@@ -122,19 +122,6 @@ public class TicketServiceImpl implements TicketService {
 
 	}
 
-	@Override
-	public void deleteTicket(Long ticketId, User currentUser) {
-
-		Ticket ticket = ticketRepository.findById(ticketId);
-
-		authorization.canDeleteTicket(ticket, currentUser);
-
-		ticket.setDeleted(true);
-
-		// persist
-		ticketRepository.update(ticket);
-
-	}
 
 	@Override
 	public List<Ticket> getAllTicketsForAdmin(User currentUser) {
@@ -188,5 +175,19 @@ public class TicketServiceImpl implements TicketService {
 	    }
 
 	    return ticketRepository.findAllActive();
+	}
+	
+	@Override
+	public void deleteTicket(Long ticketId, User currentUser) {
+
+		Ticket ticket = ticketRepository.findById(ticketId);
+
+		authorization.canDeleteTicket(ticket, currentUser);
+
+		ticket.setDeleted(true);
+
+		// persist
+		ticketRepository.update(ticket);
+
 	}
 }
