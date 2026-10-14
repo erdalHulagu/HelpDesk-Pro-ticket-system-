@@ -19,10 +19,9 @@ public class AuthorizationImpl implements Authorization {
     public void canViewTicket(Ticket ticket, User user) {
         checkTicketAndUser(ticket, user);
         checkNotDeleted(ticket);
-        checkNotClosed(ticket);
         checkTicketOwner(ticket, user);
     }
-
+  
     @Override
     public void canUpdateStatus(Ticket ticket, User user) {
         checkTicketAndUser(ticket, user);

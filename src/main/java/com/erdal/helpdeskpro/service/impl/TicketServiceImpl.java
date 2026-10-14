@@ -10,6 +10,7 @@ import com.erdal.helpdeskpro.enums.Role;
 import com.erdal.helpdeskpro.enums.TicketPriority;
 import com.erdal.helpdeskpro.enums.TicketStatus;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
+import com.erdal.helpdeskpro.exception.IllegalArgumentException;
 import com.erdal.helpdeskpro.exception.ExceptionMessage;
 import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
 import com.erdal.helpdeskpro.repository.TicketRepository;
@@ -66,17 +67,23 @@ public class TicketServiceImpl implements TicketService {
 	@Override
 	public Ticket getTicketById(Long ticketId, User currentUser) {
 
-		Ticket ticket = ticketRepository.findById(ticketId);
-		if (ticket == null) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-		}
-		if (!ticket.getCreatedBy().getId().equals(currentUser.getId())) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
+	    if (currentUser == null) {
+	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	    }
 
-		return ticket;
+	    Ticket ticket = ticketRepository.findById(ticketId);
+
+	    if (ticket == null) {
+	        throw new ResourceNotFoundExeption(
+	                ExceptionMessage.TICKET_NOT_FOUND
+	        );
+	    }
+
+	    authorization.canViewTicket(ticket, currentUser);
+
+	    return ticket;
 	}
-
+	
 	@Override
 	public List<Ticket> getTicketsForUser(User currentUser) {
 		List<Ticket> tickets = ticketRepository.findAll();
