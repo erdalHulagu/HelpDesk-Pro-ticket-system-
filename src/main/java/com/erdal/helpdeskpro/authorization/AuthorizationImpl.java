@@ -48,10 +48,12 @@ public class AuthorizationImpl implements Authorization {
 
 	@Override
 	public void canComment(Ticket ticket, User user) {
-		checkTicketAndUser(ticket, user);
-		checkNotDeleted(ticket);
-		checkNotClosed(ticket);
-		checkTicketOwner(ticket, user);
+		
+	    checkTicketAndUser(ticket, user);
+	    checkNotDeleted(ticket);
+	    checkNotClosed(ticket);
+	    checkTicketOwner(ticket, user);
+
 	}
 
 	@Override
@@ -71,11 +73,13 @@ public class AuthorizationImpl implements Authorization {
 		checkUser(user);
 	}
 
-	private void checkUser(User user) {
-		if (user == null || user.getRole() == null || user.getRole() != Role.ADMIN) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
-	}
+
+private void checkUser(User user) {
+    if (user == null || user.getRole() == null) {
+        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+    }
+}
+
 
 	private void checkNotDeleted(Ticket ticket) {
 		if (ticket.isDeleted()) {
@@ -105,9 +109,10 @@ public class AuthorizationImpl implements Authorization {
 	                throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 	            }
 	            return;
-
 	        case IT_SUPPORT:
+	           
 	            if (ticket.getAssignedTo() == null
+	                    || ticket.getAssignedTo().getId() == null
 	                    || !user.getId().equals(ticket.getAssignedTo().getId())) {
 	                throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 	            }
