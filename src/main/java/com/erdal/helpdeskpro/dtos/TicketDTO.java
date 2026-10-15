@@ -13,7 +13,7 @@ public class TicketDTO {
 	private TicketPriority priority;
 	private Long createdById;
 	private Long assignedToId;
-	private boolean deleted;
+	private boolean isDeleted;
 
 	public TicketDTO() {
 		super();
@@ -29,7 +29,7 @@ public class TicketDTO {
 		this.priority = priority;
 		this.createdById = createdById;
 		this.assignedToId = assignedToId;
-		this.deleted = deleted;
+		this.isDeleted = deleted;
 		this.category=category;
 	}
 
@@ -96,11 +96,11 @@ public class TicketDTO {
 	}
 
 	public boolean isDeleted() {
-		return deleted;
+		return isDeleted;
 	}
 
 	public void setDeleted(boolean deleted) {
-		this.deleted = deleted;
+		this.isDeleted = deleted;
 	}
 
 }

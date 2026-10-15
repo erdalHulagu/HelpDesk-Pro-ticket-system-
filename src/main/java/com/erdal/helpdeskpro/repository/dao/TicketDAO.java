@@ -37,12 +37,22 @@ public class TicketDAO implements TicketRepository {
 		session.close();
 	}
 
+//	@Override
+//	public Ticket findById(Long id) {
+//		try (Session session = sessionFactory.openSession()) {
+//			return session.createQuery("from Ticket t where t.id = :id and t.isDeleted = false", Ticket.class)
+//					.setParameter("id", id).uniqueResult();
+//		}
+//	}
 	@Override
 	public Ticket findById(Long id) {
-		try (Session session = sessionFactory.openSession()) {
-			return session.createQuery("from Ticket t where t.id = :id and t.isDeleted = false", Ticket.class)
-					.setParameter("id", id).uniqueResult();
-		}
+	    try (Session session = sessionFactory.openSession()) {
+	        return session.createQuery(
+	                "from Ticket t where t.id = :id",
+	                Ticket.class)
+	            .setParameter("id", id)
+	            .uniqueResult();
+	    }
 	}
 
 	@Override

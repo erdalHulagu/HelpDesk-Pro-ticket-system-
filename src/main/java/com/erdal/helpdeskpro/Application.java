@@ -28,91 +28,86 @@ import com.erdal.helpdeskpro.service.TicketService;
 import com.erdal.helpdeskpro.service.UserService;
 import com.erdal.helpdeskpro.service.impl.TicketServiceImpl;
 import com.erdal.helpdeskpro.service.impl.UserServiceImpl;
+import com.erdal.helpdeskpro.controller.CommentController;
+import com.erdal.helpdeskpro.http.CommentHttpHandler;
+import com.erdal.helpdeskpro.repository.CommentRepository;
+import com.erdal.helpdeskpro.repository.dao.CommentDAO;
+import com.erdal.helpdeskpro.service.CommentService;
+import com.erdal.helpdeskpro.service.impl.CommentServiceImpl;
 
 public class Application {
 
-    public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception {
 
-        // Hibernate bağlantısını al.
-        SessionFactory sessionFactory =
-                HibernateUtil.getSessionFactory();
-        
-        //----------------------------------------------
-        // User katmanlarını oluştur.
-        //----------------------------------------------
-        UserRepository userRepository =
-                new UserDAO(sessionFactory);
+		// Hibernate bağlantısını al.
+		SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
 
-        UserService userService =
-                new UserServiceImpl(userRepository);
+		// ----------------------------------------------
+		// User katmanlarını oluştur.
+		// ----------------------------------------------
+		UserRepository userRepository = new UserDAO(sessionFactory);
 
-        UserController userController =
-                new UserController(userService);
-        
-        //----------------------------------------------
-        // Ticket katmanlarını oluştur.
-        //----------------------------------------------
-        
-        TicketRepository ticketRepository =
-                new TicketDAO(sessionFactory);
+		UserService userService = new UserServiceImpl(userRepository);
 
-        Authorization authorization =
-                new AuthorizationImpl();
+		UserController userController = new UserController(userService);
 
-        TicketService ticketService =
-                new TicketServiceImpl(ticketRepository, authorization);
+		// ----------------------------------------------
+		// Ticket katmanlarını oluştur.
+		// ----------------------------------------------
 
-        TicketController ticketController =
-                new TicketController(ticketService);
-        
-        
-        //----------------------------------------------
-        // Auth için tek bir TokenService oluştur.
-        //----------------------------------------------
-        
-        TokenService tokenService = new TokenService();
+		TicketRepository ticketRepository = new TicketDAO(sessionFactory);
 
-        AuthService authService =
-                new AuthServiceImpl(userService, tokenService);
+		Authorization authorization = new AuthorizationImpl();
 
-        AuthController authController =
-                new AuthController(authService);
+		TicketService ticketService = new TicketServiceImpl(ticketRepository, authorization);
 
-        // Geçici ticket testi kullanıcısı.
-        User authenticatedUser = userRepository.findById(7L);
+		TicketController ticketController = new TicketController(ticketService);
 
-        // HTTP sunucusunu oluştur.
-        HttpServer server =
-                HttpServer.create(new InetSocketAddress(8080), 0);
+		// ----------------------------------------------
+		// Comment katmanlarıni oluştur.
+		// ----------------------------------------------
+		CommentRepository commentRepository = new CommentDAO(sessionFactory);
 
-        // Kayıt ve giriş endpoint'leri.
-        server.createContext(
-                "/auth",
-                new AuthHttpHandler(authController)
-        );
+		CommentService commentService = new CommentServiceImpl(commentRepository, ticketRepository, userRepository,
+				authorization);
 
-        // Kullanıcı endpoint'leri.
-        server.createContext(
-                "/users",
-                new UserHttpHandler(userController)
-        );
+		CommentController commentController = new CommentController(commentService);
 
-        // Ticket endpoint'leri.
-     // Her istekte kullanıcıyı token üzerinden bulur.
-        server.createContext(
-                "/tickets",
-                new TicketHttpHandler(ticketController, authService)
-        );
+		// ----------------------------------------------
+		// Auth için tek bir TokenService oluştur.
+		// ----------------------------------------------
 
-        server.createContext(
-                "/admin/tickets",
-                new TicketHttpHandler(ticketController, authService)
-        );
+		TokenService tokenService = new TokenService();
 
-        // HTTP sunucusunu başlat.
-        server.setExecutor(null);
-        server.start();
+		AuthService authService = new AuthServiceImpl(userService, tokenService);
 
-        System.out.println("Server started on http://localhost:8080");
-    }
+		AuthController authController = new AuthController(authService);
+
+		// Geçici ticket testi kullanıcısı.
+		User authenticatedUser = userRepository.findById(7L);
+
+		// HTTP sunucusunu oluştur.
+		HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+
+		// Kayıt ve giriş endpoint'leri.
+		server.createContext("/auth", new AuthHttpHandler(authController));
+
+		// Kullanıcı endpoint'leri.
+		server.createContext("/users", new UserHttpHandler(userController));
+
+		// Ticket endpoint'leri.
+		// Her istekte kullanıcıyı token üzerinden bulur.
+		server.createContext("/tickets", new TicketHttpHandler(ticketController, authService));
+
+		server.createContext("/admin/tickets", new TicketHttpHandler(ticketController, authService));
+
+		server.createContext("/comments", new CommentHttpHandler(commentController, authService));
+		
+		
+		// HTTP sunucusunu başlat.
+		server.setExecutor(null);
+		server.start();
+
+		System.out.println("Server started on http://localhost:8080");
+	}
 }
