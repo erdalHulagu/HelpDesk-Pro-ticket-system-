@@ -30,13 +30,14 @@ public class  Comment{
 	@JoinColumn(name = "user_id")
 	private User author;
 	
+	@Column(name = "content", nullable = false)
 	private String content;
 	
 	 
 	@Column(name="created_at")
 	private LocalDateTime createdAt=LocalDateTime.now();
 	
-	@Column(name="is_deleted")
+	@Column(name="is_deleted", nullable = false)
 	private boolean isDeleted;
 	
 	public  Comment() {

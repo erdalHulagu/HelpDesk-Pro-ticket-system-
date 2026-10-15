@@ -40,16 +40,44 @@ public class CommentServiceImpl implements CommentService {
 
 
 	// --------------- Create Comment ----------------
+//	@Override
+//	public void createComment(Comment comment, User user) {
+//
+//		Ticket ticket = ticketRepository.findById(comment.getTicket().getId());
+//		authorization.canComment(ticket, user);
+//
+//		comment.setAuthor(user);
+//		comment.setTicket(ticket);
+//		commentRepository.save(comment);
+//
+//	}
 	@Override
 	public void createComment(Comment comment, User user) {
 
-		Ticket ticket = ticketRepository.findById(comment.getTicket().getId());
-		authorization.canComment(ticket, user);
+	    if (comment == null || comment.getTicket() == null
+	            || comment.getTicket().getId() == null) {
+	        throw new IllegalArgumentException("Ticket ID is missing");
+	    }
 
-		comment.setAuthor(user);
-		comment.setTicket(ticket);
-		commentRepository.save(comment);
+	    Long ticketId = comment.getTicket().getId();
 
+	    System.out.println("Comment request ticket ID: " + ticketId);
+
+	    Ticket ticket = ticketRepository.findById(ticketId);
+
+	    System.out.println("Found ticket: " + ticket);
+
+	    if (ticket == null) {
+	        throw new ResourceNotFoundExeption(
+	                ExceptionMessage.TICKET_NOT_FOUND);
+	    }
+
+	    authorization.canComment(ticket, user);
+
+	    comment.setAuthor(user);
+	    comment.setTicket(ticket);
+
+	    commentRepository.save(comment);
 	}
 
 	

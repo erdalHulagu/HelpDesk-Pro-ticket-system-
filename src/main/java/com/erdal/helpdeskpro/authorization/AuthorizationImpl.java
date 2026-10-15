@@ -90,14 +90,32 @@ public class AuthorizationImpl implements Authorization {
 	}
 
 	private void checkTicketOwner(Ticket ticket, User user) {
-		if (user.getRole() != Role.EMPLOYEE) {
-			return;
-		}
 
-		if (user.getId() == null || ticket.getCreatedBy() == null
-				|| !user.getId().equals(ticket.getCreatedBy().getId())) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
+	    if (user.getId() == null) {
+	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	    }
+
+	    switch (user.getRole()) {
+	        case ADMIN:
+	            return;
+
+	        case EMPLOYEE:
+	            if (ticket.getCreatedBy() == null
+	                    || !user.getId().equals(ticket.getCreatedBy().getId())) {
+	                throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	            }
+	            return;
+
+	        case IT_SUPPORT:
+	            if (ticket.getAssignedTo() == null
+	                    || !user.getId().equals(ticket.getAssignedTo().getId())) {
+	                throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	            }
+	            return;
+
+	        default:
+	            throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	    }
 	}
 
 	private void checkAdmin(User user) {
