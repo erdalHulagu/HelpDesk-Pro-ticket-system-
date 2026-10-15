@@ -1,99 +1,158 @@
 package com.erdal.helpdeskpro.http;
 
+import com.erdal.helpdeskpro.auth.AuthService;
 import com.erdal.helpdeskpro.controller.CommentController;
-import com.erdal.helpdeskpro.dtos.CommentDTO;
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.dtos.CommentDTO;
+import com.erdal.helpdeskpro.exception.BadRequestExeption;
+import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
+import com.erdal.helpdeskpro.util.JsonUtil;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
-/**
- * HTTP Handler for Comment REST API.
- * Supports GET, POST, DELETE
- */
 public class CommentHttpHandler implements HttpHandler {
 
     private final CommentController commentController;
-    private final User authenticatedUser;
+    private final AuthService authService;
 
     public CommentHttpHandler(
             CommentController commentController,
-            User authenticatedUser
-    ) {
+            AuthService authService) {
         this.commentController = commentController;
-        this.authenticatedUser = authenticatedUser;
+        this.authService = authService;
     }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        String path = exchange.getRequestURI().getPath();
-        String method = exchange.getRequestMethod();
 
         try {
-            // ---------------- POST /comments ----------------
-            if ("POST".equalsIgnoreCase(method) && path.equals("/comments")) {
-                handleCreateComment(exchange);
+            User authenticatedUser = authenticateRequest(exchange);
+
+            if (authenticatedUser == null) {
+                sendJson(exchange, 401,
+                        "{\"error\":\"Unauthorized\"}");
                 return;
             }
 
-            // ---------------- GET /comments/ticket/{ticketId} ----------------
-            if ("GET".equalsIgnoreCase(method) && path.matches("/comments/ticket/\\d+")) {
-                handleGetCommentsByTicket(exchange);
+            String path = exchange.getRequestURI().getPath();
+            String method = exchange.getRequestMethod();
+
+            if ("POST".equalsIgnoreCase(method)
+                    && path.equals("/comments")) {
+                handleCreateComment(exchange, authenticatedUser);
                 return;
             }
 
-            // ---------------- DELETE /comments/{id} ----------------
-            if ("DELETE".equalsIgnoreCase(method) && path.matches("/comments/\\d+")) {
-                handleDeleteComment(exchange);
+            if ("GET".equalsIgnoreCase(method)
+                    && path.matches("/comments/ticket/\\d+")) {
+                handleGetCommentsByTicket(exchange, authenticatedUser);
                 return;
             }
 
-            // 404 for unknown paths
-            exchange.sendResponseHeaders(404, -1);
+            if ("DELETE".equalsIgnoreCase(method)
+                    && path.matches("/comments/\\d+")) {
+                handleDeleteComment(exchange, authenticatedUser);
+                return;
+            }
+
+            sendJson(exchange, 404,
+                    "{\"error\":\"Endpoint not found\"}");
+
+        } catch (ResourceNotFoundExeption e) {
+            sendJson(exchange, 404,
+                    JsonUtil.toJson(Map.of("error", e.getMessage())));
+
+        } catch (BadRequestExeption e) {
+            sendJson(exchange, 403,
+                    JsonUtil.toJson(Map.of("error", e.getMessage())));
+
+        } catch (IllegalArgumentException e) {
+            sendJson(exchange, 400,
+                    "{\"error\":\"Invalid request\"}");
 
         } catch (Exception e) {
-            String errorJson = "{\"error\":\"" + e.getMessage() + "\"}";
-            exchange.getResponseHeaders().add("Content-Type", "application/json");
-            exchange.sendResponseHeaders(400, errorJson.getBytes().length);
-            exchange.getResponseBody().write(errorJson.getBytes());
+            e.printStackTrace();
+            sendJson(exchange, 500,
+                    "{\"error\":\"Internal Server Error\"}");
+        } finally {
             exchange.close();
         }
     }
 
-    // ---------------- Helper methods ----------------
+    private User authenticateRequest(HttpExchange exchange) {
 
-    private void handleCreateComment(HttpExchange exchange) throws Exception {
-        InputStream is = exchange.getRequestBody();
-        CommentDTO commentDTO = JsonUtil.fromJson(new String(is.readAllBytes()), CommentDTO.class);
+        String header = exchange.getRequestHeaders()
+                .getFirst("Authorization");
 
-        commentController.addComment(commentDTO, authenticatedUser);
+        if (header == null
+                || !header.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            return null;
+        }
 
-        String response = JsonUtil.toJson(commentDTO);
-        exchange.getResponseHeaders().add("Content-Type", "application/json");
-        exchange.sendResponseHeaders(201, response.getBytes().length);
-        exchange.getResponseBody().write(response.getBytes());
-        exchange.close();
+        String token = header.substring(7).trim();
+
+        if (token.isEmpty()) {
+            return null;
+        }
+
+        return authService.authenticate(token);
     }
 
-    private void handleGetCommentsByTicket(HttpExchange exchange) throws Exception {
-        Long ticketId = Long.parseLong(exchange.getRequestURI().getPath().split("/")[3]);
-        List<CommentDTO> comments = commentController.getCommentsByTicket(ticketId, authenticatedUser);
+    private void handleCreateComment(
+            HttpExchange exchange, User user) throws IOException {
 
-        String response = JsonUtil.toJson(comments);
-        exchange.getResponseHeaders().add("Content-Type", "application/json");
-        exchange.sendResponseHeaders(200, response.getBytes().length);
-        exchange.getResponseBody().write(response.getBytes());
-        exchange.close();
+        String body = new String(
+                exchange.getRequestBody().readAllBytes(),
+                StandardCharsets.UTF_8);
+
+        CommentDTO commentDTO =
+                JsonUtil.fromJson(body, CommentDTO.class);
+
+        commentController.addComment(commentDTO, user);
+
+        sendJson(exchange, 201, JsonUtil.toJson(commentDTO));
     }
 
-    private void handleDeleteComment(HttpExchange exchange) throws Exception {
-        Long commentId = Long.parseLong(exchange.getRequestURI().getPath().split("/")[2]);
-        commentController.deleteComment(commentId, authenticatedUser);
+    private void handleGetCommentsByTicket(
+            HttpExchange exchange, User user) throws IOException {
 
-        exchange.sendResponseHeaders(204, -1); // No content
-        exchange.close();
+        String path = exchange.getRequestURI().getPath();
+        Long ticketId = Long.parseLong(
+                path.substring("/comments/ticket/".length()));
+
+        List<CommentDTO> comments =
+                commentController.getCommentsByTicket(ticketId, user);
+
+        sendJson(exchange, 200, JsonUtil.toJson(comments));
+    }
+
+    private void handleDeleteComment(
+            HttpExchange exchange, User user) throws IOException {
+
+        String path = exchange.getRequestURI().getPath();
+        Long commentId = Long.parseLong(
+                path.substring("/comments/".length()));
+
+        commentController.deleteComment(commentId, user);
+
+        exchange.sendResponseHeaders(204, -1);
+    }
+
+    private void sendJson(
+            HttpExchange exchange, int status, String json)
+            throws IOException {
+
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+
+        exchange.getResponseHeaders().set(
+                "Content-Type", "application/json; charset=UTF-8");
+
+        exchange.sendResponseHeaders(status, bytes.length);
+        exchange.getResponseBody().write(bytes);
     }
 }
