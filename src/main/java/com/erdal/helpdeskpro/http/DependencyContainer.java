@@ -45,7 +45,7 @@ public class DependencyContainer {
             new TicketServiceImpl(ticketRepository);
 
     private static final CommentService commentService =
-            new CommentServiceImpl(commentRepository, ticketRepository, userRepository);
+            new CommentServiceImpl(commentRepository, ticketRepository, userRepository,authorization);
 
     // Controllers
     private static final UserController userController =

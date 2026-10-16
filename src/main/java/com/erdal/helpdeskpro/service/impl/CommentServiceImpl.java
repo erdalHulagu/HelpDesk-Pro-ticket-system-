@@ -33,11 +33,6 @@ public class CommentServiceImpl implements CommentService {
 
 	}
 
-	public CommentServiceImpl(CommentRepository commentrepository, TicketRepository ticketrepository,
-			UserRepository userrepository) {
-
-	}
-
 	@Override
 	public void createComment(Comment comment, User user) {
 
@@ -103,29 +98,60 @@ public class CommentServiceImpl implements CommentService {
 	}
 
 	// ---------------Delete Comment By Id----------------
+
 	@Override
 	public void deleteCommentById(Long commentId, User user) {
 
+		if (user == null || user.getId() == null || user.getRole() == null) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
+
 		Comment comment = commentRepository.findById(commentId);
 
-		if (comment == null) {
+		if (comment == null || comment.isDeleted()) {
 			throw new ResourceNotFoundExeption(ExceptionMessage.COMMENT_NOT_FOUND);
 		}
 
-		if (comment.isDeleted()) {
-			throw new BadRequestExeption(ExceptionMessage.COMMENT_IS_DELETED);
+		Ticket ticket = comment.getTicket();
+
+		if (ticket == null) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
 		}
 
-		if (comment.getTicket().getStatus() == TicketStatus.CLOSED) {
+		if (ticket.isDeleted()) {
+			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
+		}
+
+		if (ticket.getStatus() == TicketStatus.CLOSED) {
 			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
 		}
 
-		// Yetki kontrolü
-		if (user.getRole() == Role.EMPLOYEE && !comment.getAuthor().getId().equals(user.getId())) {
+		// Ticket üzerindeki yetkiyi kontrol et
+		authorization.canComment(ticket, user);
 
+		// Rol bazlı yorum silme yetkisi
+		switch (user.getRole()) {
+		case ADMIN:
+			// Tüm yorumları silebilir
+			break;
+
+		case EMPLOYEE:
+			if (comment.getAuthor() == null || !user.getId().equals(comment.getAuthor().getId())) {
+				throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
+			}
+			break;
+
+		case IT_SUPPORT:
+			if (ticket.getAssignedTo() == null || !user.getId().equals(ticket.getAssignedTo().getId())) {
+				throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
+			}
+			break;
+
+		default:
 			throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
 		}
 
+		// Soft delete
 		comment.setDeleted(true);
 		commentRepository.save(comment);
 	}
