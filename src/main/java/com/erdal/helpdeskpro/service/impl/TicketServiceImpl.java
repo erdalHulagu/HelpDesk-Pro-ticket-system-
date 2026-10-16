@@ -180,14 +180,15 @@ public class TicketServiceImpl implements TicketService {
 	@Override
 	public void deleteTicket(Long ticketId, User currentUser) {
 
-		Ticket ticket = ticketRepository.findById(ticketId);
+	    Ticket ticket = ticketRepository.findById(ticketId);
 
-		authorization.canDeleteTicket(ticket, currentUser);
+	    if (ticket == null) {
+	        throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+	    }
 
-		ticket.setDeleted(true);
+	    authorization.canDeleteTicket(ticket, currentUser);
 
-		// persist
-		ticketRepository.update(ticket);
-
+	    ticket.setDeleted(true);
+	    ticketRepository.update(ticket);
 	}
 }

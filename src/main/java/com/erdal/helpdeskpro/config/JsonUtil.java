@@ -1,4 +1,4 @@
-package com.erdal.helpdeskpro.http;
+package com.erdal.helpdeskpro.config;
 
 import java.io.IOException;
 

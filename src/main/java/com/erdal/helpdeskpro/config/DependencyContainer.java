@@ -24,86 +24,84 @@ import com.erdal.helpdeskpro.service.UserService;
 import com.erdal.helpdeskpro.service.impl.CommentServiceImpl;
 import com.erdal.helpdeskpro.service.impl.TicketServiceImpl;
 import com.erdal.helpdeskpro.service.impl.UserServiceImpl;
+import com.erdal.helpdeskpro.controller.AttachmentController;
+import com.erdal.helpdeskpro.repository.AttachmentRepository;
+import com.erdal.helpdeskpro.repository.dao.AttachmentDAO;
+import com.erdal.helpdeskpro.service.AttachmentService;
+import com.erdal.helpdeskpro.service.impl.AttachmentServiceImpl;
 
 public final class DependencyContainer {
 
-    private static final SessionFactory sessionFactory =
-            HibernateUtil.getSessionFactory();
+	private static final SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
 
-    // Repositories
-    private static final UserRepository userRepository =
-            new UserDAO(sessionFactory);
+	// Repositories
+	private static final UserRepository userRepository = new UserDAO(sessionFactory);
 
-    private static final TicketRepository ticketRepository =
-            new TicketDAO(sessionFactory);
+	private static final TicketRepository ticketRepository = new TicketDAO(sessionFactory);
 
-    private static final CommentRepository commentRepository =
-            new CommentDAO(sessionFactory);
+	private static final CommentRepository commentRepository = new CommentDAO(sessionFactory);
 
-    // Authorization
-    private static final Authorization authorization =
-            new AuthorizationImpl();
+	// Authorization
+	private static final Authorization authorization = new AuthorizationImpl();
 
-    // Services
-    private static final UserService userService =
-            new UserServiceImpl(userRepository);
+	// Services
+	private static final UserService userService = new UserServiceImpl(userRepository);
 
-    private static final TicketService ticketService =
-            new TicketServiceImpl(ticketRepository, authorization);
+	private static final TicketService ticketService = new TicketServiceImpl(ticketRepository, authorization);
 
-    private static final CommentService commentService =
-            new CommentServiceImpl(
-                    commentRepository,
-                    ticketRepository,
-                    userRepository,
-                    authorization
-            );
+	private static final CommentService commentService = new CommentServiceImpl(commentRepository, ticketRepository,
+			userRepository, authorization);
 
-    // Authentication
-    private static final TokenService tokenService =
-            new TokenService();
+	// Authentication
+	private static final TokenService tokenService = new TokenService();
 
-    private static final AuthService authService =
-            new AuthServiceImpl(userService, tokenService);
+	private static final AuthService authService = new AuthServiceImpl(userService, tokenService);
 
-    // Controllers
-    private static final UserController userController =
-            new UserController(userService);
+	// Controllers
+	private static final UserController userController = new UserController(userService);
 
-    private static final TicketController ticketController =
-            new TicketController(ticketService);
+	private static final TicketController ticketController = new TicketController(ticketService);
 
-    private static final CommentController commentController =
-            new CommentController(commentService);
+	private static final CommentController commentController = new CommentController(commentService);
 
-    private static final AuthController authController =
-            new AuthController(authService);
+	private static final AuthController authController = new AuthController(authService);
 
-    private DependencyContainer() {
-        // Bu sınıftan nesne oluşturulmasını engeller.
-    }
+	// Attachments
+	private static final AttachmentRepository attachmentRepository = new AttachmentDAO(sessionFactory);
 
-    public static UserController getUserController() {
-        return userController;
-    }
+	private static final AttachmentService attachmentService = new AttachmentServiceImpl(attachmentRepository,
+			ticketRepository, authorization);
 
-    public static TicketController getTicketController() {
-        return ticketController;
-    }
+	private static final AttachmentController attachmentController = new AttachmentController(attachmentService);
 
-    public static CommentController getCommentController() {
-        return commentController;
-    }
+	private DependencyContainer() {
+		// Bu sınıftan nesne oluşturulmasını engeller.
+	}
 
-    public static AuthController getAuthController() {
-        return authController;
-    }
+	public static UserController getUserController() {
+		return userController;
+	}
 
-    public static AuthService getAuthService() {
-        return authService;
-    }
+	public static TicketController getTicketController() {
+		return ticketController;
+	}
 
-    public static UserRepository getUserRepository() {
-        return userRepository;
-    }
+	public static CommentController getCommentController() {
+		return commentController;
+	}
+
+	public static AuthController getAuthController() {
+		return authController;
+	}
+
+	public static AuthService getAuthService() {
+		return authService;
+	}
+
+	public static UserRepository getUserRepository() {
+		return userRepository;
+	}
+	public static AttachmentController getAttachmentController() {
+	    return attachmentController;
+	}
 }

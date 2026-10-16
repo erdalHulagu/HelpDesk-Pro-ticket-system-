@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 
 import com.sun.net.httpserver.HttpServer;
 import com.erdal.helpdeskpro.config.DependencyContainer;
+import com.erdal.helpdeskpro.http.AttachmentHttpHandler;
 import com.erdal.helpdeskpro.http.AuthHttpHandler;
 import com.erdal.helpdeskpro.http.CommentHttpHandler;
 import com.erdal.helpdeskpro.http.TicketHttpHandler;
@@ -55,6 +56,14 @@ public class Application {
                 "/comments",
                 new CommentHttpHandler(
                         DependencyContainer.getCommentController(),
+                        DependencyContainer.getAuthService()
+                )
+        );
+        
+        server.createContext(
+                "/attachments",
+                new AttachmentHttpHandler(
+                        DependencyContainer.getAttachmentController(),
                         DependencyContainer.getAuthService()
                 )
         );

@@ -20,7 +20,7 @@ public class Attachment {
 	private Long id;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ticked_id")
+	@JoinColumn(name = "ticket_id", nullable = false)
 	private Ticket ticket;
 	
 	private String fileName;

@@ -1,5 +1,98 @@
+
 package com.erdal.helpdeskpro.repository.dao;
 
-public class AttachmentDAO {
+import java.util.List;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+
+import com.erdal.helpdeskpro.domain.Attachment;
+import com.erdal.helpdeskpro.domain.Ticket;
+import com.erdal.helpdeskpro.repository.AttachmentRepository;
+
+public class AttachmentDAO implements AttachmentRepository {
+
+    private final SessionFactory sessionFactory;
+
+    public AttachmentDAO(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
+
+    @Override
+    public Attachment save(Attachment attachment) {
+
+        Transaction transaction = null;
+
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+
+            Long ticketId = attachment.getTicket().getId();
+
+            Ticket managedTicket =
+                    session.getReference(Ticket.class, ticketId);
+
+            attachment.setTicket(managedTicket);
+
+            session.persist(attachment);
+            transaction.commit();
+
+            return attachment;
+
+        } catch (RuntimeException e) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+            throw e;
+        }
+    }
+
+    @Override
+    public Attachment findById(Long id) {
+
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery(
+                    "from Attachment a where a.id = :id",
+                    Attachment.class)
+                    .setParameter("id", id)
+                    .uniqueResult();
+        }
+    }
+
+    @Override
+    public List<Attachment> findByTicketId(Long ticketId) {
+
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery(
+                    "from Attachment a where a.ticket.id = :ticketId order by a.uploadedAt",
+                    Attachment.class)
+                    .setParameter("ticketId", ticketId)
+                    .list();
+        }
+    }
+
+    @Override
+    public void deleteById(Long id) {
+
+        Transaction transaction = null;
+
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+
+            Attachment attachment =
+                    session.get(Attachment.class, id);
+
+            if (attachment != null) {
+                session.remove(attachment);
+            }
+
+            transaction.commit();
+
+        } catch (RuntimeException e) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+            throw e;
+        }
+    }
 }
