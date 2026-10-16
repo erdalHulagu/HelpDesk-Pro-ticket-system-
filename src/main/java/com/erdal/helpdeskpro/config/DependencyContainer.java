@@ -1,8 +1,14 @@
-package com.erdal.helpdeskpro.http;
+
+package com.erdal.helpdeskpro.config;
 
 import org.hibernate.SessionFactory;
 
-import com.erdal.helpdeskpro.config.HibernateUtil;
+import com.erdal.helpdeskpro.auth.AuthService;
+import com.erdal.helpdeskpro.auth.AuthServiceImpl;
+import com.erdal.helpdeskpro.auth.TokenService;
+import com.erdal.helpdeskpro.authorization.Authorization;
+import com.erdal.helpdeskpro.authorization.AuthorizationImpl;
+import com.erdal.helpdeskpro.controller.AuthController;
 import com.erdal.helpdeskpro.controller.CommentController;
 import com.erdal.helpdeskpro.controller.TicketController;
 import com.erdal.helpdeskpro.controller.UserController;
@@ -19,13 +25,10 @@ import com.erdal.helpdeskpro.service.impl.CommentServiceImpl;
 import com.erdal.helpdeskpro.service.impl.TicketServiceImpl;
 import com.erdal.helpdeskpro.service.impl.UserServiceImpl;
 
-/**
- * Simple Dependency Injection container.
- * Creates and stores single instances (Singleton pattern).
- */
-public class DependencyContainer {
+public final class DependencyContainer {
 
-    private static final SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+    private static final SessionFactory sessionFactory =
+            HibernateUtil.getSessionFactory();
 
     // Repositories
     private static final UserRepository userRepository =
@@ -37,15 +40,31 @@ public class DependencyContainer {
     private static final CommentRepository commentRepository =
             new CommentDAO(sessionFactory);
 
+    // Authorization
+    private static final Authorization authorization =
+            new AuthorizationImpl();
+
     // Services
     private static final UserService userService =
             new UserServiceImpl(userRepository);
 
     private static final TicketService ticketService =
-            new TicketServiceImpl(ticketRepository);
+            new TicketServiceImpl(ticketRepository, authorization);
 
     private static final CommentService commentService =
-            new CommentServiceImpl(commentRepository, ticketRepository, userRepository,authorization);
+            new CommentServiceImpl(
+                    commentRepository,
+                    ticketRepository,
+                    userRepository,
+                    authorization
+            );
+
+    // Authentication
+    private static final TokenService tokenService =
+            new TokenService();
+
+    private static final AuthService authService =
+            new AuthServiceImpl(userService, tokenService);
 
     // Controllers
     private static final UserController userController =
@@ -57,24 +76,34 @@ public class DependencyContainer {
     private static final CommentController commentController =
             new CommentController(commentService);
 
-    /**
-     * Provide TicketController instance
-     */
-    public static TicketController getTicketController() {
-        return ticketController;
+    private static final AuthController authController =
+            new AuthController(authService);
+
+    private DependencyContainer() {
+        // Bu sınıftan nesne oluşturulmasını engeller.
     }
 
-    /**
-     * Provide UserController instance
-     */
     public static UserController getUserController() {
         return userController;
     }
 
-    /**
-     * Provide CommentController instance
-     */
+    public static TicketController getTicketController() {
+        return ticketController;
+    }
+
     public static CommentController getCommentController() {
         return commentController;
+    }
+
+    public static AuthController getAuthController() {
+        return authController;
+    }
+
+    public static AuthService getAuthService() {
+        return authService;
+    }
+
+    public static UserRepository getUserRepository() {
+        return userRepository;
     }
 }

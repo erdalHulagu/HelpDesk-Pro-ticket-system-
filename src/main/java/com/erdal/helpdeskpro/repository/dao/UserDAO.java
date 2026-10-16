@@ -10,7 +10,6 @@ import org.hibernate.Transaction;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ExceptionMessage;
-import com.erdal.helpdeskpro.http.DependencyContainer;
 import com.erdal.helpdeskpro.repository.UserRepository;
 
 public class UserDAO implements UserRepository {
