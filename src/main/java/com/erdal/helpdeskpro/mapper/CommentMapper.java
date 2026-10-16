@@ -24,6 +24,7 @@ public class CommentMapper {
         comment.setContent(commentDTO.getContent());
         comment.setAuthor(user);
         comment.setTicket(ticket);
+        comment.setType(commentDTO.getType());
 
         // Yeni yorumda ID'yi veritabanı oluştursun.
         // Güncelleme işlemi için bu mapper'ı kullanıyorsan
@@ -40,6 +41,7 @@ public class CommentMapper {
         dto.setAuthorId(comment.getAuthor().getId());
         dto.setTicketId(comment.getTicket().getId());
         dto.setDeleted(comment.isDeleted());
+        dto.setType(comment.getType());
 
         return dto;
     }

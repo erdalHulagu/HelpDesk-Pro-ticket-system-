@@ -1,5 +1,7 @@
 package com.erdal.helpdeskpro.dtos;
 
+import com.erdal.helpdeskpro.enums.CommentType;
+
 public class CommentDTO {
 
 	private Long id;
@@ -7,19 +9,23 @@ public class CommentDTO {
 	private Long ticketId;
 	private Long authorId;
 	private boolean deleted;
+	private CommentType type=CommentType.PUBLIC;
 
 	public CommentDTO() {
 		super();
 	}
 
-	public CommentDTO(Long id, String content, Long ticketId, Long authorId, boolean deleted) {
+	public CommentDTO(Long id, String content, Long ticketId, Long authorId, boolean deleted,CommentType type) {
 		super();
 		this.id = id;
 		this.content = content;
 		this.ticketId = ticketId;
 		this.authorId = authorId;
 		this.deleted = deleted;
+		this.type = type;
 	}
+
+	
 
 	public Long getId() {
 		return id;
@@ -59,6 +65,13 @@ public class CommentDTO {
 
 	public void setDeleted(boolean deleted) {
 		this.deleted = deleted;
+	}
+	public CommentType getType() {
+		return type;
+	}
+
+	public void setType(CommentType type) {
+		this.type = type;
 	}
 
 }

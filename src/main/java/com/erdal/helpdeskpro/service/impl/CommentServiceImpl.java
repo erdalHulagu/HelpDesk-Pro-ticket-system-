@@ -6,6 +6,7 @@ import com.erdal.helpdeskpro.authorization.Authorization;
 import com.erdal.helpdeskpro.domain.Comment;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.enums.CommentType;
 import com.erdal.helpdeskpro.enums.Role;
 import com.erdal.helpdeskpro.enums.TicketStatus;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
@@ -139,7 +140,40 @@ public class CommentServiceImpl implements CommentService {
 	    comment.setDeleted(true);
 	    commentRepository.save(comment);
 	}
-	
+	@Override
+	public Comment findCommentById(Long commentId, User currentUser) {
+
+	    Comment comment = commentRepository.findById(commentId);
+
+	    if (comment == null || comment.isDeleted()) {
+	        throw new ResourceNotFoundExeption(
+	            ExceptionMessage.COMMENT_NOT_FOUND
+	        );
+	    }
+
+	    Ticket ticket = comment.getTicket();
+
+	    // Ticket erişim yetkisini kontrol et
+	    authorization.canComment(ticket, currentUser);
+
+	    // Internal yorumları yalnızca yetkili roller görebilir
+	    if (comment.getType() == CommentType.INTERNAL) {
+	        boolean isAdmin = currentUser.getRole() == Role.ADMIN;
+
+	        boolean isAssignedSupport =
+	            currentUser.getRole() == Role.IT_SUPPORT
+	            && ticket.getAssignedTo() != null
+	            && ticket.getAssignedTo().getId().equals(currentUser.getId());
+
+	        if (!isAdmin && !isAssignedSupport) {
+	            throw new BadRequestExeption(
+	                ExceptionMessage.NOT_ALLOWED
+	            );
+	        }
+	    }
+
+	    return comment;
+	}
 	// ---------------Update Comment----------------
 	@Override
 	public Comment updateComment(Long commentId, String newContent, User user) {

@@ -42,18 +42,28 @@ public class CommentHttpHandler implements HttpHandler {
             String path = exchange.getRequestURI().getPath();
             String method = exchange.getRequestMethod();
 
+            // POST /comments
             if ("POST".equalsIgnoreCase(method)
                     && path.equals("/comments")) {
                 handleCreateComment(exchange, authenticatedUser);
                 return;
             }
 
+            // GET /comments/ticket/{ticketId}
             if ("GET".equalsIgnoreCase(method)
                     && path.matches("/comments/ticket/\\d+")) {
                 handleGetCommentsByTicket(exchange, authenticatedUser);
                 return;
             }
 
+            // GET /comments/{commentId}
+            if ("GET".equalsIgnoreCase(method)
+                    && path.matches("/comments/\\d+")) {
+                handleGetCommentById(exchange, authenticatedUser);
+                return;
+            }
+
+            // DELETE /comments/{commentId}
             if ("DELETE".equalsIgnoreCase(method)
                     && path.matches("/comments/\\d+")) {
                 handleDeleteComment(exchange, authenticatedUser);
@@ -129,6 +139,21 @@ public class CommentHttpHandler implements HttpHandler {
                 commentController.getCommentsByTicket(ticketId, user);
 
         sendJson(exchange, 200, JsonUtil.toJson(comments));
+    }
+
+    // Yeni: Tek yorumu ID ile getir
+    private void handleGetCommentById(
+            HttpExchange exchange, User user) throws IOException {
+
+        String path = exchange.getRequestURI().getPath();
+
+        Long commentId = Long.parseLong(
+                path.substring("/comments/".length()));
+
+        CommentDTO comment =
+                commentController.getCommentById(commentId, user);
+
+        sendJson(exchange, 200, JsonUtil.toJson(comment));
     }
 
     private void handleDeleteComment(

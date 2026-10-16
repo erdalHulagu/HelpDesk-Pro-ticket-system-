@@ -10,43 +10,51 @@ import com.erdal.helpdeskpro.service.CommentService;
 
 public class CommentController {
 
-    private final CommentService commentService;
+	private final CommentService commentService;
 
-    public CommentController(CommentService commentService) {
-        this.commentService = commentService;
-    }
+	public CommentController(CommentService commentService) {
+		this.commentService = commentService;
+	}
 
-    // comment ekle
-    public void addComment(CommentDTO dto, User user) {
-        Comment comment = CommentMapper.commentDTOtoComment(dto);
-        commentService.createComment(comment, user);
-    }
-    public CommentDTO addComment(Long commnetId ) {
-    	Comment comment=commentService.findCommentById(commnetId);
-    	return CommentMapper.commentToCommentDTO(comment);
-    	
-    }
+	// comment ekle
+	public void addComment(CommentDTO dto, User user) {
+		Comment comment = CommentMapper.commentDTOtoComment(dto);
+		commentService.createComment(comment, user);
+	}
 
-    // ticket commentleri
-    public List<CommentDTO> getCommentsByTicket(Long ticketId,User currentUser) {
-        List<Comment> comments = commentService.getCommentsByTicket(ticketId,currentUser);
-        return CommentMapper.commentListToCommentDTOList(comments);
-    }
-    //Users comments
-    public List<CommentDTO> getCommentsByTicket(User currentUser) {
-    	List<Comment> comments = commentService.findAllUsersComments(currentUser);
-    	return CommentMapper.commentListToCommentDTOList(comments);
-    }
-    
-    
+	public CommentDTO addComment(Long commnetId) {
+		Comment comment = commentService.findCommentById(commnetId);
+		return CommentMapper.commentToCommentDTO(comment);
 
-    // comment sil
-    public void deleteComment(Long commentId, User user) {
-        commentService.deleteCommentById(commentId, user);
-    }
-   // update comment
-    public CommentDTO updateComment(Long commentId,String newContent, User currentUser) {
-    	Comment newComment=commentService.updateComment(commentId,newContent, currentUser);
-    	return CommentMapper.commentToCommentDTO(newComment);
-    }
+	}
+
+	// ticket commentleri
+	public List<CommentDTO> getCommentsByTicket(Long ticketId, User currentUser) {
+		List<Comment> comments = commentService.getCommentsByTicket(ticketId, currentUser);
+		return CommentMapper.commentListToCommentDTOList(comments);
+	}
+
+	// Users comments
+	public List<CommentDTO> findAllUsersComments(User currentUser) {
+		List<Comment> comments = commentService.findAllUsersComments(currentUser);
+		return CommentMapper.commentListToCommentDTOList(comments);
+	}
+
+	// comment sil
+	public void deleteComment(Long commentId, User user) {
+		commentService.deleteCommentById(commentId, user);
+	}
+
+	// update comment
+	public CommentDTO updateComment(Long commentId, String newContent, User currentUser) {
+		Comment newComment = commentService.updateComment(commentId, newContent, currentUser);
+		return CommentMapper.commentToCommentDTO(newComment);
+	}
+
+	public CommentDTO getCommentById(Long commentId, User currentUser) {
+		Comment comment = commentService.findCommentById(commentId, currentUser);
+
+		return CommentMapper.commentToCommentDTO(comment);
+	}
+
 }

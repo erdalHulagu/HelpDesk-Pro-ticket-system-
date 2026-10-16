@@ -18,6 +18,8 @@ public interface CommentService {
 	Comment updateComment(Long commentId, String newContent, User user);
 	
 	List<Comment> getCommentsByTicket(Long ticketId, User user);
+
+	Comment findCommentById(Long commentId, User currentUser);
 	
 
 }
