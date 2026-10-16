@@ -9,62 +9,50 @@ import com.erdal.helpdeskpro.domain.Comment;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.dtos.CommentDTO;
+import com.erdal.helpdeskpro.enums.CommentType;
 
 public class CommentMapper {
 
-    public static Comment commentDTOtoComment(CommentDTO commentDTO) {
+	public static Comment commentDTOtoComment(CommentDTO commentDTO) {
 
-        User user = new User();
-        user.setId(commentDTO.getAuthorId());
+		Comment comment = new Comment();
+		comment.setContent(commentDTO.getContent());
 
-        Ticket ticket = new Ticket();
-        ticket.setId(commentDTO.getTicketId());
+		Ticket ticket = new Ticket();
+		ticket.setId(commentDTO.getTicketId());
+		comment.setTicket(ticket);
 
-        Comment comment = new Comment();
-        comment.setContent(commentDTO.getContent());
-        comment.setAuthor(user);
-        comment.setTicket(ticket);
-        comment.setType(commentDTO.getType());
+		comment.setType(commentDTO.getType() == null ? CommentType.PUBLIC : commentDTO.getType());
 
-        // Yeni yorumda ID'yi veritabanı oluştursun.
-        // Güncelleme işlemi için bu mapper'ı kullanıyorsan
-        // ID'yi ayrı olarak ele almalısın.
+		return comment;
+	}
 
-        return comment;
-    }
+	public static CommentDTO commentToCommentDTO(Comment comment) {
+		CommentDTO dto = new CommentDTO();
 
-    public static CommentDTO commentToCommentDTO(Comment comment) {
-        CommentDTO dto = new CommentDTO();
+		dto.setId(comment.getId());
+		dto.setContent(comment.getContent());
+		dto.setAuthorId(comment.getAuthor().getId());
+		dto.setTicketId(comment.getTicket().getId());
+		dto.setDeleted(comment.isDeleted());
+		dto.setType(comment.getType());
 
-        dto.setId(comment.getId());
-        dto.setContent(comment.getContent());
-        dto.setAuthorId(comment.getAuthor().getId());
-        dto.setTicketId(comment.getTicket().getId());
-        dto.setDeleted(comment.isDeleted());
-        dto.setType(comment.getType());
+		return dto;
+	}
 
-        return dto;
-    }
+	public static List<CommentDTO> commentListToCommentDTOList(List<Comment> comments) {
+		if (comments == null || comments.isEmpty()) {
+			return Collections.emptyList();
+		}
 
-    public static List<CommentDTO> commentListToCommentDTOList(
-            List<Comment> comments) {
-        if (comments == null || comments.isEmpty()) {
-            return Collections.emptyList();
-        }
+		return comments.stream().map(CommentMapper::commentToCommentDTO).collect(Collectors.toList());
+	}
 
-        return comments.stream()
-                .map(CommentMapper::commentToCommentDTO)
-                .collect(Collectors.toList());
-    }
+	public static List<Comment> commentDTOListToCommentList(List<CommentDTO> commentDTOs) {
+		if (commentDTOs == null || commentDTOs.isEmpty()) {
+			return Collections.emptyList();
+		}
 
-    public static List<Comment> commentDTOListToCommentList(
-            List<CommentDTO> commentDTOs) {
-        if (commentDTOs == null || commentDTOs.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return commentDTOs.stream()
-                .map(CommentMapper::commentDTOtoComment)
-                .collect(Collectors.toList());
-    }
+		return commentDTOs.stream().map(CommentMapper::commentDTOtoComment).collect(Collectors.toList());
+	}
 }

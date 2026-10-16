@@ -9,7 +9,7 @@ public class CommentDTO {
 	private Long ticketId;
 	private Long authorId;
 	private boolean deleted;
-	private CommentType type=CommentType.PUBLIC;
+	private CommentType type;
 
 	public CommentDTO() {
 		super();

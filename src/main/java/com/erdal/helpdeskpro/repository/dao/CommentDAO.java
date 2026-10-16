@@ -10,88 +10,81 @@ import com.erdal.helpdeskpro.domain.Comment;
 import com.erdal.helpdeskpro.repository.CommentRepository;
 
 public class CommentDAO implements CommentRepository {
-	
-	
+
 	private SessionFactory sessionFactory;
-	
+
 	public CommentDAO(SessionFactory sessionFactory) {
-		this.sessionFactory=sessionFactory;
+		this.sessionFactory = sessionFactory;
 	}
-	
 
 	@Override
 	public void save(Comment comment) {
-		Session session=sessionFactory.openSession();
-		Transaction transaction=session.beginTransaction();
-		
+		Session session = sessionFactory.openSession();
+		Transaction transaction = session.beginTransaction();
+
 		session.persist(comment);
 		transaction.commit();
-		
+
 		session.close();
-		
+
 	}
 
 	@Override
 	public Comment findById(Long id) {
-		Session session =sessionFactory.openSession();
-		Comment comment=session.get(Comment.class, id);
-		
-		session.close();
-		
-		return comment;
+
+		try (Session session = sessionFactory.openSession()) {
+			return session.createQuery("from Comment c where c.id = :id and c.deleted = false", Comment.class)
+					.setParameter("id", id).uniqueResult();
+		}
 	}
 
 	@Override
 	public List<Comment> findAll() {
-		Session session=sessionFactory.openSession();
-		List<Comment>comments=session.createQuery("from Comment",Comment.class).list();
-		
-		session.close();
-		
-		return comments;
+
+		try (Session session = sessionFactory.openSession()) {
+			return session.createQuery("from Comment c where c.deleted = false", Comment.class).list();
+		}
 	}
 
 	@Override
 	public void deleteById(Long id) {
-		Session session=sessionFactory.openSession();
-		Transaction transaction=session.beginTransaction();
+		Session session = sessionFactory.openSession();
+		Transaction transaction = session.beginTransaction();
 		Comment comment = session.get(Comment.class, id);
 		if (comment != null && !comment.isDeleted()) {
-		    comment.setDeleted(true);
+			comment.setDeleted(true);
 		}
 		transaction.commit();
 		session.close();
-		
+
 	}
+
 	@Override
 	public List<Comment> findAllByAuthorId(Long authorId) {
 
-	    Session session = sessionFactory.openSession();
+		Session session = sessionFactory.openSession();
 
-	    List<Comment> comments = session.createQuery(
-	            "from Comment c where c.author.id = :authorId and c.deleted = false",
-	            Comment.class)
-	            .setParameter("authorId", authorId)
-	            .list();
+		List<Comment> comments = session
+				.createQuery("from Comment c where c.author.id = :authorId and c.deleted = false", Comment.class)
+				.setParameter("authorId", authorId).list();
 
-	    session.close();
+		session.close();
 
-	    return comments;
+		return comments;
 	}
+
 	@Override
 	public List<Comment> findAllByTicketId(Long ticketId) {
 
-	    Session session = sessionFactory.openSession();
+		Session session = sessionFactory.openSession();
 
-	    List<Comment> comments = session.createQuery(
-	            "from Comment c where c.ticket.id = :ticketId and c.deleted = false",
-	            Comment.class)
-	            .setParameter("ticketId", ticketId)
-	            .list();
+		List<Comment> comments = session
+				.createQuery("from Comment c where c.ticket.id = :ticketId and c.deleted = false", Comment.class)
+				.setParameter("ticketId", ticketId).list();
 
-	    session.close();
+		session.close();
 
-	    return comments;
+		return comments;
 	}
 
 }

@@ -60,6 +60,15 @@ public class AuthorizationImpl implements Authorization {
 	public void canViewAllActiveTickets(User user) {
 		checkUser(user);
 	}
+	
+	@Override
+	public void canViewComments(Ticket ticket, User user) {
+
+	    checkTicketAndUser(ticket, user);
+	    checkNotDeleted(ticket);
+	    checkTicketOwner(ticket, user);
+
+	}
 
 	// =========================
 	// HELPER METHODS
@@ -140,4 +149,6 @@ private void checkUser(User user) {
 			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
 	}
+	
+	
 }

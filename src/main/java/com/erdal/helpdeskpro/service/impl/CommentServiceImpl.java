@@ -33,55 +33,47 @@ public class CommentServiceImpl implements CommentService {
 
 	}
 
-	
 	public CommentServiceImpl(CommentRepository commentrepository, TicketRepository ticketrepository,
 			UserRepository userrepository) {
-		
+
 	}
 
-
-	// --------------- Create Comment ----------------
-//	@Override
-//	public void createComment(Comment comment, User user) {
-//
-//		Ticket ticket = ticketRepository.findById(comment.getTicket().getId());
-//		authorization.canComment(ticket, user);
-//
-//		comment.setAuthor(user);
-//		comment.setTicket(ticket);
-//		commentRepository.save(comment);
-//
-//	}
 	@Override
 	public void createComment(Comment comment, User user) {
 
-	    if (comment == null || comment.getTicket() == null
-	            || comment.getTicket().getId() == null) {
-	        throw new IllegalArgumentException("Ticket ID is missing");
-	    }
+		if (comment == null || comment.getTicket() == null || comment.getTicket().getId() == null) {
+			throw new IllegalArgumentException("Ticket ID is missing");
+		}
 
-	    Long ticketId = comment.getTicket().getId();
+		if (user == null || user.getRole() == null) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
 
-	    System.out.println("Comment request ticket ID: " + ticketId);
+		Long ticketId = comment.getTicket().getId();
 
-	    Ticket ticket = ticketRepository.findById(ticketId);
+		Ticket ticket = ticketRepository.findById(ticketId);
 
-	    System.out.println("Found ticket: " + ticket);
+		if (ticket == null) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+		}
 
-	    if (ticket == null) {
-	        throw new ResourceNotFoundExeption(
-	                ExceptionMessage.TICKET_NOT_FOUND);
-	    }
+		authorization.canComment(ticket, user);
 
-	    authorization.canComment(ticket, user);
+		if (comment.getType() == CommentType.INTERNAL && user.getRole() != Role.ADMIN
+				&& user.getRole() != Role.IT_SUPPORT) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
 
-	    comment.setAuthor(user);
-	    comment.setTicket(ticket);
+		comment.setAuthor(user);
+		comment.setTicket(ticket);
 
-	    commentRepository.save(comment);
+		if (comment.getType() == null) {
+			comment.setType(CommentType.PUBLIC);
+		}
+
+		commentRepository.save(comment);
 	}
 
-	
 	// --------------- Find Comment By Id ----------------
 	@Override
 	public Comment findCommentById(Long commentId) {
@@ -95,158 +87,168 @@ public class CommentServiceImpl implements CommentService {
 			throw new ResourceNotFoundExeption(ExceptionMessage.COMMENT_IS_DELETED);
 
 		}
-		
-		
+
 		return comment;
 	}
 
-	
 	// --------------- Find All Users Comments ----------------
 	@Override
 	public List<Comment> findAllUsersComments(User user) {
 
-	    if (user == null) {
-	        throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
-	    }
+		if (user == null) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
+		}
 
-	    return commentRepository.findAllByAuthorId(user.getId());
+		return commentRepository.findAllByAuthorId(user.getId());
 	}
-	
+
 	// ---------------Delete Comment By Id----------------
 	@Override
 	public void deleteCommentById(Long commentId, User user) {
 
-	    Comment comment = commentRepository.findById(commentId);
+		Comment comment = commentRepository.findById(commentId);
 
-	    if (comment == null) {
-	        throw new ResourceNotFoundExeption(ExceptionMessage.COMMENT_NOT_FOUND);
-	    }
+		if (comment == null) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.COMMENT_NOT_FOUND);
+		}
 
-	    if (comment.isDeleted()) {
-	        throw new BadRequestExeption(ExceptionMessage.COMMENT_IS_DELETED);
-	    }
+		if (comment.isDeleted()) {
+			throw new BadRequestExeption(ExceptionMessage.COMMENT_IS_DELETED);
+		}
 
-	    if (comment.getTicket().getStatus() == TicketStatus.CLOSED) {
-	        throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
-	    }
+		if (comment.getTicket().getStatus() == TicketStatus.CLOSED) {
+			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
+		}
 
-	    // Yetki kontrolü
-	    if (user.getRole() == Role.EMPLOYEE &&
-	        !comment.getAuthor().getId().equals(user.getId())) {
+		// Yetki kontrolü
+		if (user.getRole() == Role.EMPLOYEE && !comment.getAuthor().getId().equals(user.getId())) {
 
-	        throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
-	    }
+			throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
+		}
 
-	    comment.setDeleted(true);
-	    commentRepository.save(comment);
+		comment.setDeleted(true);
+		commentRepository.save(comment);
 	}
+
 	@Override
 	public Comment findCommentById(Long commentId, User currentUser) {
 
-	    Comment comment = commentRepository.findById(commentId);
+		Comment comment = commentRepository.findById(commentId);
 
-	    if (comment == null || comment.isDeleted()) {
-	        throw new ResourceNotFoundExeption(
-	            ExceptionMessage.COMMENT_NOT_FOUND
-	        );
-	    }
+		if (comment == null || comment.isDeleted()) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.COMMENT_NOT_FOUND);
+		}
 
-	    Ticket ticket = comment.getTicket();
+		Ticket ticket = comment.getTicket();
 
-	    // Ticket erişim yetkisini kontrol et
-	    authorization.canComment(ticket, currentUser);
+		// Ticket erişim yetkisini kontrol et
+		authorization.canViewComments(ticket, currentUser);
 
-	    // Internal yorumları yalnızca yetkili roller görebilir
-	    if (comment.getType() == CommentType.INTERNAL) {
-	        boolean isAdmin = currentUser.getRole() == Role.ADMIN;
+		// Internal yorumları yalnızca yetkili roller görebilir
+		if (comment.getType() == CommentType.INTERNAL) {
+			boolean isAdmin = currentUser.getRole() == Role.ADMIN;
 
-	        boolean isAssignedSupport =
-	            currentUser.getRole() == Role.IT_SUPPORT
-	            && ticket.getAssignedTo() != null
-	            && ticket.getAssignedTo().getId().equals(currentUser.getId());
+			boolean isAssignedSupport = currentUser.getRole() == Role.IT_SUPPORT && ticket.getAssignedTo() != null
+					&& ticket.getAssignedTo().getId().equals(currentUser.getId());
 
-	        if (!isAdmin && !isAssignedSupport) {
-	            throw new BadRequestExeption(
-	                ExceptionMessage.NOT_ALLOWED
-	            );
-	        }
-	    }
+			if (!isAdmin && !isAssignedSupport) {
+				throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+			}
+		}
 
-	    return comment;
+		return comment;
 	}
+
 	// ---------------Update Comment----------------
 	@Override
 	public Comment updateComment(Long commentId, String newContent, User user) {
-		
-		Comment comment=commentRepository.findById(commentId);
-		if (comment==null) {
-			   throw new ResourceNotFoundExeption(ExceptionMessage.COMMENT_NOT_FOUND);
-			
+
+		Comment comment = commentRepository.findById(commentId);
+		if (comment == null) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.COMMENT_NOT_FOUND);
+
 		}
-		if (comment.isDeleted()==true) {
-			
-			 throw new BadRequestExeption(ExceptionMessage.COMMENT_IS_DELETED);
+		if (comment.isDeleted() == true) {
+
+			throw new BadRequestExeption(ExceptionMessage.COMMENT_IS_DELETED);
 		}
 
-	    if (comment.getTicket().getStatus() == TicketStatus.CLOSED) {
-	        throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
-	    }
-	    
-	    if (user.getRole() == Role.EMPLOYEE &&
-	        !comment.getAuthor().getId().equals(user.getId())) {
+		if (comment.getTicket().getStatus() == TicketStatus.CLOSED) {
+			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
+		}
 
-	        throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
-	    }
-	    if (newContent == null) {
-	        throw new BadRequestExeption(ExceptionMessage.CONTENT_CANNOT_BE_NULL);
-	    }
+		if (user.getRole() == Role.EMPLOYEE && !comment.getAuthor().getId().equals(user.getId())) {
 
-	    String trimmedContent = newContent.trim();
+			throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
+		}
+		if (newContent == null) {
+			throw new BadRequestExeption(ExceptionMessage.CONTENT_CANNOT_BE_NULL);
+		}
 
-	    if (trimmedContent.isEmpty()) {
-	        throw new BadRequestExeption(ExceptionMessage.CONTENT_CANNOT_BE_EMPTY);
-	    }
+		String trimmedContent = newContent.trim();
 
-	    if (trimmedContent.length() < 3) {
-	        throw new BadRequestExeption(ExceptionMessage.CONTENT_TOO_SHORT);
-	    }
+		if (trimmedContent.isEmpty()) {
+			throw new BadRequestExeption(ExceptionMessage.CONTENT_CANNOT_BE_EMPTY);
+		}
 
-	    if (trimmedContent.length() > 1000) {
-	        throw new BadRequestExeption(ExceptionMessage.CONTENT_TOO_LONG);
-	    }
-	    
+		if (trimmedContent.length() < 3) {
+			throw new BadRequestExeption(ExceptionMessage.CONTENT_TOO_SHORT);
+		}
+
+		if (trimmedContent.length() > 1000) {
+			throw new BadRequestExeption(ExceptionMessage.CONTENT_TOO_LONG);
+		}
+
 		comment.setContent(trimmedContent);
-		
-		 commentRepository.save(comment);
-		 
-		 return comment;
-	}
 
+		commentRepository.save(comment);
+
+		return comment;
+	}
 
 	@Override
 	public List<Comment> getCommentsByTicket(Long ticketId, User user) {
 
-	    Ticket ticket = ticketRepository.findById(ticketId);
+		if (user == null || user.getId() == null || user.getRole() == null) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
 
-	    if (ticket == null) {
-	        throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-	    }
+		Ticket ticket = ticketRepository.findById(ticketId);
 
-	    if (ticket.isDeleted()) {
-	        throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
-	    }
+		if (ticket == null) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+		}
 
-	    // Yetki
-	    if (user.getRole() == Role.EMPLOYEE &&
-	        !ticket.getCreatedBy().getId().equals(user.getId())) {
+		if (ticket.isDeleted()) {
+			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
+		}
 
-	        throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
-	    }
+		// Ticket görüntüleme yetkisi
+		switch (user.getRole()) {
+		case ADMIN:
+			break;
 
-	    return commentRepository.findAllByTicketId(ticketId);
+		case EMPLOYEE:
+			if (ticket.getCreatedBy() == null || !user.getId().equals(ticket.getCreatedBy().getId())) {
+				throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
+			}
+			break;
+
+		case IT_SUPPORT:
+			if (ticket.getAssignedTo() == null || !user.getId().equals(ticket.getAssignedTo().getId())) {
+				throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
+			}
+			break;
+
+		default:
+			throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
+		}
+
+		// Yorum görünürlüğü
+		return commentRepository.findAllByTicketId(ticketId).stream().filter(comment -> !comment.isDeleted())
+				.filter(comment -> user.getRole() == Role.ADMIN || comment.getType() == CommentType.PUBLIC
+						|| (user.getRole() == Role.IT_SUPPORT && comment.getType() == CommentType.INTERNAL))
+				.toList();
 	}
-	
-	
-
 
 }

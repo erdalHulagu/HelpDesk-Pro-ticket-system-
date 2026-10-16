@@ -17,4 +17,6 @@ public interface Authorization {
 	
 	void canViewAllActiveTickets(User user);
 
+	void canViewComments(Ticket ticket, User user);
+
 }
