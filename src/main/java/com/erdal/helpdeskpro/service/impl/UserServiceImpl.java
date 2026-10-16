@@ -92,19 +92,16 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public void deactivateUser(Long id) {
+	public void deactivateUser(User currentUser, Long id) {
+		if (currentUser.getRole() != Role.ADMIN) {
+	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	    }
 		
 		userRepository.deleteById(id);
 		
 		
 	}
 	
-
-	@Override
-	public List<User> findAllUsers() {
-		
-		return userRepository.findAll();
-	}
 
 	
 

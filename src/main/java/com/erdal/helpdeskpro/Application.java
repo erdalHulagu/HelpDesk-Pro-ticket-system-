@@ -25,11 +25,11 @@ public class Application {
                 )
         );
 
-        // Users
         server.createContext(
                 "/users",
                 new UserHttpHandler(
-                        DependencyContainer.getUserController()
+                        DependencyContainer.getUserController(),
+                        DependencyContainer.getAuthService()
                 )
         );
 

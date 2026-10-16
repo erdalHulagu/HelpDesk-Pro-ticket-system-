@@ -49,15 +49,12 @@ public class UserController {
 
 	}
 
-	public void deActiveUser(Long id) {
+	public void deActiveUser(User currentUser, Long id) {
 
-		userService.deactivateUser(id);
+		userService.deactivateUser(currentUser,id);
 
 	}
 
-	public List<UserDTO> getAllUsers() {
-		List<User> users = userService.findAllUsers();
-		return UserMapper.userListToUserDTOList(users);
-	}
+	
 
 }

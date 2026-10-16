@@ -1,5 +1,6 @@
 package com.erdal.helpdeskpro.http;
 
+import com.erdal.helpdeskpro.auth.AuthService;
 import com.erdal.helpdeskpro.controller.UserController;
 import com.erdal.helpdeskpro.dtos.UserDTO;
 import com.erdal.helpdeskpro.mapper.TicketMapper;
@@ -10,6 +11,7 @@ import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -18,11 +20,15 @@ import java.util.List;
  */
 public class UserHttpHandler implements HttpHandler {
 
-    private final UserController userController;
+	private final UserController userController;
+	private final AuthService authService;
 
-    public UserHttpHandler(UserController userController) {
-        this.userController = userController;
-    }
+	public UserHttpHandler(
+	        UserController userController,
+	        AuthService authService) {
+	    this.userController = userController;
+	    this.authService = authService;
+	}
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -106,12 +112,20 @@ public class UserHttpHandler implements HttpHandler {
     }
 
     private void handleGetAllUsers(HttpExchange exchange) throws Exception {
-        List<UserDTO> users = userController.getAllUsers();
+
+        User currentUser = getAuthenticatedUser(exchange);
+
+        List<UserDTO> users = userController.getAllUsers(currentUser);
 
         String response = JsonUtil.toJson(users);
-        exchange.getResponseHeaders().add("Content-Type", "application/json");
-        exchange.sendResponseHeaders(200, response.getBytes().length);
-        exchange.getResponseBody().write(response.getBytes());
+        byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
+
+        exchange.getResponseHeaders().set(
+                "Content-Type", "application/json; charset=UTF-8"
+        );
+
+        exchange.sendResponseHeaders(200, responseBytes.length);
+        exchange.getResponseBody().write(responseBytes);
         exchange.close();
     }
 
@@ -142,10 +156,35 @@ public class UserHttpHandler implements HttpHandler {
     }
 
     private void handleDeactivateUser(HttpExchange exchange) throws Exception {
+    	User user=getAuthenticatedUser(exchange);
         Long id = Long.parseLong(exchange.getRequestURI().getPath().split("/")[2]);
-        userController.deActiveUser(id);
+        userController.deActiveUser(user,id);
 
         exchange.sendResponseHeaders(204, -1);
         exchange.close();
+    }
+    private User getAuthenticatedUser(HttpExchange exchange) {
+
+        String authorizationHeader =
+                exchange.getRequestHeaders().getFirst("Authorization");
+
+        if (authorizationHeader == null
+                || !authorizationHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Missing or invalid token");
+        }
+
+        String token = authorizationHeader.substring(7).trim();
+
+        if (token.isEmpty()) {
+            throw new IllegalArgumentException("Missing token");
+        }
+
+        User user = authService.authenticate(token);
+
+        if (user == null) {
+            throw new IllegalArgumentException("Invalid token");
+        }
+
+        return user;
     }
 }
