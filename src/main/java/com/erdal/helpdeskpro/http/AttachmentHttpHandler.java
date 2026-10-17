@@ -55,6 +55,7 @@ public class AttachmentHttpHandler implements HttpHandler {
                 return;
             }
 
+
             if ("GET".equals(method) && "/attachments".equals(path)) {
                 handleList(exchange, currentUser);
                 return;

@@ -2,6 +2,7 @@ package com.erdal.helpdeskpro.domain;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -19,17 +20,21 @@ public class Attachment {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "ticket_id", nullable = false)
 	private Ticket ticket;
-	
+
+	@Column(name = "file_name", nullable = false)
 	private String fileName;
-	
+
+	@Column(name = "file_type", nullable = false)
 	private String fileType;
-	
+
+	@Column(name = "file_path", nullable = false)
 	private String filePath;
-	
-	private LocalDateTime uploadedAt=LocalDateTime.now();
+
+	@Column(name = "uploaded_at", nullable = false)
+	private LocalDateTime uploadedAt = LocalDateTime.now();
 
 	public Attachment() {
 	}
