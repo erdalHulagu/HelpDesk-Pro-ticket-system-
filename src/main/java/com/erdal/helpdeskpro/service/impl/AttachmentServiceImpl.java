@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -30,6 +31,7 @@ public class AttachmentServiceImpl implements AttachmentService {
             "application/pdf",
             "image/png",
             "image/jpeg",
+            "image/jpg",
             "text/plain"
     );
 
@@ -47,95 +49,92 @@ public class AttachmentServiceImpl implements AttachmentService {
         this.authorization = authorization;
     }
 
-    @Override
-    public Attachment upload(
-            Long ticketId,
-            String fileName,
-            String contentType,
-            InputStream inputStream,
-            User currentUser) {
 
-        if (ticketId == null || ticketId <= 0
-                || fileName == null || fileName.isBlank()
-                || contentType == null
-                || inputStream == null
-                || currentUser == null) {
-            throw new IllegalArgumentException(
-                    "Invalid upload parameters"
-            );
-        }
+@Override
+public Attachment upload(
+        Long ticketId,
+        String fileName,
+        String contentType,
+        InputStream inputStream,
+        User currentUser) {
 
-        Ticket ticket = ticketRepository.findById(ticketId);
-
-        if (ticket == null) {
-            throw new IllegalArgumentException("Ticket not found");
-        }
-
-        authorization.canViewTicket(ticket, currentUser);
-
-        String type = contentType
-                .split(";", 2)[0]
-                .trim()
-                .toLowerCase(Locale.ROOT);
-
-        if (!ALLOWED_TYPES.contains(type)) {
-            throw new IllegalArgumentException(
-                    "Unsupported file type"
-            );
-        }
-
-        String safeName = Path.of(
-                fileName.replace('\\', '/')
-        ).getFileName().toString();
-
-        if (safeName.isBlank()) {
-            throw new IllegalArgumentException("Invalid file name");
-        }
-
-        Path savedPath = null;
-
-        try {
-            Files.createDirectories(UPLOAD_DIR);
-
-            savedPath = UPLOAD_DIR.resolve(
-                    UUID.randomUUID().toString()
-            ).normalize();
-
-            if (!savedPath.startsWith(UPLOAD_DIR)) {
-                throw new SecurityException("Invalid storage path");
-            }
-
-            try (InputStream source = inputStream) {
-                Files.copy(
-                        new LimitedInputStream(source, MAX_FILE_SIZE),
-                        savedPath
-                );
-            }
-
-            validateFileSignature(savedPath, type);
-
-            Attachment attachment = new Attachment();
-            attachment.setTicket(ticket);
-            attachment.setFileName(safeName);
-            attachment.setFileType(type);
-            attachment.setFilePath(savedPath.toString());
-            
-            
-
-            return attachmentRepository.save(attachment);
-
-        } catch (IOException | RuntimeException e) {
-            if (savedPath != null) {
-                try {
-                    Files.deleteIfExists(savedPath);
-                } catch (IOException cleanupError) {
-                    e.addSuppressed(cleanupError);
-                }
-            }
-
-            throw new RuntimeException("Attachment upload failed", e);
-        }
+    if (ticketId == null || ticketId <= 0
+            || fileName == null || fileName.isBlank()
+            || inputStream == null
+            || currentUser == null) {
+        throw new IllegalArgumentException(
+                "Invalid upload parameters"
+        );
     }
+
+    Ticket ticket = ticketRepository.findById(ticketId);
+
+    if (ticket == null) {
+        throw new IllegalArgumentException("Ticket not found");
+    }
+
+    authorization.canViewTicket(ticket, currentUser);
+
+    String safeName = Path.of(
+            fileName.replace('\\', '/')
+    ).getFileName().toString();
+
+    if (safeName.isBlank()) {
+        throw new IllegalArgumentException("Invalid file name");
+    }
+
+    Path savedPath = null;
+
+    try {
+        Files.createDirectories(UPLOAD_DIR);
+
+        savedPath = UPLOAD_DIR.resolve(
+                UUID.randomUUID().toString()
+        ).normalize();
+
+        if (!savedPath.startsWith(UPLOAD_DIR)) {
+            throw new SecurityException("Invalid storage path");
+        }
+
+        try (InputStream source = inputStream) {
+            Files.copy(
+                    new LimitedInputStream(source, MAX_FILE_SIZE),
+                    savedPath
+            );
+        }
+
+        // Dosya türünü HTTP Content-Type başlığına bağlı kalmadan tespit et.
+        String detectedType = detectFileType(savedPath);
+
+        if (detectedType == null
+                || !ALLOWED_TYPES.contains(detectedType)) {
+            throw new IllegalArgumentException(
+                    "Unsupported or invalid file format"
+            );
+        }
+
+        // Yalnızca bir Attachment oluştur ve kaydet.
+        Attachment attachment = new Attachment();
+        attachment.setTicket(ticket);
+        attachment.setFileName(safeName);
+        attachment.setFileType(detectedType);
+        attachment.setFilePath(savedPath.toString());
+        attachment.setUploadedAt(LocalDateTime.now());
+
+        return attachmentRepository.save(attachment);
+
+    } catch (IOException | RuntimeException e) {
+        if (savedPath != null) {
+            try {
+                Files.deleteIfExists(savedPath);
+            } catch (IOException cleanupError) {
+                e.addSuppressed(cleanupError);
+            }
+        }
+
+        throw new RuntimeException("Attachment upload failed", e);
+    }
+}
 
     private void validateFileSignature(Path path, String type)
             throws IOException {
@@ -186,7 +185,48 @@ public class AttachmentServiceImpl implements AttachmentService {
             );
         }
     }
+    private String detectFileType(Path path) throws IOException {
 
+        byte[] header = new byte[8];
+
+        try (InputStream input = Files.newInputStream(path)) {
+
+            int count = input.read(header);
+
+            // PDF
+            if (count >= 5
+                    && header[0] == '%'
+                    && header[1] == 'P'
+                    && header[2] == 'D'
+                    && header[3] == 'F'
+                    && header[4] == '-') {
+                return "application/pdf";
+            }
+
+            // PNG
+            if (count >= 8
+                    && (header[0] & 0xFF) == 0x89
+                    && header[1] == 'P'
+                    && header[2] == 'N'
+                    && header[3] == 'G'
+                    && (header[4] & 0xFF) == 0x0D
+                    && (header[5] & 0xFF) == 0x0A
+                    && (header[6] & 0xFF) == 0x1A
+                    && (header[7] & 0xFF) == 0x0A) {
+                return "image/png";
+            }
+
+            // JPG / JPEG
+            if (count >= 3
+                    && (header[0] & 0xFF) == 0xFF
+                    && (header[1] & 0xFF) == 0xD8
+                    && (header[2] & 0xFF) == 0xFF) {
+                return "image/jpeg";
+            }
+        }
+
+        return null;
+    }
     @Override
     public List<Attachment> getAttachmentsByTicket(
             Long ticketId,

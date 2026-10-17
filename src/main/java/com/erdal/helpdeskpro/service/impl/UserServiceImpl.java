@@ -3,10 +3,7 @@ package com.erdal.helpdeskpro.service.impl;
 import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
-
-import com.erdal.helpdeskpro.auth.TokenService;
 import com.erdal.helpdeskpro.domain.User;
-import com.erdal.helpdeskpro.dtos.UserDTO;
 import com.erdal.helpdeskpro.enums.Role;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ExceptionMessage;
@@ -18,8 +15,6 @@ public class UserServiceImpl implements UserService {
 	
 	private final UserRepository userRepository;
 	
-	// Kullanıcı oturum token'larını üretmek ve yönetmek için kullanılır.
-	private final TokenService tokenService = new TokenService();
 	
 	public UserServiceImpl(UserRepository userRepository) {
 		this.userRepository=userRepository;
@@ -82,14 +77,36 @@ public class UserServiceImpl implements UserService {
 	    return userRepository.findAll();
 	}
 	
-	@Override
-	public User updateUser(User user) {
-		User upDatedUser=userRepository.findById(user.getId());
-		upDatedUser.setUsername(user.getUsername());
-		upDatedUser.setPassword(user.getPassword());
-		userRepository.save(upDatedUser);
-		return upDatedUser;
-	}
+
+@Override
+public User updateUser(User user) {
+
+    if (user == null || user.getId() == null) {
+        throw new IllegalArgumentException("User and user ID are required");
+    }
+
+    User updatedUser = userRepository.findById(user.getId());
+
+    if (updatedUser == null) {
+        throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
+    }
+
+    if (user.getUsername() != null && !user.getUsername().isBlank()) {
+        updatedUser.setUsername(user.getUsername().trim());
+    }
+
+    // Boş parola gönderilirse mevcut parola korunur.
+    if (user.getPassword() != null && !user.getPassword().isBlank()) {
+        updatedUser.setPassword(
+            BCrypt.hashpw(user.getPassword(), BCrypt.gensalt())
+        );
+    }
+
+    userRepository.save(updatedUser);
+
+    return updatedUser;
+}
+
 
 	@Override
 	public void deactivateUser(User currentUser, Long id) {

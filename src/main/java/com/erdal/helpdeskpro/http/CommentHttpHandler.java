@@ -1,12 +1,12 @@
 package com.erdal.helpdeskpro.http;
 
 import com.erdal.helpdeskpro.auth.AuthService;
+import com.erdal.helpdeskpro.config.util.JsonUtil;
 import com.erdal.helpdeskpro.controller.CommentController;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.dtos.CommentDTO;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
-import com.erdal.helpdeskpro.util.JsonUtil;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 

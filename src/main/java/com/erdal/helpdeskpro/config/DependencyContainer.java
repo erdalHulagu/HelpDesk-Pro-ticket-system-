@@ -8,6 +8,7 @@ import com.erdal.helpdeskpro.auth.AuthServiceImpl;
 import com.erdal.helpdeskpro.auth.TokenService;
 import com.erdal.helpdeskpro.authorization.Authorization;
 import com.erdal.helpdeskpro.authorization.AuthorizationImpl;
+import com.erdal.helpdeskpro.config.util.HibernateUtil;
 import com.erdal.helpdeskpro.controller.AuthController;
 import com.erdal.helpdeskpro.controller.CommentController;
 import com.erdal.helpdeskpro.controller.TicketController;
@@ -15,9 +16,11 @@ import com.erdal.helpdeskpro.controller.UserController;
 import com.erdal.helpdeskpro.repository.CommentRepository;
 import com.erdal.helpdeskpro.repository.TicketRepository;
 import com.erdal.helpdeskpro.repository.UserRepository;
+import com.erdal.helpdeskpro.repository.AuthTokenRepository;
 import com.erdal.helpdeskpro.repository.dao.CommentDAO;
 import com.erdal.helpdeskpro.repository.dao.TicketDAO;
 import com.erdal.helpdeskpro.repository.dao.UserDAO;
+import com.erdal.helpdeskpro.repository.dao.AuthTokenDAO;
 import com.erdal.helpdeskpro.service.CommentService;
 import com.erdal.helpdeskpro.service.TicketService;
 import com.erdal.helpdeskpro.service.UserService;
@@ -50,10 +53,14 @@ public final class DependencyContainer {
 	private static final TicketService ticketService = new TicketServiceImpl(ticketRepository, authorization);
 
 	private static final CommentService commentService = new CommentServiceImpl(commentRepository, ticketRepository,
+			
 			userRepository, authorization);
+	 // Token repository
+    private static final AuthTokenRepository authTokenRepository =
+            new AuthTokenDAO(sessionFactory);
 
 	// Authentication
-	private static final TokenService tokenService = new TokenService();
+	private static final TokenService tokenService = new TokenService(authTokenRepository, userRepository);
 
 	private static final AuthService authService = new AuthServiceImpl(userService, tokenService);
 
@@ -101,7 +108,8 @@ public final class DependencyContainer {
 	public static UserRepository getUserRepository() {
 		return userRepository;
 	}
+
 	public static AttachmentController getAttachmentController() {
-	    return attachmentController;
+		return attachmentController;
 	}
 }

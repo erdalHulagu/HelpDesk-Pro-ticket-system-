@@ -18,11 +18,12 @@ public class Application {
         HttpServer server =
                 HttpServer.create(new InetSocketAddress(8080), 0);
 
-        // Authentication
+     // Authentication
         server.createContext(
                 "/auth",
                 new AuthHttpHandler(
-                        DependencyContainer.getAuthController()
+                        DependencyContainer.getAuthController(),
+                        DependencyContainer.getAuthService()
                 )
         );
 

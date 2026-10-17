@@ -20,25 +20,49 @@ public class UserDAO implements UserRepository {
         this.sessionFactory = sessionFactory;
     }
 
-    @Override
-    public void save(User user) {
- 
-        Session session = sessionFactory.openSession();
-        Transaction transaction = session.beginTransaction();
 
-        User existingUser = findByEmail(user.getEmail());
+@Override
+public void save(User user) {
 
-        if (existingUser != null) {
-            transaction.rollback();
-            session.close();
-            throw new BadRequestExeption(ExceptionMessage.USER_ALREADY_EXIST);
+    Transaction transaction = null;
+
+    try (Session session = sessionFactory.openSession()) {
+        transaction = session.beginTransaction();
+
+        User existingUser = session.createQuery(
+                "FROM User u WHERE u.email = :email",
+                User.class
+        )
+        .setParameter("email", user.getEmail())
+        .uniqueResult();
+
+        // Aynı e-posta başka bir kullanıcıya aitse engelle.
+        if (existingUser != null
+                && !existingUser.getId().equals(user.getId())) {
+
+            throw new BadRequestExeption(
+                    ExceptionMessage.USER_ALREADY_EXIST
+            );
         }
 
-        session.persist(user);
+        if (user.getId() == null) {
+            // Yeni kullanıcı
+            session.persist(user);
+        } else {
+            // Mevcut kullanıcı
+            session.merge(user);
+        }
 
         transaction.commit();
-        session.close();
+
+    } catch (RuntimeException e) {
+        if (transaction != null && transaction.isActive()) {
+            transaction.rollback();
+        }
+        throw e;
     }
+}
+
 
     @Override
     public User findById(Long id) {
