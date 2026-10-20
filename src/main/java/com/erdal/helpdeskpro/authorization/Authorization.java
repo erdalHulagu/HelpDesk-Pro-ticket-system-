@@ -1,5 +1,6 @@
 package com.erdal.helpdeskpro.authorization;
 
+import com.erdal.helpdeskpro.domain.Attachment;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
 
@@ -18,5 +19,7 @@ public interface Authorization {
 	void canViewAllActiveTickets(User user);
 
 	void canViewComments(Ticket ticket, User user);
+
+	void canCheckUserProfile(Attachment attachment, User user);
 
 }

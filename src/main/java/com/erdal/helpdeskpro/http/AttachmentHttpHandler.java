@@ -51,8 +51,12 @@ public class AttachmentHttpHandler implements HttpHandler {
             String path = exchange.getRequestURI().getPath();
 
             if ("POST".equals(method) && "/attachments".equals(path)) {
-                handleUpload(exchange, currentUser);
+            	handleUploadForTicket(exchange, currentUser);
                 return;
+            }
+            if ("POST".equals(method) &&  "/attachments/user".equals(path)) {
+            	handleUploadForUser(exchange, currentUser);
+            	return;
             }
 
 
@@ -129,7 +133,7 @@ public class AttachmentHttpHandler implements HttpHandler {
         return authService.authenticate(token);
     }
 
-    private void handleUpload(
+    private void handleUploadForTicket(
             HttpExchange exchange,
             User currentUser) throws IOException {
 
@@ -156,7 +160,7 @@ public class AttachmentHttpHandler implements HttpHandler {
         Attachment attachment;
 
         try (InputStream inputStream = exchange.getRequestBody()) {
-            attachment = attachmentController.upload(
+            attachment = attachmentController.uploadForTicket(
                     ticketId,
                     fileName,
                     contentType,
@@ -165,7 +169,42 @@ public class AttachmentHttpHandler implements HttpHandler {
             );
         }
 
-        sendJson(exchange, 201, toResponse(attachment));
+        sendJson(exchange, 201, toResponseTicket(attachment));
+    }
+    private void handleUploadForUser(
+    		HttpExchange exchange,
+    		User currentUser) throws IOException {
+    	
+    	String fileNameHeader = exchange.getRequestHeaders()
+    			.getFirst("X-File-Name");
+    	
+    	String contentType = exchange.getRequestHeaders()
+    			.getFirst("Content-Type");
+    	
+    	if (fileNameHeader == null || contentType == null) {
+    		sendJson(exchange, 400, Map.of(
+    				"error", "X-File-Name and Content-Type are required"
+    				));
+    		return;
+    	}
+    	
+    	String fileName = URLDecoder.decode(
+    			fileNameHeader,
+    			StandardCharsets.UTF_8
+    			);
+    	
+    	Attachment attachment;
+    	
+    	try (InputStream inputStream = exchange.getRequestBody()) {
+    		attachment = attachmentController.uploadForUser(
+    				fileName,
+    				contentType,
+    				inputStream,
+    				currentUser
+    				);
+    	}
+    	
+    	sendJson(exchange, 201, toResponseUser(attachment));
     }
 
     private void handleList(
@@ -178,7 +217,7 @@ public class AttachmentHttpHandler implements HttpHandler {
                 attachmentController.findByTicket(ticketId, currentUser);
 
         List<Map<String, Object>> response = attachments.stream()
-                .map(this::toResponse)
+                .map(this::toResponseTicket)
                 .toList();
 
         sendJson(exchange, 200, response);
@@ -265,6 +304,38 @@ public class AttachmentHttpHandler implements HttpHandler {
 
         throw new IllegalArgumentException("ticketId is required");
     }
+    private Long getUserId(HttpExchange exchange) {
+    	String query = exchange.getRequestURI().getRawQuery();
+    	
+    	if (query == null) {
+    		throw new IllegalArgumentException("userId is required");
+    	}
+    	
+    	for (String parameter : query.split("&")) {
+    		String[] pair = parameter.split("=", 2);
+    		
+    		if (pair.length == 2 && pair[0].equals("userId")) {
+    			try {
+    				long id = Long.parseLong(pair[1]);
+    				
+    				if (id <= 0) {
+    					throw new IllegalArgumentException(
+    							"userId must be positive"
+    							);
+    				}
+    				
+    				return id;
+    				
+    			} catch (NumberFormatException e) {
+    				throw new IllegalArgumentException(
+    						"Invalid ticketId"
+    						);
+    			}
+    		}
+    	}
+    	
+    	throw new IllegalArgumentException("userId is required");
+    }
 
     private Long extractAttachmentId(String path) {
         String prefix = "/attachments/";
@@ -287,7 +358,7 @@ public class AttachmentHttpHandler implements HttpHandler {
         }
     }
 
-    private Map<String, Object> toResponse(Attachment attachment) {
+    private Map<String, Object> toResponseTicket(Attachment attachment) {
         return Map.of(
                 "id", attachment.getId(),
                 "ticketId", attachment.getTicket().getId(),
@@ -295,6 +366,15 @@ public class AttachmentHttpHandler implements HttpHandler {
                 "fileType", attachment.getFileType(),
                 "uploadedAt", attachment.getUploadedAt().toString()
         );
+    }
+    private Map<String, Object> toResponseUser(Attachment attachment) {
+    	return Map.of(
+    			"id", attachment.getId(),
+    			"userId", attachment.getUser().getId(),
+    			"fileName", attachment.getFileName(),
+    			"fileType", attachment.getFileType(),
+    			"uploadedAt", attachment.getUploadedAt().toString()
+    			);
     }
 
     private void sendJson(

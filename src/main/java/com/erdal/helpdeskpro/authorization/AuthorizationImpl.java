@@ -1,6 +1,7 @@
 
 package com.erdal.helpdeskpro.authorization;
 
+import com.erdal.helpdeskpro.domain.Attachment;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.enums.Role;
@@ -21,6 +22,14 @@ public class AuthorizationImpl implements Authorization {
 		checkNotDeleted(ticket);
 		checkTicketOwner(ticket, user);
 	}
+	
+	@Override
+	public void canCheckUserProfile(Attachment attachment, User user) {
+		checkUser(user);
+		checkProfileOwner(attachment,user);
+	}
+	
+	
 
 	@Override
 	public void canUpdateStatus(Ticket ticket, User user) {
@@ -100,6 +109,36 @@ private void checkUser(User user) {
 		if (ticket.getStatus() == TicketStatus.CLOSED) {
 			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_CLOSED);
 		}
+	}
+	
+	private void checkProfileOwner(Attachment attachment, User user) {
+
+	    if (user.getId() == null) {
+	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	    }
+
+	    switch (user.getRole()) {
+	        case ADMIN:
+	            return;
+
+	        case EMPLOYEE:
+	            if (attachment.getId() == null
+	                    || !user.getId().equals(attachment.getUser().getId())) {
+	                throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	            }
+	            return;
+	        case IT_SUPPORT:
+	           
+	            if (attachment.getUser() == null
+	                    || attachment.getUser().getId() == null
+	                    || !user.getId().equals(attachment.getUser().getId())) {
+	                throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	            }
+	            return;
+
+	        default:
+	            throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	    }
 	}
 
 	private void checkTicketOwner(Ticket ticket, User user) {

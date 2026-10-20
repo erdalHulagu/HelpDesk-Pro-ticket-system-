@@ -12,7 +12,9 @@ public class RegisterRequest {
     // Kayıt sırasında gönderilen düz metin şifre.
     // Veritabanına kaydetmeden önce BCrypt ile hash'lenmelidir.
     private String password;
+    
 
+    
     public RegisterRequest() {
         // JSON verilerinin nesneye dönüştürülmesini kolaylaştırır.
     }

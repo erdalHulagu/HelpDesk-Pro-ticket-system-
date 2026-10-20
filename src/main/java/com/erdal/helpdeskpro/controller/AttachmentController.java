@@ -16,14 +16,14 @@ public class AttachmentController {
         this.attachmentService = attachmentService;
     }
 
-    public Attachment upload(
+    public Attachment uploadForTicket(
             Long ticketId,
             String fileName,
             String contentType,
             InputStream inputStream,
             User currentUser) {
 
-        return attachmentService.upload(
+        return attachmentService.uploadForTicket(
                 ticketId,
                 fileName,
                 contentType,
@@ -31,6 +31,19 @@ public class AttachmentController {
                 currentUser
         );
     }
+    public Attachment uploadForUser(
+    		String fileName, 
+    		String contentType, 
+    		InputStream inputStream, 
+    		User currentUser) {
+		
+    	return attachmentService.uploadForUser(
+                fileName,
+                contentType,
+                inputStream,
+                currentUser
+        );
+	}
 
     public List<Attachment> findByTicket(
             Long ticketId,
@@ -61,4 +74,7 @@ public class AttachmentController {
                 currentUser
         );
     }
+
+	
+
 }

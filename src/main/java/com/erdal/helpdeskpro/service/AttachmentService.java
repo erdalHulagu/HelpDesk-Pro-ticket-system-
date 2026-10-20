@@ -9,7 +9,9 @@ import com.erdal.helpdeskpro.domain.User;
 
 public interface AttachmentService {
 
-	Attachment upload(Long ticketId, String fileName, String contentType, InputStream inputStream, User currentUser);
+	Attachment uploadForTicket(Long ticketId, String fileName, String contentType, InputStream inputStream, User currentUser);
+	
+	Attachment uploadForUser(String fileName, String contentType, InputStream inputStream, User currentUser);
 
 	List<Attachment> getAttachmentsByTicket(Long ticketId, User currentUser);
 

@@ -15,9 +15,10 @@ public class UserServiceImpl implements UserService {
 	
 	private final UserRepository userRepository;
 	
-	
 	public UserServiceImpl(UserRepository userRepository) {
 		this.userRepository=userRepository;
+		
+	
 		
 	}
 
@@ -25,10 +26,13 @@ public class UserServiceImpl implements UserService {
 	public void registerUser(User user) {
 
 	    User createdUser = new User();
+	    
+	    
 
 	    createdUser.setUsername(user.getUsername());
 	    createdUser.setEmail(user.getEmail());
 	    createdUser.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
+	    
 	    createdUser.setRole(Role.EMPLOYEE);
 	    createdUser.setActive(true);
 

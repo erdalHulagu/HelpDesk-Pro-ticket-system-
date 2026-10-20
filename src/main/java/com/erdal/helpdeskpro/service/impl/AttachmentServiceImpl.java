@@ -51,7 +51,7 @@ public class AttachmentServiceImpl implements AttachmentService {
 
 
 @Override
-public Attachment upload(
+public Attachment uploadForTicket(
         Long ticketId,
         String fileName,
         String contentType,
@@ -135,6 +135,85 @@ public Attachment upload(
         throw new RuntimeException("Attachment upload failed", e);
     }
 }
+
+@Override
+public Attachment uploadForUser(
+	
+     String fileName,
+     String contentType,
+     InputStream inputStream,
+     User currentUser) {
+
+ if ( fileName == null || fileName.isBlank()
+         || inputStream == null
+         || currentUser == null) {
+     throw new IllegalArgumentException(
+             "Invalid upload parameters"
+     );
+ }
+ String safeName = Path.of(
+         fileName.replace('\\', '/')
+ ).getFileName().toString();
+
+ if (safeName.isBlank()) {
+     throw new IllegalArgumentException("Invalid file name");
+ }
+
+ Path savedPath = null;
+
+ try {
+     Files.createDirectories(UPLOAD_DIR);
+
+     savedPath = UPLOAD_DIR.resolve(
+             UUID.randomUUID().toString()
+     ).normalize();
+
+     if (!savedPath.startsWith(UPLOAD_DIR)) {
+         throw new SecurityException("Invalid storage path");
+     }
+
+     try (InputStream source = inputStream) {
+         Files.copy(
+                 new LimitedInputStream(source, MAX_FILE_SIZE),
+                 savedPath
+         );
+     }
+
+     // Dosya türünü HTTP Content-Type başlığına bağlı kalmadan tespit et.
+     String detectedType = detectFileType(savedPath);
+
+     if (detectedType == null
+             || !ALLOWED_TYPES.contains(detectedType)) {
+         throw new IllegalArgumentException(
+                 "Unsupported or invalid file format"
+         );
+     }
+
+     // Yalnızca bir Attachment oluştur ve kaydet.
+     Attachment attachment = new Attachment();
+
+     attachment.setTicket(null);
+     attachment.setUser(currentUser);
+
+     attachment.setFileName(safeName);
+     attachment.setFileType(detectedType);
+     attachment.setFilePath(savedPath.toString());
+     attachment.setUploadedAt(LocalDateTime.now());
+
+     return attachmentRepository.saveUserAttachment(attachment);
+
+ } catch (IOException | RuntimeException e) {
+     if (savedPath != null) {
+         try {
+             Files.deleteIfExists(savedPath);
+         } catch (IOException cleanupError) {
+             e.addSuppressed(cleanupError);
+         }
+     }
+
+     throw new RuntimeException("Attachment upload failed", e);
+ }
+};
 
     private void validateFileSignature(Path path, String type)
             throws IOException {
@@ -310,4 +389,8 @@ public Attachment upload(
             throw new RuntimeException("Failed to delete attachment", e);
         }
     }
+
+
+
+	
 }

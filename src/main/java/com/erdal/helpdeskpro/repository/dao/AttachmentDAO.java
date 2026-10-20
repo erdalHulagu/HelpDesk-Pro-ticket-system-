@@ -9,6 +9,7 @@ import org.hibernate.Transaction;
 
 import com.erdal.helpdeskpro.domain.Attachment;
 import com.erdal.helpdeskpro.domain.Ticket;
+import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.repository.AttachmentRepository;
 
 public class AttachmentDAO implements AttachmentRepository {
@@ -48,32 +49,39 @@ public class AttachmentDAO implements AttachmentRepository {
     }
     @Override
     public Attachment saveUserAttachment(Attachment attachment) {
-    	
-    	Transaction transaction = null;
-    	
-    	try (Session session = sessionFactory.openSession()) {
-    		transaction = session.beginTransaction();
-    		
-    		Long ticketId = attachment.getTicket().getId();
-    		
-    		Ticket managedTicket =
-    				session.getReference(Ticket.class, ticketId);
-    		
-    		attachment.setTicket(managedTicket);
-    		
-    		session.persist(attachment);
-    		transaction.commit();
-    		
-    		return attachment;
-    		
-    	} catch (RuntimeException e) {
-    		if (transaction != null && transaction.isActive()) {
-    			transaction.rollback();
-    		}
-    		throw e;
-    	}
-    }
 
+        Transaction transaction = null;
+
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+
+            if (attachment.getUser() == null
+                    || attachment.getUser().getId() == null) {
+                throw new IllegalArgumentException(
+                        "User is required"
+                );
+            }
+
+            Long userId = attachment.getUser().getId();
+
+            User managedUser =
+                    session.getReference(User.class, userId);
+
+            attachment.setUser(managedUser);
+            attachment.setTicket(null);
+
+            session.persist(attachment);
+            transaction.commit();
+
+            return attachment;
+
+        } catch (RuntimeException e) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+            throw e;
+        }
+    }
     @Override
     public Attachment findById(Long id) {
 
