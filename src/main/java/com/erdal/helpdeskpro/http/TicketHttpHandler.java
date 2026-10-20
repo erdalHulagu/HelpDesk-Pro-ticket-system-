@@ -34,7 +34,7 @@ public class TicketHttpHandler implements HttpHandler {
             User authenticatedUser = authenticateRequest(exchange);
 
             if (authenticatedUser == null) {
-                sendJson(exchange, 401,
+            	JsonUtil.sendJson(exchange, 401,
                         "{\"error\":\"Unauthorized\"}");
                 return;
             }
@@ -98,11 +98,11 @@ public class TicketHttpHandler implements HttpHandler {
                 return;
             }
 
-            sendJson(exchange, 404,
+            JsonUtil.sendJson(exchange, 404,
                     "{\"error\":\"Endpoint not found\"}");
 
         } catch (ResourceNotFoundExeption e) {
-            sendJson(exchange, 404,
+        	JsonUtil.sendJson(exchange, 404,
                     "{\"error\":\"Ticket not found\"}");
 //
 //        } catch (BadRequestExeption e) {
@@ -111,25 +111,25 @@ public class TicketHttpHandler implements HttpHandler {
         } catch (BadRequestExeption e) {
             e.printStackTrace();
 
-            sendJson(exchange, 403,
+            JsonUtil.sendJson(exchange, 403,
                     JsonUtil.toJson(
                         java.util.Map.of("error", e.getMessage())
                     ));
         
 
         } catch (JsonProcessingException e) {
-            sendJson(exchange, 400,
+        	JsonUtil.sendJson(exchange, 400,
                     "{\"error\":\"Invalid JSON\"}");
 
         } catch (IllegalArgumentException e) {
-            sendJson(exchange, 400,
+        	JsonUtil.sendJson(exchange, 400,
                     "{\"error\":\"Invalid request\"}");
 
         } catch (Exception e) {
             e.printStackTrace();
 
             try {
-                sendJson(exchange, 500,
+            	JsonUtil.sendJson(exchange, 500,
                         "{\"error\":\"Internal Server Error\"}");
             } catch (IOException ignored) {
                 // Yanıt zaten gönderilmiş veya bağlantı kapanmış olabilir.
@@ -168,7 +168,7 @@ public class TicketHttpHandler implements HttpHandler {
         TicketDTO request = JsonUtil.fromJson(body, TicketDTO.class);
         TicketDTO created = ticketController.createTicket(request, user);
 
-        sendJson(exchange, 201, JsonUtil.toJson(created));
+        JsonUtil.sendJson(exchange, 201, JsonUtil.toJson(created));
     }
 
     private void handleGetAllTickets(
@@ -177,7 +177,7 @@ public class TicketHttpHandler implements HttpHandler {
         List<TicketDTO> tickets =
                 ticketController.findAllActive(user);
 
-        sendJson(exchange, 200, JsonUtil.toJson(tickets));
+        JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(tickets));
     }
 
     private void handleGetUsersTickets(
@@ -186,7 +186,7 @@ public class TicketHttpHandler implements HttpHandler {
         List<TicketDTO> tickets =
                 ticketController.getusersTickets(user);
 
-        sendJson(exchange, 200, JsonUtil.toJson(tickets));
+        JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(tickets));
     }
 
     private void handleGetTicketById(
@@ -198,7 +198,7 @@ public class TicketHttpHandler implements HttpHandler {
 
         TicketDTO ticket = ticketController.getTicket(id, user);
 
-        sendJson(exchange, 200, JsonUtil.toJson(ticket));
+        JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(ticket));
     }
 
 
@@ -209,7 +209,7 @@ private void handleUpdateStatus(
     String[] parts = path.split("/");
 
     if (parts.length != 4 || !"status".equals(parts[3])) {
-        sendJson(exchange, 400, "{\"error\":\"Invalid ticket URL\"}");
+    	JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid ticket URL\"}");
         return;
     }
 
@@ -218,11 +218,11 @@ private void handleUpdateStatus(
     try {
         id = Long.parseLong(parts[2]);
         if (id <= 0) {
-            sendJson(exchange, 400, "{\"error\":\"Invalid ticket ID\"}");
+        	JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid ticket ID\"}");
             return;
         }
     } catch (NumberFormatException e) {
-        sendJson(exchange, 400, "{\"error\":\"Invalid ticket ID\"}");
+    	JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid ticket ID\"}");
         return;
     }
 
@@ -235,7 +235,7 @@ private void handleUpdateStatus(
         TicketDTO request = JsonUtil.fromJson(body, TicketDTO.class);
 
         if (request == null || request.getStatus() == null) {
-            sendJson(exchange, 400, "{\"error\":\"Status is required\"}");
+        	JsonUtil.sendJson(exchange, 400, "{\"error\":\"Status is required\"}");
             return;
         }
 
@@ -246,7 +246,7 @@ private void handleUpdateStatus(
         exchange.sendResponseHeaders(204, -1);
 
     } catch (IllegalArgumentException e) {
-        sendJson(exchange, 400, "{\"error\":\"Invalid status or request\"}");
+    	JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid status or request\"}");
     }
 }
 
@@ -269,7 +269,7 @@ private void handleUpdateStatus(
         List<TicketDTO> tickets =
                 ticketController.findAllIncludingDeleted(user);
 
-        sendJson(exchange, 200, JsonUtil.toJson(tickets));
+        JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(tickets));
     }
 
     private void handleGetTicketIncludingDeleted(
@@ -283,12 +283,12 @@ private void handleUpdateStatus(
                 ticketController.findTicketByIdIncludingDeleted(id, user);
 
         if (ticket == null) {
-            sendJson(exchange, 404,
+            JsonUtil.sendJson(exchange, 404,
                     "{\"error\":\"Ticket not found\"}");
             return;
         }
 
-        sendJson(exchange, 200, JsonUtil.toJson(ticket));
+        JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(ticket));
     }
 
     private void handleGetActiveTickets(
@@ -297,19 +297,8 @@ private void handleUpdateStatus(
         List<TicketDTO> tickets =
                 ticketController.findAllActive(user);
 
-        sendJson(exchange, 200, JsonUtil.toJson(tickets));
+        JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(tickets));
     }
 
-    private void sendJson(
-            HttpExchange exchange, int status, String json)
-            throws IOException {
-
-        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-
-        exchange.getResponseHeaders().set(
-                "Content-Type", "application/json; charset=UTF-8");
-
-        exchange.sendResponseHeaders(status, bytes.length);
-        exchange.getResponseBody().write(bytes);
-    }
+   
 }

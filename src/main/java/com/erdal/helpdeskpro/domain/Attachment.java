@@ -23,6 +23,10 @@ public class Attachment {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "ticket_id", nullable = false)
 	private Ticket ticket;
+	
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "user_id", nullable = false)
+	private User user;
 
 	@Column(name = "file_name", nullable = false)
 	private String fileName;
@@ -41,7 +45,7 @@ public class Attachment {
 
 	
 
-	public Attachment(Long id, Ticket ticket, String fileName, String fileType, String filePath,
+	public Attachment(Long id, Ticket ticket, String fileName, String fileType, String filePath,User user,
 			LocalDateTime uploadedAt) {
 		super();
 		this.id = id;
@@ -49,6 +53,7 @@ public class Attachment {
 		this.fileName = fileName;
 		this.fileType = fileType;
 		this.filePath = filePath;
+		this.user=user;
 		this.uploadedAt = uploadedAt;
 	}
 
@@ -76,7 +81,15 @@ public class Attachment {
 		this.ticket = ticket;
 	}
 
+	public User getUser() {
+		return user;
+	}
 
+
+
+	public void setUser(User user) {
+		this.user = user;
+	}
 
 	public String getFileName() {
 		return fileName;

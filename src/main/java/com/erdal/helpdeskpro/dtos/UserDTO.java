@@ -1,5 +1,8 @@
 package com.erdal.helpdeskpro.dtos;
 
+import java.util.List;
+
+import com.erdal.helpdeskpro.domain.Attachment;
 import com.erdal.helpdeskpro.enums.Role;
 
 public class UserDTO {
@@ -7,20 +10,25 @@ public class UserDTO {
 	private String username;
 	private String email;
 	private String password;
+	private List<Attachment> attachment;
 	private Role role;
 	private boolean isActive;
 
 	public UserDTO() {
 	}
 
+
 	
-	
-	public UserDTO(Long id, String username, String email, String password, Role role, boolean isActive) {
+
+
+	public UserDTO(Long id, String username, String email, String password, List<Attachment> attachment, Role role,
+			boolean isActive) {
 		super();
 		this.id = id;
 		this.username = username;
 		this.email = email;
 		this.password = password;
+		this.attachment = attachment;
 		this.role = role;
 		this.isActive = isActive;
 	}
@@ -57,6 +65,16 @@ public class UserDTO {
 		this.password = password;
 	}
 
+
+
+	public List<Attachment> getAttachment() {
+		return attachment;
+	}
+
+
+	public void setAttachment(List<Attachment> attachment) {
+		this.attachment = attachment;
+	}
 
 
 	public Role getRole() {

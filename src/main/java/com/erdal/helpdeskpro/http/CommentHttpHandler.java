@@ -34,7 +34,7 @@ public class CommentHttpHandler implements HttpHandler {
             User authenticatedUser = authenticateRequest(exchange);
 
             if (authenticatedUser == null) {
-                sendJson(exchange, 401,
+            	JsonUtil.sendJson(exchange, 401,
                         "{\"error\":\"Unauthorized\"}");
                 return;
             }
@@ -70,24 +70,24 @@ public class CommentHttpHandler implements HttpHandler {
                 return;
             }
 
-            sendJson(exchange, 404,
+            JsonUtil.sendJson(exchange, 404,
                     "{\"error\":\"Endpoint not found\"}");
 
         } catch (ResourceNotFoundExeption e) {
-            sendJson(exchange, 404,
+        	JsonUtil.sendJson(exchange, 404,
                     JsonUtil.toJson(Map.of("error", e.getMessage())));
 
         } catch (BadRequestExeption e) {
-            sendJson(exchange, 403,
+        	JsonUtil.sendJson(exchange, 403,
                     JsonUtil.toJson(Map.of("error", e.getMessage())));
 
         } catch (IllegalArgumentException e) {
-            sendJson(exchange, 400,
+        	JsonUtil.sendJson(exchange, 400,
                     "{\"error\":\"Invalid request\"}");
 
         } catch (Exception e) {
             e.printStackTrace();
-            sendJson(exchange, 500,
+            JsonUtil.sendJson(exchange, 500,
                     "{\"error\":\"Internal Server Error\"}");
         } finally {
             exchange.close();
@@ -125,7 +125,7 @@ public class CommentHttpHandler implements HttpHandler {
 
         commentController.addComment(commentDTO, user);
 
-        sendJson(exchange, 201, JsonUtil.toJson(commentDTO));
+        JsonUtil.sendJson(exchange, 201, JsonUtil.toJson(commentDTO));
     }
 
     private void handleGetCommentsByTicket(
@@ -138,7 +138,7 @@ public class CommentHttpHandler implements HttpHandler {
         List<CommentDTO> comments =
                 commentController.getCommentsByTicket(ticketId, user);
 
-        sendJson(exchange, 200, JsonUtil.toJson(comments));
+        JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(comments));
     }
 
     // Yeni: Tek yorumu ID ile getir
@@ -153,7 +153,7 @@ public class CommentHttpHandler implements HttpHandler {
         CommentDTO comment =
                 commentController.getCommentById(commentId, user);
 
-        sendJson(exchange, 200, JsonUtil.toJson(comment));
+        JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(comment));
     }
 
     private void handleDeleteComment(
@@ -168,16 +168,5 @@ public class CommentHttpHandler implements HttpHandler {
         exchange.sendResponseHeaders(204, -1);
     }
 
-    private void sendJson(
-            HttpExchange exchange, int status, String json)
-            throws IOException {
-
-        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-
-        exchange.getResponseHeaders().set(
-                "Content-Type", "application/json; charset=UTF-8");
-
-        exchange.sendResponseHeaders(status, bytes.length);
-        exchange.getResponseBody().write(bytes);
-    }
+    
 }

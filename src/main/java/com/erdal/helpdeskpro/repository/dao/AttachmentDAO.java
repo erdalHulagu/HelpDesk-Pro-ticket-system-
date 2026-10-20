@@ -20,7 +20,7 @@ public class AttachmentDAO implements AttachmentRepository {
     }
 
     @Override
-    public Attachment save(Attachment attachment) {
+    public Attachment saveTicketAttachment(Attachment attachment) {
 
         Transaction transaction = null;
 
@@ -45,6 +45,33 @@ public class AttachmentDAO implements AttachmentRepository {
             }
             throw e;
         }
+    }
+    @Override
+    public Attachment saveUserAttachment(Attachment attachment) {
+    	
+    	Transaction transaction = null;
+    	
+    	try (Session session = sessionFactory.openSession()) {
+    		transaction = session.beginTransaction();
+    		
+    		Long ticketId = attachment.getTicket().getId();
+    		
+    		Ticket managedTicket =
+    				session.getReference(Ticket.class, ticketId);
+    		
+    		attachment.setTicket(managedTicket);
+    		
+    		session.persist(attachment);
+    		transaction.commit();
+    		
+    		return attachment;
+    		
+    	} catch (RuntimeException e) {
+    		if (transaction != null && transaction.isActive()) {
+    			transaction.rollback();
+    		}
+    		throw e;
+    	}
     }
 
     @Override
@@ -95,4 +122,6 @@ public class AttachmentDAO implements AttachmentRepository {
             throw e;
         }
     }
+
+	
 }

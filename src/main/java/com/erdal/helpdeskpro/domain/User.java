@@ -33,6 +33,9 @@ public class User {
 	private String email;
 	private String password;
 	
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	 private List<Attachment> attachment = new ArrayList<>();
+	
 	@OneToMany(mappedBy = "createdBy", fetch = FetchType.LAZY)
 	private List<Ticket> createdTickets= new ArrayList<>();
 	
@@ -53,38 +56,37 @@ public class User {
 	
 	public User() {
 	}
-	public User(Long id, String username, String email,Role role,boolean isActive) {
-		this.id=id;
-		this.username = username;
-		this.email = email;
-		this.role = role;
-		this.isActive = isActive;
-	}
 	
-	
-	public User(Long id, String username, String email, String password, List<Ticket> createdTickets,
-			List<Ticket> assignedTickets, Role role, boolean isActive, LocalDateTime createdAt) {
+	public User(Long id, String username, String email, String password, List<Attachment> attachment, Role role,
+			boolean isActive) {
 		super();
 		this.id = id;
 		this.username = username;
 		this.email = email;
 		this.password = password;
-		this.createdTickets = createdTickets;
-		this.assignedTickets = assignedTickets;
+		this.attachment = attachment;
 		this.role = role;
 		this.isActive = isActive;
-		this.createdAt = createdAt;
 	}
-	
-	public User(Long id, String username, Role role, String email, boolean isActive) {
+
+	public User(Long id, String username, String email, String password, List<Attachment> attachment,
+			List<Ticket> createdTickets, List<Ticket> assignedTickets, List<Comment> comments, Role role,
+			boolean isActive, LocalDateTime createdAt) {
 		super();
 		this.id = id;
 		this.username = username;
 		this.email = email;
+		this.password = password;
+		this.attachment = attachment;
+		this.createdTickets = createdTickets;
+		this.assignedTickets = assignedTickets;
+		this.comments = comments;
 		this.role = role;
 		this.isActive = isActive;
-		
+		this.createdAt = createdAt;
 	}
+		
+	
 	public Long getId() {
 		return id;
 	}
@@ -106,10 +108,23 @@ public class User {
 	public String getPassword() {
 		return password;
 	}
+	
 	public void setPassword(String password) {
 		this.password = password;
 	}
 	
+	public List<Attachment> getAttachment() {
+		return attachment;
+	}
+	public void setAttachment(List<Attachment> attachment) {
+		this.attachment = attachment;
+	}
+	public List<Comment> getComments() {
+		return comments;
+	}
+	public void setComments(List<Comment> comments) {
+		this.comments = comments;
+	}
 	
 	public List<Ticket> getCreatedTickets() {
 		return createdTickets;

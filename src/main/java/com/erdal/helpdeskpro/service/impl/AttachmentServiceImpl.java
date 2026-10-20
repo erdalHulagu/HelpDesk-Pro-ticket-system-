@@ -121,7 +121,7 @@ public Attachment upload(
         attachment.setFilePath(savedPath.toString());
         attachment.setUploadedAt(LocalDateTime.now());
 
-        return attachmentRepository.save(attachment);
+        return attachmentRepository.saveTicketAttachment(attachment);
 
     } catch (IOException | RuntimeException e) {
         if (savedPath != null) {
