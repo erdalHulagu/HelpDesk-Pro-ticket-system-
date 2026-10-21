@@ -3,7 +3,7 @@ package com.erdal.helpdeskpro.http;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.erdal.helpdeskpro.auth.AuthService;
@@ -28,6 +28,7 @@ public class AuthHttpHandler implements HttpHandler {
         this.authController = authController;
         this.authService = authService;
         this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Override
@@ -74,7 +75,12 @@ public class AuthHttpHandler implements HttpHandler {
             sendResponse(exchange, 404, "Endpoint not found");
 
         } catch (JsonProcessingException e) {
-            sendResponse(exchange, 400, "Invalid JSON");
+        	 e.printStackTrace();
+        	    sendResponse(
+        	            exchange,
+        	            400,
+        	            "Invalid JSON: " + e.getOriginalMessage()
+        	    );
 
         } catch (IllegalArgumentException e) {
             sendResponse(exchange, 400, e.getMessage());

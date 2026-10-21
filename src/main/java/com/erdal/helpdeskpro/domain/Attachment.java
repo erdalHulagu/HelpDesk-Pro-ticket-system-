@@ -20,11 +20,11 @@ public class Attachment {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "ticket_id", nullable = true)
 	private Ticket ticket;
-	
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "user_id", nullable = true)
 	private User user;
 

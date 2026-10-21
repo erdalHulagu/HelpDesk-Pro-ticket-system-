@@ -20,66 +20,86 @@ public class AttachmentDAO implements AttachmentRepository {
         this.sessionFactory = sessionFactory;
     }
 
-    @Override
-    public Attachment saveTicketAttachment(Attachment attachment) {
 
-        Transaction transaction = null;
+@Override
+public Attachment saveTicketAttachment(Attachment attachment) {
 
-        try (Session session = sessionFactory.openSession()) {
-            transaction = session.beginTransaction();
+    Transaction transaction = null;
 
-            Long ticketId = attachment.getTicket().getId();
+    try (Session session = sessionFactory.openSession()) {
+        transaction = session.beginTransaction();
 
-            Ticket managedTicket =
-                    session.getReference(Ticket.class, ticketId);
-
-            attachment.setTicket(managedTicket);
-
-            session.persist(attachment);
-            transaction.commit();
-
-            return attachment;
-
-        } catch (RuntimeException e) {
-            if (transaction != null && transaction.isActive()) {
-                transaction.rollback();
-            }
-            throw e;
+        if (attachment.getTicket() == null
+                || attachment.getTicket().getId() == null) {
+            throw new IllegalArgumentException(
+                    "Ticket is required"
+            );
         }
+
+        Long ticketId = attachment.getTicket().getId();
+
+        Ticket managedTicket =
+                session.getReference(Ticket.class, ticketId);
+
+        attachment.setTicket(managedTicket);
+        attachment.setUser(null);
+
+        session.persist(attachment);
+        transaction.commit();
+
+        return attachment;
+
+    } catch (RuntimeException e) {
+        if (transaction != null && transaction.isActive()) {
+            try {
+                transaction.rollback();
+            } catch (RuntimeException rollbackError) {
+                e.addSuppressed(rollbackError);
+            }
+        }
+
+        throw e;
     }
+}
+
     @Override
     public Attachment saveUserAttachment(Attachment attachment) {
 
-        Transaction transaction = null;
-
         try (Session session = sessionFactory.openSession()) {
-            transaction = session.beginTransaction();
+            Transaction transaction = session.beginTransaction();
 
-            if (attachment.getUser() == null
-                    || attachment.getUser().getId() == null) {
-                throw new IllegalArgumentException(
-                        "User is required"
-                );
+            try {
+                if (attachment.getUser() == null
+                        || attachment.getUser().getId() == null) {
+                    throw new IllegalArgumentException(
+                            "User is required"
+                    );
+                }
+
+                Long userId = attachment.getUser().getId();
+
+                User managedUser =
+                        session.getReference(User.class, userId);
+
+                attachment.setUser(managedUser);
+                attachment.setTicket(null);
+
+                session.persist(attachment);
+                transaction.commit();
+
+                return attachment;
+
+            } catch (RuntimeException e) {
+                if (transaction.isActive()) {
+                    try {
+                        transaction.rollback();
+                    } catch (RuntimeException rollbackError) {
+                        e.addSuppressed(rollbackError);
+                    }
+                }
+
+                throw e;
             }
-
-            Long userId = attachment.getUser().getId();
-
-            User managedUser =
-                    session.getReference(User.class, userId);
-
-            attachment.setUser(managedUser);
-            attachment.setTicket(null);
-
-            session.persist(attachment);
-            transaction.commit();
-
-            return attachment;
-
-        } catch (RuntimeException e) {
-            if (transaction != null && transaction.isActive()) {
-                transaction.rollback();
-            }
-            throw e;
         }
     }
     @Override

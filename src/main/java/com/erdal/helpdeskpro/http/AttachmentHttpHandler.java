@@ -176,16 +176,20 @@ public class AttachmentHttpHandler implements HttpHandler {
     		User currentUser) throws IOException {
     	
     	String fileNameHeader = exchange.getRequestHeaders()
-    			.getFirst("X-File-Name");
-    	
+    	        .getFirst("X-File-Name");
+
     	String contentType = exchange.getRequestHeaders()
-    			.getFirst("Content-Type");
-    	
-    	if (fileNameHeader == null || contentType == null) {
-    		sendJson(exchange, 400, Map.of(
-    				"error", "X-File-Name and Content-Type are required"
-    				));
-    		return;
+    	        .getFirst("Content-Type");
+
+    	if (fileNameHeader == null || fileNameHeader.isBlank()) {
+    	    sendJson(exchange, 400, Map.of(
+    	            "error", "X-File-Name is required"
+    	    ));
+    	    return;
+    	}
+
+    	if (contentType == null || contentType.isBlank()) {
+    	    contentType = "application/octet-stream";
     	}
     	
     	String fileName = URLDecoder.decode(

@@ -2,7 +2,6 @@
 package com.erdal.helpdeskpro.auth;
 
 import com.erdal.helpdeskpro.domain.User;
-import com.erdal.helpdeskpro.auth.TokenService;
 import com.erdal.helpdeskpro.service.UserService;
 import com.erdal.helpdeskpro.web.request.LoginRequest;
 import com.erdal.helpdeskpro.web.request.RegisterRequest;
@@ -62,11 +61,15 @@ public class AuthServiceImpl implements AuthService {
         // Doğrulanan kullanıcı için token üret.
         String token = tokenService.createToken(user);
 
-        // Şifreyi cevapta döndürme.
+     // // Şifreyi response'a ekleme.
         return new LoginResponse(
                 token,
                 user.getId(),
-                user.getUsername()
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole(),
+                user.isActive(),
+                user.getCreatedAt()
         );
     }
 
