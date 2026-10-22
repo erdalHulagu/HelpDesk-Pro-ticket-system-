@@ -74,7 +74,9 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public List<User> getAllUsers(User currentUser) {
-	    if (currentUser.getRole() != Role.ADMIN) {
+	    if (currentUser == null ||
+	        (currentUser.getRole() != Role.ADMIN &&
+	         currentUser.getRole() != Role.IT_MANAGER)) {
 	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 	    }
 

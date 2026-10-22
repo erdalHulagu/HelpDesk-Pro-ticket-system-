@@ -165,7 +165,6 @@ public Attachment saveCommentAttachment(Attachment attachment) {
         }
     }
     
-    @Override
     public Attachment findProfilePhoto(Long userId) {
         try (Session session = sessionFactory.openSession()) {
             return session.createQuery(

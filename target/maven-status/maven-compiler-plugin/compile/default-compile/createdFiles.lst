@@ -14,13 +14,10 @@ com/erdal/helpdeskpro/service/AttachmentService.class
 com/erdal/helpdeskpro/repository/AttachmentRepository.class
 com/erdal/helpdeskpro/service/impl/UserServiceImpl.class
 com/erdal/helpdeskpro/web/response/AuthUserResponse.class
-com/erdal/helpdeskpro/util/JsonUtil.class
-com/erdal/helpdeskpro/config/HibernateUtil.class
 com/erdal/helpdeskpro/service/impl/LimitedInputStream.class
 com/erdal/helpdeskpro/auth/TokenService.class
 com/erdal/helpdeskpro/authorization/Authorization.class
 com/erdal/helpdeskpro/controller/TicketController.class
-com/erdal/helpdeskpro/config/JsonUtil.class
 com/erdal/helpdeskpro/dtos/TicketDTO.class
 com/erdal/helpdeskpro/service/CommentService.class
 com/erdal/helpdeskpro/Application.class

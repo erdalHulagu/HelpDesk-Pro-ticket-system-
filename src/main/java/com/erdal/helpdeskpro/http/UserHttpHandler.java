@@ -164,6 +164,20 @@ public class UserHttpHandler extends BaseAuthHandler implements HttpHandler {
 		InputStream is = exchange.getRequestBody();
 
 		UserDTO userDTO = JsonUtil.fromJson(new String(is.readAllBytes(), StandardCharsets.UTF_8), UserDTO.class);
+		
+		if (currentUser.getRole() != Role.ADMIN) {
+		    UserDTO existingUser = userController.findUserById(id);
+
+		    if (userDTO.getRole() != null &&
+		        userDTO.getRole() != existingUser.getRole()) {
+		        JsonUtil.sendJson(
+		            exchange,
+		            403,
+		            "{\"error\":\"Only admins can change user roles\"}"
+		        );
+		        return;
+		    }
+		}
 
 		// İstek gövdesindeki ID'ye güvenme.
 		userDTO.setId(id);
