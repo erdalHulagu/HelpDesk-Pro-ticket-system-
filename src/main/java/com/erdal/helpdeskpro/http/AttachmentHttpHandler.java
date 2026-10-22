@@ -55,6 +55,16 @@ public class AttachmentHttpHandler implements HttpHandler {
 				handleUploadForUser(exchange, currentUser);
 				return;
 			}
+			
+			if ("POST".equals(method) && "/attachments/user/photo".equals(path)) {
+			    handleUploadProfilePhoto(exchange, currentUser);
+			    return;
+			}
+
+			if ("GET".equals(method) && "/attachments/user/photo".equals(path)) {
+			    handleGetProfilePhoto(exchange, currentUser);
+			    return;
+			}
 
 			if ("POST".equals(method) && "/attachments/comment".equals(path)) {
 				handleUploadForComment(exchange, currentUser);
@@ -170,6 +180,49 @@ public class AttachmentHttpHandler implements HttpHandler {
 
 		sendJson(exchange, 201, toResponseUser(attachment));
 	}
+	
+
+private void handleUploadProfilePhoto(
+        HttpExchange exchange,
+        User currentUser
+) throws IOException {
+
+    String fileNameHeader =
+            exchange.getRequestHeaders().getFirst("X-File-Name");
+
+    String contentType =
+            exchange.getRequestHeaders().getFirst("Content-Type");
+
+    if (fileNameHeader == null || fileNameHeader.isBlank()) {
+        sendJson(exchange, 400,
+                Map.of("error", "X-File-Name is required"));
+        return;
+    }
+
+    if (contentType == null || !contentType.startsWith("image/")) {
+        sendJson(exchange, 400,
+                Map.of("error", "An image file is required"));
+        return;
+    }
+
+    String fileName = URLDecoder.decode(
+            fileNameHeader,
+            StandardCharsets.UTF_8
+    );
+
+    try (InputStream inputStream = exchange.getRequestBody()) {
+        attachmentController.uploadProfilePhoto(
+                fileName,
+                contentType,
+                inputStream,
+                currentUser
+        );
+    }
+
+    sendJson(exchange, 200,
+            Map.of("message", "Profile photo uploaded successfully"));
+}
+
 
 	private void handleUploadForComment(HttpExchange exchange, User currentUser) throws IOException {
 

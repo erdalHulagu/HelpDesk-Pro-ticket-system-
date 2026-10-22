@@ -24,5 +24,7 @@ public interface AttachmentService {
 	Attachment getAttachmentForDownload(Long attachmentId, User currentUser);
 
 	Attachment findProfilePhoto(Long userId);
+
+	Attachment uploadProfilePhoto(String fileName, String contentType, InputStream inputStream, User currentUser);
 	
 }

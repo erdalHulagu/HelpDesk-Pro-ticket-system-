@@ -42,9 +42,14 @@ public class AttachmentController {
 		return attachmentService.getAttachmentsByTicket(ticketId, currentUser);
 	}
 
-	//Profil fotografi getir
+	// Profil fotografi getir
 	public Attachment findProfilePhoto(Long userId) {
 		return attachmentService.findProfilePhoto(userId);
+	}
+	// Profil fotografi indir
+	public Attachment uploadProfilePhoto(String fileName, String contentType, InputStream inputStream,
+			User currentUser) {
+		return attachmentService.uploadProfilePhoto(fileName, contentType, inputStream, currentUser);
 	}
 
 	// İndirme öncesi erişim kontrolü
