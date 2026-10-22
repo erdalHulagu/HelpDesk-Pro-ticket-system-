@@ -27,6 +27,10 @@ public class Attachment {
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "user_id", nullable = true)
 	private User user;
+	
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "comment_id", nullable = true)
+	private Comment comment;
 
 	@Column(name = "file_name", nullable = false)
 	private String fileName;
@@ -45,11 +49,12 @@ public class Attachment {
 
 	
 
-	public Attachment(Long id, Ticket ticket, String fileName, String fileType, String filePath,User user,
+	public Attachment(Long id, Ticket ticket, Comment comment, String fileName, String fileType, String filePath,User user,
 			LocalDateTime uploadedAt) {
 		super();
 		this.id = id;
 		this.ticket = ticket;
+		this.comment = comment;
 		this.fileName = fileName;
 		this.fileType = fileType;
 		this.filePath = filePath;
@@ -95,7 +100,13 @@ public class Attachment {
 		return fileName;
 	}
 
+	public Comment getComment() {
+	    return comment;
+	}
 
+	public void setComment(Comment comment) {
+	    this.comment = comment;
+	}
 
 	public void setFileName(String fileName) {
 		this.fileName = fileName;

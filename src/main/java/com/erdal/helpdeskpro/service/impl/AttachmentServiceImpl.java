@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
-
+import com.erdal.helpdeskpro.repository.CommentRepository;
 import com.erdal.helpdeskpro.authorization.Authorization;
 import com.erdal.helpdeskpro.domain.Attachment;
 import com.erdal.helpdeskpro.domain.Ticket;
@@ -31,13 +31,15 @@ public class AttachmentServiceImpl implements AttachmentService {
 	private final AttachmentRepository attachmentRepository;
 	private final TicketRepository ticketRepository;
 	private final Authorization authorization;
+	private final CommentRepository commentRepository;
 
 	public AttachmentServiceImpl(AttachmentRepository attachmentRepository, TicketRepository ticketRepository,
-			Authorization authorization) {
+			Authorization authorization,CommentRepository commentRepository) {
 
 		this.attachmentRepository = attachmentRepository;
 		this.ticketRepository = ticketRepository;
 		this.authorization = authorization;
+		this.commentRepository = commentRepository;
 	}
 	
 	private Path storeUploadedFile(String fileName, InputStream inputStream) {
