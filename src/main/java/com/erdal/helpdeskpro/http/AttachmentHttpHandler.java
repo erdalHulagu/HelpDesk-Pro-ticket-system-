@@ -55,15 +55,15 @@ public class AttachmentHttpHandler implements HttpHandler {
 				handleUploadForUser(exchange, currentUser);
 				return;
 			}
-			
+
 			if ("POST".equals(method) && "/attachments/user/photo".equals(path)) {
-			    handleUploadProfilePhoto(exchange, currentUser);
-			    return;
+				handleUploadProfilePhoto(exchange, currentUser);
+				return;
 			}
 
 			if ("GET".equals(method) && "/attachments/user/photo".equals(path)) {
-			    handleGetProfilePhoto(exchange, currentUser);
-			    return;
+				handleGetProfilePhoto(exchange, currentUser);
+				return;
 			}
 
 			if ("POST".equals(method) && "/attachments/comment".equals(path)) {
@@ -180,49 +180,68 @@ public class AttachmentHttpHandler implements HttpHandler {
 
 		sendJson(exchange, 201, toResponseUser(attachment));
 	}
-	
 
-private void handleUploadProfilePhoto(
-        HttpExchange exchange,
-        User currentUser
-) throws IOException {
+	private void handleUploadProfilePhoto(HttpExchange exchange, User currentUser) throws IOException {
 
-    String fileNameHeader =
-            exchange.getRequestHeaders().getFirst("X-File-Name");
+		String fileNameHeader = exchange.getRequestHeaders().getFirst("X-File-Name");
 
-    String contentType =
-            exchange.getRequestHeaders().getFirst("Content-Type");
+		String contentType = exchange.getRequestHeaders().getFirst("Content-Type");
 
-    if (fileNameHeader == null || fileNameHeader.isBlank()) {
-        sendJson(exchange, 400,
-                Map.of("error", "X-File-Name is required"));
-        return;
-    }
+		if (fileNameHeader == null || fileNameHeader.isBlank()) {
+			sendJson(exchange, 400, Map.of("error", "X-File-Name is required"));
+			return;
+		}
 
-    if (contentType == null || !contentType.startsWith("image/")) {
-        sendJson(exchange, 400,
-                Map.of("error", "An image file is required"));
-        return;
-    }
+		if (contentType == null || !contentType.startsWith("image/")) {
+			sendJson(exchange, 400, Map.of("error", "An image file is required"));
+			return;
+		}
 
-    String fileName = URLDecoder.decode(
-            fileNameHeader,
-            StandardCharsets.UTF_8
-    );
+		String fileName = URLDecoder.decode(fileNameHeader, StandardCharsets.UTF_8);
 
-    try (InputStream inputStream = exchange.getRequestBody()) {
-        attachmentController.uploadProfilePhoto(
-                fileName,
-                contentType,
-                inputStream,
-                currentUser
-        );
-    }
+		try (InputStream inputStream = exchange.getRequestBody()) {
+			attachmentController.uploadProfilePhoto(fileName, contentType, inputStream, currentUser);
+		}
 
-    sendJson(exchange, 200,
-            Map.of("message", "Profile photo uploaded successfully"));
-}
+		sendJson(exchange, 200, Map.of("message", "Profile photo uploaded successfully"));
+	}
 
+	private void handleGetProfilePhoto(HttpExchange exchange, User currentUser) throws IOException {
+
+		Attachment attachment = attachmentController.findProfilePhoto(currentUser.getId());
+
+		if (attachment == null) {
+			sendJson(exchange, 404, Map.of("error", "Profile photo not found"));
+			return;
+		}
+
+		Path filePath = Path.of(attachment.getFilePath());
+
+		if (!Files.isRegularFile(filePath)) {
+			sendJson(exchange, 404, Map.of("error", "Profile photo file not found"));
+			return;
+		}
+
+		String contentType = attachment.getFileType();
+
+		if (contentType == null || !contentType.startsWith("image/")) {
+			sendJson(exchange, 415, Map.of("error", "Stored file is not an image"));
+			return;
+		}
+
+		exchange.getResponseHeaders().set("Content-Type", contentType);
+		exchange.getResponseHeaders().set("Content-Disposition", "inline");
+		exchange.getResponseHeaders().set("X-Content-Type-Options", "nosniff");
+		exchange.getResponseHeaders().set("Cache-Control", "no-store");
+
+		long fileSize = Files.size(filePath);
+		exchange.sendResponseHeaders(200, fileSize);
+
+		try (InputStream inputStream = Files.newInputStream(filePath);
+				OutputStream outputStream = exchange.getResponseBody()) {
+			inputStream.transferTo(outputStream);
+		}
+	}
 
 	private void handleUploadForComment(HttpExchange exchange, User currentUser) throws IOException {
 
