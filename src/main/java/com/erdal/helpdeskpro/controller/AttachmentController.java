@@ -16,6 +16,7 @@ public class AttachmentController {
         this.attachmentService = attachmentService;
     }
 
+    // Ticket'a dosya ekle
     public Attachment uploadForTicket(
             Long ticketId,
             String fileName,
@@ -31,21 +32,41 @@ public class AttachmentController {
                 currentUser
         );
     }
-    public Attachment uploadForUser(
-    		String fileName, 
-    		String contentType, 
-    		InputStream inputStream, 
-    		User currentUser) {
-		
-    	return attachmentService.uploadForUser(
+
+    // Yoruma dosya ekle
+    public Attachment uploadForComment(
+            Long commentId,
+            String fileName,
+            String contentType,
+            InputStream inputStream,
+            User currentUser) {
+
+        return attachmentService.uploadForComment(
+                commentId,
                 fileName,
                 contentType,
                 inputStream,
                 currentUser
         );
-	}
+    }
 
-    public List<Attachment> findByTicket(
+    // Kullanıcıya dosya ekle
+    public Attachment uploadForUser(
+            String fileName,
+            String contentType,
+            InputStream inputStream,
+            User currentUser) {
+
+        return attachmentService.uploadForUser(
+                fileName,
+                contentType,
+                inputStream,
+                currentUser
+        );
+    }
+
+    // Ticket'ın doğrudan ve yorumlara bağlı tüm eklerini getir
+    public List<Attachment> getAttachmentsByTicket(
             Long ticketId,
             User currentUser) {
 
@@ -55,7 +76,8 @@ public class AttachmentController {
         );
     }
 
-    public Attachment download(
+    // İndirme öncesi erişim kontrolü
+    public Attachment getAttachmentForDownload(
             Long attachmentId,
             User currentUser) {
 
@@ -65,7 +87,8 @@ public class AttachmentController {
         );
     }
 
-    public void delete(
+    // Dosya sil
+    public void deleteAttachment(
             Long attachmentId,
             User currentUser) {
 
@@ -74,7 +97,4 @@ public class AttachmentController {
                 currentUser
         );
     }
-
-	
-
 }
