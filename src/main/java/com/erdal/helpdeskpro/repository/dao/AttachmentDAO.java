@@ -103,6 +103,21 @@ public Attachment saveTicketAttachment(Attachment attachment) {
         }
     }
     @Override
+    public Attachment findUserAttachment(Long userId) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery(
+                    "FROM Attachment a " +
+                    "WHERE a.user.id = :userId " +
+                    "AND a.ticket IS NULL " +
+                    "ORDER BY a.uploadedAt DESC",
+                    Attachment.class
+            )
+            .setParameter("userId", userId)
+            .setMaxResults(1)
+            .uniqueResult();
+        }
+    }
+    @Override
     public Attachment findById(Long id) {
 
         try (Session session = sessionFactory.openSession()) {

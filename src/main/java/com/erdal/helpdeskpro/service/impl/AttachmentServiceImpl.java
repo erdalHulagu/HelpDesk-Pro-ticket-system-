@@ -39,74 +39,114 @@ public class AttachmentServiceImpl implements AttachmentService {
 		this.ticketRepository = ticketRepository;
 		this.authorization = authorization;
 	}
+	
+	private Path storeUploadedFile(String fileName, InputStream inputStream) {
+	    if (fileName == null || fileName.isBlank() || inputStream == null) {
+	        throw new IllegalArgumentException("Invalid upload parameters");
+	    }
 
-	@Override
-	public Attachment uploadForTicket(Long ticketId, String fileName, String contentType, InputStream inputStream,
-			User currentUser) {
+	    String safeName = Path.of(fileName.replace('\\', '/'))
+	            .getFileName()
+	            .toString();
 
-		if (ticketId == null || ticketId <= 0 || fileName == null || fileName.isBlank() || inputStream == null
-				|| currentUser == null) {
-			throw new IllegalArgumentException("Invalid upload parameters");
-		}
+	    if (safeName.isBlank()) {
+	        throw new IllegalArgumentException("Invalid file name");
+	    }
 
-		Ticket ticket = ticketRepository.findById(ticketId);
+	    Path savedPath = null;
 
-		if (ticket == null) {
-			throw new IllegalArgumentException("Ticket not found");
-		}
+	    try {
+	        Files.createDirectories(UPLOAD_DIR);
 
-		authorization.canViewTicket(ticket, currentUser);
+	        savedPath = UPLOAD_DIR.resolve(UUID.randomUUID().toString())
+	                .normalize();
 
-		String safeName = Path.of(fileName.replace('\\', '/')).getFileName().toString();
+	        if (!savedPath.startsWith(UPLOAD_DIR)) {
+	            throw new SecurityException("Invalid storage path");
+	        }
 
-		if (safeName.isBlank()) {
-			throw new IllegalArgumentException("Invalid file name");
-		}
+	        try (InputStream source = inputStream) {
+	            Files.copy(new LimitedInputStream(source, MAX_FILE_SIZE), savedPath);
+	        }
 
-		Path savedPath = null;
+	        String detectedType = detectFileType(savedPath);
 
-		try {
-			Files.createDirectories(UPLOAD_DIR);
+	        if (detectedType == null || !ALLOWED_TYPES.contains(detectedType)) {
+	            throw new IllegalArgumentException("Unsupported or invalid file format");
+	        }
 
-			savedPath = UPLOAD_DIR.resolve(UUID.randomUUID().toString()).normalize();
+	        validateFileSignature(savedPath, detectedType);
 
-			if (!savedPath.startsWith(UPLOAD_DIR)) {
-				throw new SecurityException("Invalid storage path");
-			}
+	        return savedPath;
 
-			try (InputStream source = inputStream) {
-				Files.copy(new LimitedInputStream(source, MAX_FILE_SIZE), savedPath);
-			}
+	    } catch (IOException | RuntimeException e) {
+	        if (savedPath != null) {
+	            try {
+	                Files.deleteIfExists(savedPath);
+	            } catch (IOException cleanupError) {
+	                e.addSuppressed(cleanupError);
+	            }
+	        }
 
-			// Dosya türünü HTTP Content-Type başlığına bağlı kalmadan tespit et.
-			String detectedType = detectFileType(savedPath);
-
-			if (detectedType == null || !ALLOWED_TYPES.contains(detectedType)) {
-				throw new IllegalArgumentException("Unsupported or invalid file format");
-			}
-
-			// Yalnızca bir Attachment oluştur ve kaydet.
-			Attachment attachment = new Attachment();
-			attachment.setTicket(ticket);
-			attachment.setFileName(safeName);
-			attachment.setFileType(detectedType);
-			attachment.setFilePath(savedPath.toString());
-			attachment.setUploadedAt(LocalDateTime.now());
-
-			return attachmentRepository.saveTicketAttachment(attachment);
-
-		} catch (IOException | RuntimeException e) {
-			if (savedPath != null) {
-				try {
-					Files.deleteIfExists(savedPath);
-				} catch (IOException cleanupError) {
-					e.addSuppressed(cleanupError);
-				}
-			}
-
-			throw new RuntimeException("Attachment upload failed", e);
-		}
+	        throw new RuntimeException("Attachment upload failed", e);
+	    }
 	}
+
+
+@Override
+public Attachment uploadForTicket(
+        Long ticketId,
+        String fileName,
+        String contentType,
+        InputStream inputStream,
+        User currentUser) {
+
+    if (ticketId == null || ticketId <= 0
+            || fileName == null || fileName.isBlank()
+            || inputStream == null || currentUser == null) {
+        throw new IllegalArgumentException("Invalid upload parameters");
+    }
+
+    Ticket ticket = ticketRepository.findById(ticketId);
+
+    if (ticket == null) {
+        throw new IllegalArgumentException("Ticket not found");
+    }
+
+    authorization.canViewTicket(ticket, currentUser);
+
+    Path savedPath = storeUploadedFile(fileName, inputStream);
+
+    try {
+        Attachment attachment = new Attachment();
+
+        attachment.setTicket(ticket);
+        attachment.setUser(null);
+        attachment.setFileName(
+                Path.of(fileName.replace('\\', '/'))
+                        .getFileName().toString()
+        );
+
+        // Dosya türü storeUploadedFile içinde doğrulandı.
+        // Burada yeniden okumaya gerek yok.
+        String detectedType = detectFileType(savedPath);
+        attachment.setFileType(detectedType);
+
+        attachment.setFilePath(savedPath.toString());
+        attachment.setUploadedAt(LocalDateTime.now());
+
+        return attachmentRepository.saveTicketAttachment(attachment);
+
+    } catch (IOException | RuntimeException e) {
+        try {
+            Files.deleteIfExists(savedPath);
+        } catch (IOException cleanupError) {
+            e.addSuppressed(cleanupError);
+        }
+
+        throw new RuntimeException("Failed to save ticket attachment", e);
+    }
+}
 
 	@Override
 	public Attachment uploadForUser(

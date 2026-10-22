@@ -17,6 +17,8 @@ public interface AttachmentRepository {
 
 	Attachment saveTicketAttachment(Attachment attachment);
 
+	Attachment findUserAttachment(Long userId);
+
 	
 }
 

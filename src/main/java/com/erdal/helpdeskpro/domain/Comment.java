@@ -13,8 +13,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
@@ -33,6 +35,9 @@ public class Comment {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")
 	private User author;
+	
+	@OneToMany(mappedBy = "comment", fetch = FetchType.LAZY)
+	private List<Attachment> attachments = new ArrayList<>();
 
 	@Column(name = "content", nullable = false)
 	private String content;
@@ -53,12 +58,13 @@ public class Comment {
 
 	}
 
-	public Comment(Long id, Ticket ticket, User author, String content, LocalDateTime createdAt, boolean isDeleted,
+	public Comment(Long id, Ticket ticket, User author, List<Attachment> attachments, String content, LocalDateTime createdAt, boolean isDeleted,
 			CommentType type) {
 		super();
 		this.id = id;
 		this.ticket = ticket;
 		this.author = author;
+		this.attachments = attachments;
 		this.content = content;
 		this.createdAt = createdAt;
 		this.isDeleted = isDeleted;
@@ -89,6 +95,13 @@ public class Comment {
 		this.author = author;
 	}
 
+	public List<Attachment> getAttachments() {
+	    return attachments;
+	}
+
+	public void setAttachments(List<Attachment> attachments) {
+	    this.attachments = attachments;
+	}
 	public String getContent() {
 		return content;
 	}
