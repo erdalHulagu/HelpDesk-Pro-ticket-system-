@@ -24,13 +24,16 @@ public class CommentServiceImpl implements CommentService {
 	private UserRepository userRepository;
 	private Authorization authorization;
 
-	public CommentServiceImpl(CommentRepository commentRepository, TicketRepository ticketRepository,
-			UserRepository userRepository, Authorization authorization) {
-		this.commentRepository = commentRepository;
-		this.ticketRepository = ticketRepository;
-		this.userRepository = userRepository;
-		this.authorization = authorization;
+	public CommentServiceImpl(
+	        CommentRepository commentRepository,
+	        TicketRepository ticketRepository,
+	        UserRepository userRepository,
+	        Authorization authorization) {
 
+	    this.commentRepository = commentRepository;
+	    this.ticketRepository = ticketRepository;
+	    this.userRepository = userRepository;
+	    this.authorization = authorization;
 	}
 
 	@Override

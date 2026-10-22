@@ -11,6 +11,7 @@ import com.erdal.helpdeskpro.domain.Attachment;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.repository.AttachmentRepository;
+import com.erdal.helpdeskpro.domain.Comment;
 
 public class AttachmentDAO implements AttachmentRepository {
 
@@ -43,6 +44,7 @@ public Attachment saveTicketAttachment(Attachment attachment) {
 
         attachment.setTicket(managedTicket);
         attachment.setUser(null);
+        attachment.setComment(null);
 
         session.persist(attachment);
         transaction.commit();
@@ -61,6 +63,49 @@ public Attachment saveTicketAttachment(Attachment attachment) {
         throw e;
     }
 }
+
+@Override
+public Attachment saveCommentAttachment(Attachment attachment) {
+
+    Transaction transaction = null;
+
+    try (Session session = sessionFactory.openSession()) {
+        transaction = session.beginTransaction();
+
+        if (attachment.getComment() == null
+                || attachment.getComment().getId() == null) {
+            throw new IllegalArgumentException("Comment is required");
+        }
+
+        Long commentId = attachment.getComment().getId();
+
+        Comment managedComment =
+                session.getReference(Comment.class, commentId);
+
+        attachment.setComment(managedComment);
+
+        // Bu ek yalnızca yoruma bağlı olacak.
+        attachment.setTicket(null);
+        attachment.setUser(null);
+
+        session.persist(attachment);
+        transaction.commit();
+
+        return attachment;
+
+    } catch (RuntimeException e) {
+        if (transaction != null && transaction.isActive()) {
+            try {
+                transaction.rollback();
+            } catch (RuntimeException rollbackError) {
+                e.addSuppressed(rollbackError);
+            }
+        }
+
+        throw e;
+    }
+}
+
 
     @Override
     public Attachment saveUserAttachment(Attachment attachment) {
@@ -83,6 +128,7 @@ public Attachment saveTicketAttachment(Attachment attachment) {
 
                 attachment.setUser(managedUser);
                 attachment.setTicket(null);
+                attachment.setComment(null);
 
                 session.persist(attachment);
                 transaction.commit();
@@ -140,7 +186,36 @@ public Attachment saveTicketAttachment(Attachment attachment) {
                     .list();
         }
     }
-
+    
+    
+    @Override
+    public List<Attachment> findByCommentId(Long commentId) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery(
+                    "FROM Attachment a " +
+                    "WHERE a.comment.id = :commentId " +
+                    "ORDER BY a.uploadedAt ASC",
+                    Attachment.class
+            )
+            .setParameter("commentId", commentId)
+            .list();
+        }
+    }
+    
+    @Override
+    public List<Attachment> findByTicketIdIncludingComments(Long ticketId) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery(
+                    "FROM Attachment a " +
+                    "WHERE a.ticket.id = :ticketId " +
+                    "OR a.comment.ticket.id = :ticketId " +
+                    "ORDER BY a.uploadedAt ASC",
+                    Attachment.class
+            )
+            .setParameter("ticketId", ticketId)
+            .list();
+        }
+    }
     @Override
     public void deleteById(Long id) {
 

@@ -22,4 +22,5 @@ public interface AttachmentService {
 	void deleteAttachment(Long attachmentId, User currentUser);
 
 	Attachment getAttachmentForDownload(Long attachmentId, User currentUser);
+	
 }
