@@ -42,20 +42,21 @@ public class CommentDAO implements CommentRepository {
 		}
 	}
 
-	@Override
 	public Comment findById(Long id) {
-
-		try (Session session = sessionFactory.openSession()) {
-			return session.createQuery("from Comment c where c.id = :id and c.deleted = false", Comment.class)
-					.setParameter("id", id).uniqueResult();
-		}
+	    try (Session session = sessionFactory.openSession()) {
+	        return session.createQuery(
+	                "FROM Comment c WHERE c.id = :id AND c.isDeleted = false",
+	                Comment.class)
+	            .setParameter("id", id)
+	            .uniqueResult();
+	    }
 	}
 
 	@Override
 	public List<Comment> findAll() {
 
 		try (Session session = sessionFactory.openSession()) {
-			return session.createQuery("from Comment c where c.deleted = false", Comment.class).list();
+			return session.createQuery("from Comment c where c.isDeleted = false", Comment.class).list();
 		}
 	}
 
@@ -90,7 +91,7 @@ public class CommentDAO implements CommentRepository {
 		Session session = sessionFactory.openSession();
 
 		List<Comment> comments = session
-				.createQuery("from Comment c where c.author.id = :authorId and c.deleted = false", Comment.class)
+				.createQuery("from Comment c where c.author.id = :authorId and c.isDeleted = false", Comment.class)
 				.setParameter("authorId", authorId).list();
 
 		session.close();
@@ -104,7 +105,7 @@ public class CommentDAO implements CommentRepository {
 		Session session = sessionFactory.openSession();
 
 		List<Comment> comments = session
-				.createQuery("from Comment c where c.ticket.id = :ticketId and c.deleted = false", Comment.class)
+				.createQuery("from Comment c where c.ticket.id = :ticketId and c.isDeleted = false", Comment.class)
 				.setParameter("ticketId", ticketId).list();
 
 		session.close();

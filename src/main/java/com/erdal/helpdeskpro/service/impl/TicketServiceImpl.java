@@ -103,9 +103,8 @@ public class TicketServiceImpl implements TicketService {
 	
 	@Override
 	public List<Ticket> getTicketsForUser(User currentUser) {
-		List<Ticket> tickets = ticketRepository.findAll();
-
-		currentUser.setId(7L);
+		
+		List<Ticket> tickets = ticketRepository.findAllActiveByCreatedBy(currentUser.getId());
 
 		return tickets.stream().filter(t -> t.getCreatedBy().getId().equals(currentUser.getId()))
 				.filter(t -> !t.isDeleted()).collect(Collectors.toList());

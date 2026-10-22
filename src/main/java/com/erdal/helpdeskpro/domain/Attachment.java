@@ -2,8 +2,12 @@ package com.erdal.helpdeskpro.domain;
 
 import java.time.LocalDateTime;
 
+import com.erdal.helpdeskpro.enums.AttachmentType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -28,6 +32,10 @@ public class Attachment {
 	@JoinColumn(name = "user_id", nullable = true)
 	private User user;
 	
+	@Enumerated(EnumType.STRING)
+	@Column(name = "attachment_type", nullable = false)
+	private AttachmentType attachmentType;
+	
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "comment_id", nullable = true)
 	private Comment comment;
@@ -49,7 +57,7 @@ public class Attachment {
 
 	
 
-	public Attachment(Long id, Ticket ticket, Comment comment, String fileName, String fileType, String filePath,User user,
+	public Attachment(Long id, Ticket ticket, Comment comment, String fileName, String fileType, String filePath,User user,AttachmentType attachmentType,
 			LocalDateTime uploadedAt) {
 		super();
 		this.id = id;
@@ -59,6 +67,7 @@ public class Attachment {
 		this.fileType = fileType;
 		this.filePath = filePath;
 		this.user=user;
+		this.attachmentType=attachmentType;
 		this.uploadedAt = uploadedAt;
 	}
 
@@ -95,6 +104,20 @@ public class Attachment {
 	public void setUser(User user) {
 		this.user = user;
 	}
+	
+	
+
+	public AttachmentType getAttachmentType() {
+		return attachmentType;
+	}
+
+
+
+	public void setAttachmentType(AttachmentType attachmentType) {
+		this.attachmentType = attachmentType;
+	}
+
+
 
 	public String getFileName() {
 		return fileName;

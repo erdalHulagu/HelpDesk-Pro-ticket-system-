@@ -10,6 +10,7 @@ import org.hibernate.Transaction;
 import com.erdal.helpdeskpro.domain.Attachment;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.enums.AttachmentType;
 import com.erdal.helpdeskpro.repository.AttachmentRepository;
 import com.erdal.helpdeskpro.domain.Comment;
 
@@ -159,6 +160,23 @@ public Attachment saveCommentAttachment(Attachment attachment) {
                     Attachment.class
             )
             .setParameter("userId", userId)
+            .setMaxResults(1)
+            .uniqueResult();
+        }
+    }
+    
+    @Override
+    public Attachment findProfilePhoto(Long userId) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery(
+                "FROM Attachment a " +
+                "WHERE a.user.id = :userId " +
+                "AND a.attachmentType = :type " +
+                "ORDER BY a.uploadedAt DESC",
+                Attachment.class
+            )
+            .setParameter("userId", userId)
+            .setParameter("type", AttachmentType.PROFILE_PHOTO)
             .setMaxResults(1)
             .uniqueResult();
         }

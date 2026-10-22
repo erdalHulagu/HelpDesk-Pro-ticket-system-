@@ -21,6 +21,8 @@ public interface AttachmentRepository {
 	Attachment findById(Long id);
 
 	Attachment findUserAttachment(Long userId);
+	
+	Attachment findProfilePhoto(Long userId);
 
 	List<Attachment> findByTicketId(Long ticketId);
 
@@ -32,4 +34,6 @@ public interface AttachmentRepository {
 	// Delete attachments
 	// ----------------------------
 	void deleteById(Long id);
+
+	
 }

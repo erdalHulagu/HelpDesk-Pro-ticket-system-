@@ -16,6 +16,7 @@ import com.erdal.helpdeskpro.domain.Attachment;
 import com.erdal.helpdeskpro.domain.Comment;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.enums.AttachmentType;
 import com.erdal.helpdeskpro.repository.AttachmentRepository;
 import com.erdal.helpdeskpro.repository.CommentRepository;
 import com.erdal.helpdeskpro.repository.TicketRepository;
@@ -171,6 +172,7 @@ public class AttachmentServiceImpl implements AttachmentService {
             Attachment attachment = new Attachment();
 
             attachment.setTicket(ticket);
+            attachment.setAttachmentType(AttachmentType.TICKET_FILE);
             attachment.setUser(null);
             attachment.setComment(null);
             attachment.setFileName(safeName);
@@ -227,6 +229,7 @@ public class AttachmentServiceImpl implements AttachmentService {
             attachment.setTicket(null);
             attachment.setUser(null);
             attachment.setComment(comment);
+            attachment.setAttachmentType(AttachmentType.COMMENT_FILE);
             attachment.setFileName(safeName);
             attachment.setFileType(storedFile.contentType());
             attachment.setFilePath(storedFile.path().toString());
@@ -265,6 +268,7 @@ public class AttachmentServiceImpl implements AttachmentService {
 
             attachment.setTicket(null);
             attachment.setUser(currentUser);
+            attachment.setAttachmentType(AttachmentType.USER_FILE);
             attachment.setComment(null);
             attachment.setFileName(safeName);
             attachment.setFileType(storedFile.contentType());
@@ -377,6 +381,15 @@ public class AttachmentServiceImpl implements AttachmentService {
         }
 
         return attachment;
+    }
+    
+    
+    // --------------------------------------------------
+    // Get Profile attachment
+    // --------------------------------------------------
+    @Override
+    public Attachment findProfilePhoto(Long userId) {
+        return attachmentRepository.findProfilePhoto(userId);
     }
 
     // --------------------------------------------------

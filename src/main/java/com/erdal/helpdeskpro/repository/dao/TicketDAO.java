@@ -135,12 +135,14 @@ public class TicketDAO implements TicketRepository {
 			return session.createQuery("from Ticket t where t.isDeleted = false", Ticket.class).list();
 		}
 	}
-	
+
 	@Override
 	public List<Ticket> findByCreatedBy(User user) {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	
 
 	
 
