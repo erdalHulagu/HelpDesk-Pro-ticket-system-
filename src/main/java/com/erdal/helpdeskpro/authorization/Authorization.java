@@ -23,5 +23,5 @@ public interface Authorization {
 
     void canCheckUserProfile(Attachment attachment, User user);
 
-    void canManageUser(User currentUser, Long targetUserId);
+	void canManageUser(User currentUser, Long targetUserId);
 }

@@ -110,4 +110,9 @@ public final class DependencyContainer {
 	public static AttachmentController getAttachmentController() {
 		return attachmentController;
 	}
+
+	public static Authorization getAuthorization() {
+		
+		return authorization;
+	}
 }

@@ -28,12 +28,13 @@ public class Application {
         );
 
         server.createContext(
-                "/users",
-                new UserHttpHandler(
-                        DependencyContainer.getUserController(),
-                        DependencyContainer.getAuthService()
-                )
-        );
+        	    "/users",
+        	    new UserHttpHandler(
+        	        DependencyContainer.getUserController(),
+        	        DependencyContainer.getAuthService(),
+        	        DependencyContainer.getAuthorization()
+        	    )
+        	);
 
         // Tickets
         server.createContext(

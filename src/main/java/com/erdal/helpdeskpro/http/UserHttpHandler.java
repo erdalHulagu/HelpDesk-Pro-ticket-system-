@@ -7,6 +7,7 @@ import com.erdal.helpdeskpro.dtos.UserDTO;
 import com.erdal.helpdeskpro.enums.Role;
 import com.erdal.helpdeskpro.mapper.UserMapper;
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.authorization.*;
 import com.erdal.helpdeskpro.auth.BaseAuthHandler;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -23,12 +24,15 @@ public class UserHttpHandler extends BaseAuthHandler implements HttpHandler {
 
 	private final UserController userController;
 	private final AuthService authService;
+	private final Authorization authorization;
 
-	public UserHttpHandler(UserController userController, AuthService authService) {
+	public UserHttpHandler(UserController userController, AuthService authService,Authorization authorization) {
 		super(authService);
 		this.userController = userController;
 		this.authService = authService;
+		this.authorization = authorization;
 	}
+	
 
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {

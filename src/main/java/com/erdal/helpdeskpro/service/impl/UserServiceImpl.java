@@ -79,36 +79,35 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User updateUser(User user) {
-
 		if (user == null || user.getId() == null) {
 			throw new IllegalArgumentException("User and user ID are required");
 		}
 
-		User existingUser = userRepository.findById(user.getId());
+		User updatedUser = userRepository.findById(user.getId());
 
-		if (existingUser == null) {
+		if (updatedUser == null) {
 			throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
 		}
 
 		if (user.getUsername() != null && !user.getUsername().isBlank()) {
-			existingUser.setUsername(user.getUsername().trim());
+			updatedUser.setUsername(user.getUsername().trim());
 		}
 
 		if (user.getEmail() != null && !user.getEmail().isBlank()) {
-			existingUser.setEmail(user.getEmail().trim());
-		}
-
-		if (user.getRole() != null) {
-			existingUser.setRole(user.getRole());
+			updatedUser.setEmail(user.getEmail().trim());
 		}
 
 		if (user.getPassword() != null && !user.getPassword().isBlank()) {
-			existingUser.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
+			updatedUser.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
 		}
 
-		userRepository.save(existingUser);
+		if (user.getRole() != null) {
+			updatedUser.setRole(user.getRole());
+		}
 
-		return existingUser;
+		userRepository.save(updatedUser);
+
+		return updatedUser;
 	}
 
 	@Override
