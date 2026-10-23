@@ -16,9 +16,6 @@ public interface TicketRepository  {
 	 void update(Ticket ticket);
 	 
 	 List<Ticket> findAllIncludingDeleted();
-	 
-	 List<Ticket> findByCreatedBy(User user);
-	 
 
 	 void deleteById(Long id);
 
@@ -27,6 +24,8 @@ public interface TicketRepository  {
 	 List<Ticket> findAllActive();
 
 	List<Ticket> findAllActiveByCreatedBy(Long id);
+
+	List<Ticket> findAllActiveByAssignedTo(Long userId);
 
 	
 	

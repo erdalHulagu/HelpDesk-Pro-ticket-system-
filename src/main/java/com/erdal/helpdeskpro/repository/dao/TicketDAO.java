@@ -46,13 +46,10 @@ public class TicketDAO implements TicketRepository {
 //	}
 	@Override
 	public Ticket findById(Long id) {
-	    try (Session session = sessionFactory.openSession()) {
-	        return session.createQuery(
-	                "from Ticket t where t.id = :id",
-	                Ticket.class)
-	            .setParameter("id", id)
-	            .uniqueResult();
-	    }
+		try (Session session = sessionFactory.openSession()) {
+			return session.createQuery("from Ticket t where t.id = :id", Ticket.class).setParameter("id", id)
+					.uniqueResult();
+		}
 	}
 
 	@Override
@@ -100,33 +97,24 @@ public class TicketDAO implements TicketRepository {
 			return session.createQuery("from Ticket", Ticket.class).list();
 		}
 	}
-	
+
 	@Override
 	public Ticket findByIdIncludingDeleted(Long id) {
-	    try (Session session = sessionFactory.openSession()) {
-	        return session.createQuery(
-	                "from Ticket t where t.id = :id",
-	                Ticket.class
-	        )
-	        .setParameter("id", id)
-	        .uniqueResult();
-	    }
+		try (Session session = sessionFactory.openSession()) {
+			return session.createQuery("from Ticket t where t.id = :id", Ticket.class).setParameter("id", id)
+					.uniqueResult();
+		}
 	}
-	
+
 	@Override
 	public List<Ticket> findAllActiveByCreatedBy(Long userId) {
-
-	    try (Session session = sessionFactory.openSession()) {
-	        return session.createQuery(
-	                "from Ticket t where t.isDeleted = false and t.createdBy.id = :userId",
-	                Ticket.class
-	        )
-	        .setParameter("userId", userId)
-	        .list();
-	    }
+		try (Session session = sessionFactory.openSession()) {
+			return session
+					.createQuery("select t from Ticket t " + "left join fetch t.createdBy "
+							+ "where t.isDeleted = false " + "and t.createdBy.id = :userId", Ticket.class)
+					.setParameter("userId", userId).list();
+		}
 	}
-	
-	
 
 	@Override
 	public List<Ticket> findAllActive() {
@@ -137,14 +125,13 @@ public class TicketDAO implements TicketRepository {
 	}
 
 	@Override
-	public List<Ticket> findByCreatedBy(User user) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Ticket> findAllActiveByAssignedTo(Long userId) {
+		try (Session session = sessionFactory.openSession()) {
+			return session
+					.createQuery("select t from Ticket t " + "left join fetch t.createdBy "
+							+ "where t.isDeleted = false " + "and t.assignedTo.id = :userId", Ticket.class)
+					.setParameter("userId", userId).list();
+		}
 	}
-	
-	
-
-	
-
 
 }

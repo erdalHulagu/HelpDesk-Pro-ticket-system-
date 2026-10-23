@@ -13,6 +13,8 @@ public class TicketDTO {
 	private TicketPriority priority;
 	private Long createdById;
 	private Long assignedToId;
+	private String createdByUsername;
+	private String createdByRole;
 	private boolean isDeleted;
 
 	public TicketDTO() {
@@ -20,7 +22,7 @@ public class TicketDTO {
 	}
 
 	public TicketDTO(Long id, String title, String description, TicketStatus status, TicketCategory category, TicketPriority priority,Long createdById,
-			Long assignedToId, boolean deleted) {
+			Long assignedToId, boolean deleted, String createdByUsername, String createdByRole) {
 		super();
 		this.id = id;
 		this.title = title;
@@ -31,6 +33,8 @@ public class TicketDTO {
 		this.assignedToId = assignedToId;
 		this.isDeleted = deleted;
 		this.category=category;
+		this.createdByUsername=createdByUsername;
+		this.createdByRole=createdByRole;
 	}
 
 	public Long getId() {
@@ -93,6 +97,22 @@ public class TicketDTO {
 
 	public void setAssignedToId(Long assignedToId) {
 		this.assignedToId = assignedToId;
+	}
+
+	public String getCreatedByUsername() {
+		return createdByUsername;
+	}
+
+	public void setCreatedByUsername(String createdByUsername) {
+		this.createdByUsername = createdByUsername;
+	}
+
+	public String getCreatedByRole() {
+		return createdByRole;
+	}
+
+	public void setCreatedByRole(String createdByRole) {
+		this.createdByRole = createdByRole;
 	}
 
 	public boolean isDeleted() {

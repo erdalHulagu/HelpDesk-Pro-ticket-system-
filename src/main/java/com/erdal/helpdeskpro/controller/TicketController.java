@@ -20,7 +20,9 @@ public class TicketController {
 
 	public TicketDTO createTicket(TicketDTO ticketDTO, User currentUser) {
 		Ticket ticket = TicketMapper.ticketDTOtoTicket(ticketDTO);
+
 		ticketService.createTicket(ticket, currentUser);
+
 		return TicketMapper.ticketToTicketDTO(ticket);
 	}
 
@@ -70,14 +72,10 @@ public class TicketController {
 		ticketService.deleteTicket(ticketId, currentUser);
 
 	}
-	
+
 	public List<TicketDTO> findAllActive(User currentUser) {
 
-	    return ticketService.findAllActive(currentUser)
-	            .stream()
-	            .map(TicketMapper::ticketToTicketDTO)
-	            .toList();
+		return ticketService.findAllActive(currentUser).stream().map(TicketMapper::ticketToTicketDTO).toList();
 	}
-	
 
 }

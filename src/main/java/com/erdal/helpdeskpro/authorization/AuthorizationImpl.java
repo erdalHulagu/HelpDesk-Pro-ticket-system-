@@ -67,7 +67,9 @@ public class AuthorizationImpl implements Authorization {
         checkUser(user);
 
         if (user.getRole() != Role.ADMIN
-                && user.getRole() != Role.IT_MANAGER) {
+                && user.getRole() != Role.IT_MANAGER
+                && user.getRole() != Role.IT_SUPPORT
+                && user.getRole() != Role.EMPLOYEE) {
             throw notAllowed();
         }
     }

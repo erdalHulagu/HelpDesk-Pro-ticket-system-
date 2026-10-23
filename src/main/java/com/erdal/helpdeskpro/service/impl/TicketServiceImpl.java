@@ -164,17 +164,38 @@ public class TicketServiceImpl implements TicketService {
 		return ticketRepository.findByIdIncludingDeleted(id);
 	}
 
-	@Override
-	public List<Ticket> findAllActive(User currentUser) {
 
-	    authorization.canViewAllActiveTickets(currentUser);
+@Override
+public List<Ticket> findAllActive(User currentUser) {
+    authorization.canViewAllActiveTickets(currentUser);
 
-	    if (currentUser.getRole() == Role.EMPLOYEE) {
-	        return ticketRepository.findAllActiveByCreatedBy(currentUser.getId());
-	    }
+    if (currentUser.getRole() == Role.EMPLOYEE) {
+        return ticketRepository.findAllActiveByCreatedBy(currentUser.getId());
+    }
 
-	    return ticketRepository.findAllActive();
-	}
+    if (currentUser.getRole() == Role.IT_SUPPORT) {
+        List<Ticket> assignedTickets =
+                ticketRepository.findAllActiveByAssignedTo(currentUser.getId());
+
+        List<Ticket> createdTickets =
+                ticketRepository.findAllActiveByCreatedBy(currentUser.getId());
+
+        java.util.Map<Long, Ticket> combinedTickets = new java.util.LinkedHashMap<>();
+
+        for (Ticket ticket : assignedTickets) {
+            combinedTickets.put(ticket.getId(), ticket);
+        }
+
+        for (Ticket ticket : createdTickets) {
+            combinedTickets.put(ticket.getId(), ticket);
+        }
+
+        return new java.util.ArrayList<>(combinedTickets.values());
+    }
+
+    return ticketRepository.findAllActive();
+}
+
 	
 	@Override
 	public void deleteTicket(Long ticketId, User currentUser) {
