@@ -12,120 +12,113 @@ import com.erdal.helpdeskpro.repository.UserRepository;
 import com.erdal.helpdeskpro.service.UserService;
 
 public class UserServiceImpl implements UserService {
-	
+
 	private final UserRepository userRepository;
-	
+
 	public UserServiceImpl(UserRepository userRepository) {
-		this.userRepository=userRepository;
-		
-	
-		
+		this.userRepository = userRepository;
+
 	}
 
 	@Override
 	public void registerUser(User user) {
 
-	    User createdUser = new User();
-	    
-	    
+		User createdUser = new User();
 
-	    createdUser.setUsername(user.getUsername());
-	    createdUser.setEmail(user.getEmail());
-	    createdUser.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
-	    
-	    createdUser.setRole(Role.EMPLOYEE);
-	    createdUser.setActive(true);
+		createdUser.setUsername(user.getUsername());
+		createdUser.setEmail(user.getEmail());
+		createdUser.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
 
-	    userRepository.save(createdUser);
+		createdUser.setRole(Role.EMPLOYEE);
+		createdUser.setActive(true);
+
+		userRepository.save(createdUser);
 	}
-	
+
 	@Override
 	public User login(String email, String password) {
 
-	    User user = userRepository.findByEmail(email);
+		User user = userRepository.findByEmail(email);
 
-	    if (user == null) {
-	        throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
-	    }
+		if (user == null) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
+		}
 
-	    if (!BCrypt.checkpw(password, user.getPassword())) {
-	        throw new BadRequestExeption(ExceptionMessage.WRONG_PASSWORD);
-	    }
+		if (!BCrypt.checkpw(password, user.getPassword())) {
+			throw new BadRequestExeption(ExceptionMessage.WRONG_PASSWORD);
+		}
 
-	    if (!user.isActive()) {
-	        throw new BadRequestExeption(ExceptionMessage.USER_NOT_ACTIVE);
-	    }
+		if (!user.isActive()) {
+			throw new BadRequestExeption(ExceptionMessage.USER_NOT_ACTIVE);
+		}
 
-	    return user;
+		return user;
 	}
 
 	@Override
 	public User getUser(Long id) {
-		
-		User user =userRepository.findById(id);
-		
-		if (user==null) {
+
+		User user = userRepository.findById(id);
+
+		if (user == null) {
 			throw new ResourceNotFoundExeption(String.format(ExceptionMessage.USER_NOT_FOUND, id));
-			
+
 		}
-		
+
 		return user;
 	}
 
 	@Override
 	public List<User> getAllUsers(User currentUser) {
-	    if (currentUser == null ||
-	        (currentUser.getRole() != Role.ADMIN &&
-	         currentUser.getRole() != Role.IT_MANAGER)) {
-	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-	    }
+		if (currentUser == null || (currentUser.getRole() != Role.ADMIN && currentUser.getRole() != Role.IT_MANAGER)) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
 
-	    return userRepository.findAll();
+		return userRepository.findAll();
 	}
-	
 
-@Override
-public User updateUser(User user) {
+	@Override
+	public User updateUser(User user) {
 
-    if (user == null || user.getId() == null) {
-        throw new IllegalArgumentException("User and user ID are required");
-    }
+		if (user == null || user.getId() == null) {
+			throw new IllegalArgumentException("User and user ID are required");
+		}
 
-    User updatedUser = userRepository.findById(user.getId());
+		User existingUser = userRepository.findById(user.getId());
 
-    if (updatedUser == null) {
-        throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
-    }
+		if (existingUser == null) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
+		}
 
-    if (user.getUsername() != null && !user.getUsername().isBlank()) {
-        updatedUser.setUsername(user.getUsername().trim());
-    }
+		if (user.getUsername() != null && !user.getUsername().isBlank()) {
+			existingUser.setUsername(user.getUsername().trim());
+		}
 
-    // Boş parola gönderilirse mevcut parola korunur.
-    if (user.getPassword() != null && !user.getPassword().isBlank()) {
-        updatedUser.setPassword(
-            BCrypt.hashpw(user.getPassword(), BCrypt.gensalt())
-        );
-    }
+		if (user.getEmail() != null && !user.getEmail().isBlank()) {
+			existingUser.setEmail(user.getEmail().trim());
+		}
 
-    userRepository.save(updatedUser);
+		if (user.getRole() != null) {
+			existingUser.setRole(user.getRole());
+		}
 
-    return updatedUser;
-}
+		if (user.getPassword() != null && !user.getPassword().isBlank()) {
+			existingUser.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
+		}
 
+		userRepository.save(existingUser);
+
+		return existingUser;
+	}
 
 	@Override
 	public void deactivateUser(User currentUser, Long id) {
 		if (currentUser.getRole() != Role.ADMIN) {
-	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-	    }
-		
-		userRepository.deleteById(id);
-		
-		
-	}
-	
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
 
-	
+		userRepository.deleteById(id);
+
+	}
 
 }

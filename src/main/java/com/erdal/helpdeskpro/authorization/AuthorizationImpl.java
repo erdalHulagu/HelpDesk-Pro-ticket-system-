@@ -82,6 +82,21 @@ public class AuthorizationImpl implements Authorization {
     // =========================
     // HELPER METHODS
     // =========================
+    
+
+    @Override
+    public void canManageUser(User currentUser, Long targetUserId) {
+        checkUser(currentUser);
+
+        if (currentUser.getRole() != Role.ADMIN) {
+            throw notAllowed();
+        }
+
+        if (currentUser.getId() == null || targetUserId == null) {
+            throw notAllowed();
+        }
+    }
+
 
     private void checkTicketAndUser(Ticket ticket, User user) {
         if (ticket == null) {

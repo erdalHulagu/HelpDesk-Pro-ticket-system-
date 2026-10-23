@@ -128,9 +128,9 @@ public class UserHttpHandler extends BaseAuthHandler implements HttpHandler {
 	}
 
 	private void handleGetUserById(HttpExchange exchange) throws Exception {
-		
+
 		User currentUser = getAuthenticatedUser(exchange);
-		
+
 		Long id = Long.parseLong(exchange.getRequestURI().getPath().split("/")[2]);
 		// Admin değilse yalnızca kendi hesabını güncelleyebilir.
 		if (currentUser.getRole() != Role.ADMIN && !currentUser.getId().equals(id)) {
@@ -148,38 +148,41 @@ public class UserHttpHandler extends BaseAuthHandler implements HttpHandler {
 	}
 
 	private void handleUpdateUser(HttpExchange exchange) throws Exception {
-
-		// İsteği yapan kullanıcıyı token üzerinden doğrula.
 		User currentUser = getAuthenticatedUser(exchange);
 
 		Long id = Long.parseLong(exchange.getRequestURI().getPath().split("/")[2]);
-		
-		// Admin değilse yalnızca kendi hesabını güncelleyebilir.
-		if (currentUser.getRole() != Role.ADMIN && !currentUser.getId().equals(id)) {
-
-			JsonUtil.sendJson(exchange, 403, "{\"error\":\"You can check your own account\"}");
-			return;
-		}
 
 		InputStream is = exchange.getRequestBody();
 
 		UserDTO userDTO = JsonUtil.fromJson(new String(is.readAllBytes(), StandardCharsets.UTF_8), UserDTO.class);
-		
-		if (currentUser.getRole() != Role.ADMIN) {
-		    UserDTO existingUser = userController.findUserById(id);
 
-		    if (userDTO.getRole() != null &&
-		        userDTO.getRole() != existingUser.getRole()) {
-		        JsonUtil.sendJson(
-		            exchange,
-		            403,
-		            "{\"error\":\"Only admins can change user roles\"}"
-		        );
-		        return;
-		    }
+		UserDTO existingUser = userController.findUserById(id);
+
+		// Only admins can manage other users.
+		if (currentUser.getRole() == Role.ADMIN) {
+			authorization.canManageUser(currentUser, id);
+		} else {
+			// Non-admin users can update only their own account.
+			if (!currentUser.getId().equals(id)) {
+				JsonUtil.sendJson(exchange, 403, "{\"error\":\"You can update only your own account\"}");
+				return;
+			}
+
+			// Non-admin users cannot change their role.
+			if (userDTO.getRole() != null && userDTO.getRole() != existingUser.getRole()) {
+				JsonUtil.sendJson(exchange, 403, "{\"error\":\"Only admins can change user roles\"}");
+				return;
+			}
 		}
 
-		// İstek gövdesindeki ID'ye güvenme.
+		// Admins cannot change their own role.
+		if (currentUser.getId().equals(id) && userDTO.getRole() != null
+				&& userDTO.getRole() != existingUser.getRole()) {
+			JsonUtil.sendJson(exchange, 403, "{\"error\":\"You cannot change your own role\"}");
+			return;
+		}
+
+		// Always use the ID from the URL.
 		userDTO.setId(id);
 
 		UserDTO updated = userController.updateUser(UserMapper.userDTOtoUser(userDTO));
@@ -203,5 +206,4 @@ public class UserHttpHandler extends BaseAuthHandler implements HttpHandler {
 		exchange.close();
 	}
 
-	
 }

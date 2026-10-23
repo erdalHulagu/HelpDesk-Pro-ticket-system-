@@ -1,3 +1,4 @@
+
 package com.erdal.helpdeskpro.mapper;
 
 import java.util.List;
@@ -6,42 +7,53 @@ import java.util.stream.Collectors;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.dtos.UserDTO;
 
-//Since I’m not using any mapping framework, I implemented manual mapper classes to keep controllers clean.
 public final class UserMapper {
 
-	public static User userDTOtoUser(UserDTO userDTO) {
+    private UserMapper() {
+    }
 
-		User user = new User();
+    public static User userDTOtoUser(UserDTO userDTO) {
+        User user = new User();
 
-		user.setId(userDTO.getId());
-		user.setUsername(userDTO.getUsername());
-		user.setEmail(userDTO.getEmail());
-		user.setPassword(userDTO.getPassword());
-		user.setRole(userDTO.getRole());
-		user.setActive(userDTO.isActive());
+        user.setId(userDTO.getId());
+        user.setUsername(userDTO.getUsername());
+        user.setEmail(userDTO.getEmail());
+        user.setPassword(userDTO.getPassword());
+        user.setRole(userDTO.getRole());
+        user.setActive(userDTO.isActive());
 
-		return user;
-	}
+        return user;
+    }
 
-	public static UserDTO userToUserDTO(User user) {
+    public static UserDTO userToUserDTO(User user) {
+        return new UserDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getPassword(),
+                null,
+                user.getRole(),
+                user.isActive()
+        );
+    }
 
-		return new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getPassword(), user.getAttachment(),
-				user.getRole(), user.isActive());
+    public static List<User> userDTOlistToUserList(List<UserDTO> userDTOs) {
+        return userDTOs.stream()
+                .map(UserMapper::userDTOtoUser)
+                .collect(Collectors.toList());
+    }
 
-	}
-
-	public static List<User> userDTOlistToUserList(List<UserDTO> userDTOs) {
-
-		return userDTOs.stream().map(u -> new User(u.getId(), u.getUsername(), u.getEmail(), u.getPassword(),
-				u.getAttachment(), u.getRole(), u.isActive())).collect(Collectors.toList());
-
-	}
-
-	public static List<UserDTO> userListToUserDTOList(List<User> users) {
-
-		return users.stream().map(user -> new UserDTO(user.getId(), user.getUsername(), user.getEmail(),
-				user.getPassword(), user.getAttachment(), user.getRole(), user.isActive())).collect(Collectors.toList());
-
-	}
-
+    public static List<UserDTO> userListToUserDTOList(List<User> users) {
+        return users.stream()
+                .map(user -> new UserDTO(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        null,
+                        null,
+                        user.getRole(),
+                        user.isActive()
+                ))
+                .collect(Collectors.toList());
+    }
 }

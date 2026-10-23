@@ -19,6 +19,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.erdal.helpdeskpro.controller.AttachmentController;
 import com.erdal.helpdeskpro.domain.Attachment;
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.enums.Role;
 import com.erdal.helpdeskpro.auth.AuthService;
 
 public class AttachmentHttpHandler implements HttpHandler {
@@ -63,6 +64,11 @@ public class AttachmentHttpHandler implements HttpHandler {
 
 			if ("GET".equals(method) && "/attachments/user/photo".equals(path)) {
 				handleGetProfilePhoto(exchange, currentUser);
+				return;
+			}
+
+			if ("GET".equals(method) && "/attachments/user/photo/by-user".equals(path)) {
+				handleGetUserProfilePhoto(exchange, currentUser);
 				return;
 			}
 
@@ -209,6 +215,51 @@ public class AttachmentHttpHandler implements HttpHandler {
 	private void handleGetProfilePhoto(HttpExchange exchange, User currentUser) throws IOException {
 
 		Attachment attachment = attachmentController.findProfilePhoto(currentUser.getId());
+
+		if (attachment == null) {
+			sendJson(exchange, 404, Map.of("error", "Profile photo not found"));
+			return;
+		}
+
+		Path filePath = Path.of(attachment.getFilePath());
+
+		if (!Files.isRegularFile(filePath)) {
+			sendJson(exchange, 404, Map.of("error", "Profile photo file not found"));
+			return;
+		}
+
+		String contentType = attachment.getFileType();
+
+		if (contentType == null || !contentType.startsWith("image/")) {
+			sendJson(exchange, 415, Map.of("error", "Stored file is not an image"));
+			return;
+		}
+
+		exchange.getResponseHeaders().set("Content-Type", contentType);
+		exchange.getResponseHeaders().set("Content-Disposition", "inline");
+		exchange.getResponseHeaders().set("X-Content-Type-Options", "nosniff");
+		exchange.getResponseHeaders().set("Cache-Control", "no-store");
+
+		long fileSize = Files.size(filePath);
+		exchange.sendResponseHeaders(200, fileSize);
+
+		try (InputStream inputStream = Files.newInputStream(filePath);
+				OutputStream outputStream = exchange.getResponseBody()) {
+			inputStream.transferTo(outputStream);
+		}
+
+	}
+
+	private void handleGetUserProfilePhoto(HttpExchange exchange, User currentUser) throws IOException {
+
+		if (currentUser.getRole() != Role.ADMIN && currentUser.getRole() != Role.IT_MANAGER) {
+			sendJson(exchange, 403, Map.of("error", "Access denied"));
+			return;
+		}
+
+		Long targetUserId = getUserId(exchange);
+		System.out.println("Requested profile photo for user ID: " + targetUserId);
+		Attachment attachment = attachmentController.findProfilePhoto(targetUserId);
 
 		if (attachment == null) {
 			sendJson(exchange, 404, Map.of("error", "Profile photo not found"));
