@@ -238,46 +238,32 @@ public class CommentServiceImpl implements CommentService {
 	@Override
 	public List<Comment> getCommentsByTicket(Long ticketId, User user) {
 
-		if (user == null || user.getId() == null || user.getRole() == null) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
+	    if (user == null || user.getId() == null || user.getRole() == null) {
+	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	    }
 
-		Ticket ticket = ticketRepository.findById(ticketId);
+	    Ticket ticket = ticketRepository.findById(ticketId);
 
-		if (ticket == null) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-		}
+	    if (ticket == null) {
+	        throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+	    }
 
-		if (ticket.isDeleted()) {
-			throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
-		}
+	    if (ticket.isDeleted()) {
+	        throw new BadRequestExeption(ExceptionMessage.TICKET_IS_DELETED);
+	    }
 
-		// Ticket görüntüleme yetkisi
-		switch (user.getRole()) {
-		case ADMIN:
-			break;
+	    // Check whether the user can view this ticket's comments.
+	    authorization.canViewComments(ticket, user);
 
-		case EMPLOYEE:
-			if (ticket.getCreatedBy() == null || !user.getId().equals(ticket.getCreatedBy().getId())) {
-				throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
-			}
-			break;
-
-		case IT_SUPPORT:
-			if (ticket.getAssignedTo() == null || !user.getId().equals(ticket.getAssignedTo().getId())) {
-				throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
-			}
-			break;
-
-		default:
-			throw new BadRequestExeption(ExceptionMessage.NO_PERMISSION);
-		}
-
-		// Yorum görünürlüğü
-		return commentRepository.findAllByTicketId(ticketId).stream().filter(comment -> !comment.isDeleted())
-				.filter(comment -> user.getRole() == Role.ADMIN || comment.getType() == CommentType.PUBLIC
-						|| (user.getRole() == Role.IT_SUPPORT && comment.getType() == CommentType.INTERNAL))
-				.toList();
+	    // Return only comments visible to the current user's role.
+	    return commentRepository.findAllByTicketId(ticketId).stream()
+	            .filter(comment -> !comment.isDeleted())
+	            .filter(comment ->
+	                    comment.getType() == CommentType.PUBLIC
+	                    || user.getRole() == Role.ADMIN
+	                    || user.getRole() == Role.IT_MANAGER
+	                    || user.getRole() == Role.IT_SUPPORT)
+	            .toList();
 	}
 
 }

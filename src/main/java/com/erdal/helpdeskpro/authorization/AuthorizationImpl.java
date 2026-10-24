@@ -199,10 +199,17 @@ public class AuthorizationImpl implements Authorization {
                 return;
 
             case IT_SUPPORT:
-                if (ticket.getAssignedTo() == null
-                        || ticket.getAssignedTo().getId() == null
-                        || !user.getId().equals(
-                                ticket.getAssignedTo().getId())) {
+                boolean createdBySupport =
+                        ticket.getCreatedBy() != null
+                        && user.getId().equals(
+                                ticket.getCreatedBy().getId());
+
+                boolean assignedToSupport =
+                        ticket.getAssignedTo() != null
+                        && user.getId().equals(
+                                ticket.getAssignedTo().getId());
+
+                if (!createdBySupport && !assignedToSupport) {
                     throw notAllowed();
                 }
                 return;
