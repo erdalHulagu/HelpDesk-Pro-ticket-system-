@@ -101,16 +101,18 @@ public class CommentDAO implements CommentRepository {
 
 	@Override
 	public List<Comment> findAllByTicketId(Long ticketId) {
-
-		Session session = sessionFactory.openSession();
-
-		List<Comment> comments = session
-				.createQuery("from Comment c where c.ticket.id = :ticketId and c.isDeleted = false", Comment.class)
-				.setParameter("ticketId", ticketId).list();
-
-		session.close();
-
-		return comments;
+	    try (Session session = sessionFactory.openSession()) {
+	        return session.createQuery(
+	                "SELECT c FROM Comment c " +
+	                "LEFT JOIN FETCH c.author " +
+	                "LEFT JOIN FETCH c.ticket " +
+	                "WHERE c.ticket.id = :ticketId " +
+	                "AND c.isDeleted = false",
+	                Comment.class
+	        )
+	        .setParameter("ticketId", ticketId)
+	        .list();
+	    }
 	}
 
 }
