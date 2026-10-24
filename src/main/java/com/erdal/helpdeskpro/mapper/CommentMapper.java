@@ -27,18 +27,37 @@ public class CommentMapper {
 		return comment;
 	}
 
-	public static CommentDTO commentToCommentDTO(Comment comment) {
-		CommentDTO dto = new CommentDTO();
 
-		dto.setId(comment.getId());
-		dto.setContent(comment.getContent());
-		dto.setAuthorId(comment.getAuthor().getId());
-		dto.setTicketId(comment.getTicket().getId());
-		dto.setDeleted(comment.isDeleted());
-		dto.setType(comment.getType());
+public static CommentDTO commentToCommentDTO(Comment comment) {
+    CommentDTO dto = new CommentDTO();
 
-		return dto;
-	}
+    dto.setId(comment.getId());
+    dto.setContent(comment.getContent());
+    dto.setTicketId(
+        comment.getTicket() != null
+            ? comment.getTicket().getId()
+            : null
+    );
+    dto.setDeleted(comment.isDeleted());
+    dto.setType(comment.getType());
+    dto.setCreatedAt(comment.getCreatedAt());
+
+    User author = comment.getAuthor();
+
+    if (author != null) {
+        dto.setAuthorId(author.getId());
+        dto.setAuthorUsername(author.getUsername());
+
+        dto.setAuthorRole(
+            author.getRole() != null
+                ? author.getRole().name()
+                : null
+        );
+    }
+
+    return dto;
+}
+
 
 	public static List<CommentDTO> commentListToCommentDTOList(List<Comment> comments) {
 		if (comments == null || comments.isEmpty()) {

@@ -1,5 +1,7 @@
 package com.erdal.helpdeskpro.dtos;
 
+import java.time.LocalDateTime;
+
 import com.erdal.helpdeskpro.enums.CommentType;
 
 public class CommentDTO {
@@ -10,12 +12,18 @@ public class CommentDTO {
 	private Long authorId;
 	private boolean deleted;
 	private CommentType type;
+	private String authorUsername;
+	private String authorRole;
+	private String authorPhotoUrl;
+	private LocalDateTime createdAt=LocalDateTime.now();
 
 	public CommentDTO() {
 		super();
 	}
 
-	public CommentDTO(Long id, String content, Long ticketId, Long authorId, boolean deleted,CommentType type) {
+	
+	public CommentDTO(Long id, String content, Long ticketId, Long authorId, boolean deleted, CommentType type,
+			String authorUsername, String authorRole, String authorPhotoUrl, LocalDateTime createdAt) {
 		super();
 		this.id = id;
 		this.content = content;
@@ -23,8 +31,11 @@ public class CommentDTO {
 		this.authorId = authorId;
 		this.deleted = deleted;
 		this.type = type;
+		this.authorUsername = authorUsername;
+		this.authorRole = authorRole;
+		this.authorPhotoUrl = authorPhotoUrl;
+		this.createdAt = createdAt;
 	}
-
 	
 
 	public Long getId() {
@@ -73,5 +84,47 @@ public class CommentDTO {
 	public void setType(CommentType type) {
 		this.type = type;
 	}
+
+
+	public String getAuthorUsername() {
+		return authorUsername;
+	}
+
+
+	public void setAuthorUsername(String authorUsername) {
+		this.authorUsername = authorUsername;
+	}
+
+
+	public String getAuthorRole() {
+		return authorRole;
+	}
+
+
+	public void setAuthorRole(String authorRole) {
+		this.authorRole = authorRole;
+	}
+
+
+	public String getAuthorPhotoUrl() {
+		return authorPhotoUrl;
+	}
+
+
+	public void setAuthorPhotoUrl(String authorPhotoUrl) {
+		this.authorPhotoUrl = authorPhotoUrl;
+	}
+
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+	
+	
 
 }
