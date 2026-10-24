@@ -1,5 +1,6 @@
 package com.erdal.helpdeskpro.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -190,7 +191,7 @@ public List<Ticket> findAllActive(User currentUser) {
             combinedTickets.put(ticket.getId(), ticket);
         }
 
-        return new java.util.ArrayList<>(combinedTickets.values());
+        return new ArrayList<>(combinedTickets.values());
     }
 
     return ticketRepository.findAllActive();
