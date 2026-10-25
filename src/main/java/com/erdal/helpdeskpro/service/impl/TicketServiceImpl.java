@@ -1,7 +1,9 @@
 package com.erdal.helpdeskpro.service.impl;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.erdal.helpdeskpro.authorization.Authorization;
@@ -166,36 +168,51 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 
+
 @Override
 public List<Ticket> findAllActive(User currentUser) {
-    authorization.canViewAllActiveTickets(currentUser);
+    if (currentUser == null || currentUser.getRole() == null
+            || currentUser.getId() == null) {
+        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+    }
 
-    if (currentUser.getRole() == Role.EMPLOYEE) {
+    Role role = currentUser.getRole();
+
+    if (role == Role.EMPLOYEE) {
         return ticketRepository.findAllActiveByCreatedBy(currentUser.getId());
     }
 
-    if (currentUser.getRole() == Role.IT_SUPPORT) {
+    if (role == Role.IT_SUPPORT) {
         List<Ticket> assignedTickets =
                 ticketRepository.findAllActiveByAssignedTo(currentUser.getId());
 
         List<Ticket> createdTickets =
                 ticketRepository.findAllActiveByCreatedBy(currentUser.getId());
 
-        java.util.Map<Long, Ticket> combinedTickets = new java.util.LinkedHashMap<>();
+        Map<Long, Ticket> combined = new LinkedHashMap<>();
 
         for (Ticket ticket : assignedTickets) {
-            combinedTickets.put(ticket.getId(), ticket);
+            if (!ticket.isDeleted()) {
+                combined.put(ticket.getId(), ticket);
+            }
         }
 
         for (Ticket ticket : createdTickets) {
-            combinedTickets.put(ticket.getId(), ticket);
+            if (!ticket.isDeleted()) {
+                combined.put(ticket.getId(), ticket);
+            }
         }
 
-        return new ArrayList<>(combinedTickets.values());
+        return new ArrayList<>(combined.values());
     }
 
-    return ticketRepository.findAllActive();
+    if (role == Role.ADMIN || role == Role.IT_MANAGER) {
+        return ticketRepository.findAllActive();
+    }
+
+    throw  new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 }
+
 
 	
 	@Override
