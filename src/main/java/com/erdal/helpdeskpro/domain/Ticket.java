@@ -58,15 +58,25 @@ public class Ticket {
 	@Column(name="created_at")
 	private LocalDateTime createdAt=LocalDateTime.now();
 	
+	@Column(name = "sla_due_at")
+	private LocalDateTime slaDueAt;
+
+	@Column(name = "resolved_at")
+	private LocalDateTime resolvedAt;
+	
 	@Column(name="is_deleted")
 	private boolean isDeleted;
 	
 	public Ticket() {
 		super();
 	}
+	
+	
 
 	public Ticket(Long id, String title, String description, TicketCategory category, TicketStatus status,
-			TicketPriority priority,User createdBy, User assignedTo, LocalDateTime createdAt, boolean isDeleted) {
+			TicketPriority priority, User createdBy, User assignedTo, List<Attachment> attachments,
+			List<Comment> comments, LocalDateTime createdAt, LocalDateTime slaDueAt, LocalDateTime resolvedAt,
+			boolean isDeleted) {
 		super();
 		this.id = id;
 		this.title = title;
@@ -76,9 +86,14 @@ public class Ticket {
 		this.priority = priority;
 		this.createdBy = createdBy;
 		this.assignedTo = assignedTo;
+		this.attachments = attachments;
+		this.comments = comments;
 		this.createdAt = createdAt;
+		this.slaDueAt = slaDueAt;
+		this.resolvedAt = resolvedAt;
 		this.isDeleted = isDeleted;
 	}
+
 
 	public Long getId() {
 		return id;
@@ -152,6 +167,40 @@ public class Ticket {
 		this.createdAt = createdAt;
 	}
 	
+	
+	
+	public List<Attachment> getAttachments() {
+		return attachments;
+	}
+
+	public void setAttachments(List<Attachment> attachments) {
+		this.attachments = attachments;
+	}
+
+	public List<Comment> getComments() {
+		return comments;
+	}
+
+	public void setComments(List<Comment> comments) {
+		this.comments = comments;
+	}
+
+	public LocalDateTime getSlaDueAt() {
+		return slaDueAt;
+	}
+
+	public void setSlaDueAt(LocalDateTime slaDueAt) {
+		this.slaDueAt = slaDueAt;
+	}
+
+	public LocalDateTime getResolvedAt() {
+		return resolvedAt;
+	}
+
+	public void setResolvedAt(LocalDateTime resolvedAt) {
+		this.resolvedAt = resolvedAt;
+	}
+
 	public boolean isDeleted() {
 		return isDeleted;
 	}

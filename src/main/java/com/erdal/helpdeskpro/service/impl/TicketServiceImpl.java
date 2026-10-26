@@ -1,5 +1,6 @@
 package com.erdal.helpdeskpro.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,16 +33,32 @@ public class TicketServiceImpl implements TicketService {
 	public TicketServiceImpl(TicketRepository ticketrepository) {
 		this.ticketRepository = ticketRepository;
 	}
-
 	@Override
 	public void createTicket(Ticket ticket, User currentUser) {
-		ticket.setCreatedBy(currentUser);
-		ticket.setStatus(TicketStatus.OPEN);
-		ticket.setDeleted(false);
-		if (ticket.getPriority() == null) {
-			ticket.setPriority(TicketPriority.MEDIUM);
-		}
-		ticketRepository.save(ticket);
+	    ticket.setCreatedBy(currentUser);
+	    ticket.setStatus(TicketStatus.OPEN);
+	    ticket.setDeleted(false);
+
+	    if (ticket.getPriority() == null) {
+	        ticket.setPriority(TicketPriority.MEDIUM);
+	    }
+
+	    ticket.setCreatedAt(LocalDateTime.now());
+	    ticket.setSlaDueAt(
+	        ticket.getCreatedAt().plusHours(getSlaHours(ticket.getPriority()))
+	    );
+	    ticket.setResolvedAt(null);
+
+	    ticketRepository.save(ticket);
+	}
+
+	private int getSlaHours(TicketPriority priority) {
+	    return switch (priority) {
+	        case LOW -> 72;
+	        case MEDIUM -> 24;
+	        case HIGH -> 8;
+	        case CRITICAL -> 4;
+	    };
 	}
 
 	@Override
@@ -68,6 +85,10 @@ public class TicketServiceImpl implements TicketService {
 
 	    // Güncelleme
 	    ticket.setStatus(newStatus);
+
+	    if (newStatus == TicketStatus.RESOLVED) {
+	        ticket.setResolvedAt(LocalDateTime.now());
+	    }
 	    ticketRepository.update(ticket);
 	}
 
