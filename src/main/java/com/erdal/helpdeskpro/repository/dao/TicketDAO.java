@@ -18,25 +18,38 @@ public class TicketDAO implements TicketRepository {
 		this.sessionFactory = sessionFactory;
 
 	}
-
 	@Override
 	public void save(Ticket ticket) {
+	    Transaction transaction = null;
 
-		Session session = sessionFactory.openSession();
-		Transaction transaction = session.beginTransaction();
+	    try (Session session = sessionFactory.openSession()) {
+	        transaction = session.beginTransaction();
 
-		if (ticket.getCreatedBy() != null) {
-			User user = session.getReference(User.class, ticket.getCreatedBy().getId());
+	        if (ticket.getCreatedBy() != null) {
+	            User managedUser = session.get(
+	                User.class,
+	                ticket.getCreatedBy().getId()
+	            );
 
-			ticket.setCreatedBy(user);
-		}
+	            if (managedUser == null) {
+	                throw new IllegalArgumentException(
+	                    "Ticket creator not found."
+	                );
+	            }
 
-		session.persist(ticket);// hibernate (persist) save icin kullanilir
-		transaction.commit();
+	            ticket.setCreatedBy(managedUser);
+	        }
 
-		session.close();
+	        session.persist(ticket);
+	        transaction.commit();
+
+	    } catch (RuntimeException e) {
+	        if (transaction != null && transaction.isActive()) {
+	            transaction.rollback();
+	        }
+	        throw e;
+	    }
 	}
-
 //	@Override
 //	public Ticket findById(Long id) {
 //		try (Session session = sessionFactory.openSession()) {

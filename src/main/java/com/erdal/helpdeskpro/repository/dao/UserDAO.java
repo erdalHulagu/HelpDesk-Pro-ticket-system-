@@ -64,17 +64,14 @@ public void save(User user) {
 }
 
 
-    @Override
-    public User findById(Long id) {
 
-        Session session = sessionFactory.openSession();
-
-        User user = session.get(User.class, id);
-
-        session.close();
-
-        return user;
+@Override
+public User findById(Long id) {
+    try (Session session = sessionFactory.openSession()) {
+        return session.get(User.class, id);
     }
+}
+
 
     @Override
     public List<User> findAll() {

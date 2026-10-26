@@ -1,7 +1,10 @@
 package com.erdal.helpdeskpro.dtos;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
+import com.erdal.helpdeskpro.domain.Attachment;
 import com.erdal.helpdeskpro.enums.CommentType;
 
 public class CommentDTO {
@@ -15,6 +18,7 @@ public class CommentDTO {
 	private String authorUsername;
 	private String authorRole;
 	private String authorPhotoUrl;
+	private List<Map<String, Object>> attachments;
 	private LocalDateTime createdAt=LocalDateTime.now();
 
 	public CommentDTO() {
@@ -23,7 +27,7 @@ public class CommentDTO {
 
 	
 	public CommentDTO(Long id, String content, Long ticketId, Long authorId, boolean deleted, CommentType type,
-			String authorUsername, String authorRole, String authorPhotoUrl, LocalDateTime createdAt) {
+			String authorUsername, String authorRole, String authorPhotoUrl, List<Map<String, Object>> attachments, LocalDateTime createdAt) {
 		super();
 		this.id = id;
 		this.content = content;
@@ -34,6 +38,7 @@ public class CommentDTO {
 		this.authorUsername = authorUsername;
 		this.authorRole = authorRole;
 		this.authorPhotoUrl = authorPhotoUrl;
+		this.attachments = attachments;
 		this.createdAt = createdAt;
 	}
 	
@@ -113,6 +118,16 @@ public class CommentDTO {
 
 	public void setAuthorPhotoUrl(String authorPhotoUrl) {
 		this.authorPhotoUrl = authorPhotoUrl;
+	}
+
+
+	public List<Map<String, Object>> getAttachments() {
+		return attachments;
+	}
+
+
+	public void setAttachments(List<Map<String, Object>> attachments) {
+	    this.attachments = attachments;
 	}
 
 

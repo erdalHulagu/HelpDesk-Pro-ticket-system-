@@ -7,7 +7,7 @@ import com.erdal.helpdeskpro.domain.User;
 
 public interface CommentService {
 	
-	void createComment(Comment comment,User user);
+	Comment createComment(Comment comment, User user);
 	
 	Comment findCommentById(Long commentId);
 	

@@ -19,13 +19,21 @@ public class TicketController {
 	}
 
 	public TicketDTO createTicket(TicketDTO ticketDTO, User currentUser) {
-		Ticket ticket = TicketMapper.ticketDTOtoTicket(ticketDTO);
+	    Ticket ticket = TicketMapper.ticketDTOtoTicket(ticketDTO);
 
-		ticketService.createTicket(ticket, currentUser);
+	    ticketService.createTicket(ticket, currentUser);
 
-		return TicketMapper.ticketToTicketDTO(ticket);
+	    TicketDTO response = TicketMapper.ticketToTicketDTO(ticket);
+	    response.setCreatedById(currentUser.getId());
+	    response.setCreatedByUsername(currentUser.getUsername());
+	    response.setCreatedByRole(
+	        currentUser.getRole() != null
+	            ? currentUser.getRole().name()
+	            : null
+	    );
+
+	    return response;
 	}
-
 	public TicketDTO getTicket(Long ticketId, User currentUser) {
 		Ticket ticket = ticketService.getTicketById(ticketId, currentUser);
 		return TicketMapper.ticketToTicketDTO(ticket);

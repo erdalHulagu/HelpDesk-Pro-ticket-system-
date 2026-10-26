@@ -117,15 +117,21 @@ public class CommentHttpHandler implements HttpHandler {
             HttpExchange exchange, User user) throws IOException {
 
         String body = new String(
-                exchange.getRequestBody().readAllBytes(),
-                StandardCharsets.UTF_8);
+            exchange.getRequestBody().readAllBytes(),
+            StandardCharsets.UTF_8
+        );
 
         CommentDTO commentDTO =
-                JsonUtil.fromJson(body, CommentDTO.class);
+            JsonUtil.fromJson(body, CommentDTO.class);
 
-        commentController.addComment(commentDTO, user);
+        CommentDTO createdComment =
+            commentController.addComment(commentDTO, user);
 
-        JsonUtil.sendJson(exchange, 201, JsonUtil.toJson(commentDTO));
+        JsonUtil.sendJson(
+            exchange,
+            201,
+            JsonUtil.toJson(createdComment)
+        );
     }
 
     private void handleGetCommentsByTicket(

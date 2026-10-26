@@ -18,28 +18,30 @@ public class CommentDAO implements CommentRepository {
 	}
 
 	@Override
-	public void save(Comment comment) {
+	public Comment save(Comment comment) {
+	    Transaction transaction = null;
 
-		Transaction transaction = null;
+	    try (Session session = sessionFactory.openSession()) {
+	        transaction = session.beginTransaction();
 
-		try (Session session = sessionFactory.openSession()) {
+	        Comment savedComment;
 
-			transaction = session.beginTransaction();
+	        if (comment.getId() == null) {
+	            session.persist(comment);
+	            savedComment = comment;
+	        } else {
+	            savedComment = session.merge(comment);
+	        }
 
-			if (comment.getId() == null) {
-				session.persist(comment);
-			} else {
-				session.merge(comment);
-			}
+	        transaction.commit();
+	        return savedComment;
 
-			transaction.commit();
-
-		} catch (Exception e) {
-			if (transaction != null && transaction.isActive()) {
-				transaction.rollback();
-			}
-			throw e;
-		}
+	    } catch (Exception e) {
+	        if (transaction != null && transaction.isActive()) {
+	            transaction.rollback();
+	        }
+	        throw e;
+	    }
 	}
 
 	public Comment findById(Long id) {

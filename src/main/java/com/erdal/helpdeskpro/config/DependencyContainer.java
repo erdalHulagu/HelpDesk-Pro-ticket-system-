@@ -13,6 +13,7 @@ import com.erdal.helpdeskpro.controller.AuthController;
 import com.erdal.helpdeskpro.controller.CommentController;
 import com.erdal.helpdeskpro.controller.TicketController;
 import com.erdal.helpdeskpro.controller.UserController;
+import com.erdal.helpdeskpro.mapper.CommentMapper;
 import com.erdal.helpdeskpro.repository.CommentRepository;
 import com.erdal.helpdeskpro.repository.TicketRepository;
 import com.erdal.helpdeskpro.repository.UserRepository;
@@ -46,6 +47,9 @@ public final class DependencyContainer {
 
 	// Authorization
 	private static final Authorization authorization = new AuthorizationImpl();
+	
+	
+	
 
 	// Services
 	private static final UserService userService = new UserServiceImpl(userRepository);
@@ -67,12 +71,14 @@ public final class DependencyContainer {
 
 	private static final TicketController ticketController = new TicketController(ticketService);
 
-	private static final CommentController commentController = new CommentController(commentService);
 
 	private static final AuthController authController = new AuthController(authService);
 
 	// Attachments
 	private static final AttachmentRepository attachmentRepository = new AttachmentDAO(sessionFactory);
+	private static final CommentMapper commentMapper = new CommentMapper(attachmentRepository);
+
+	private static final CommentController commentController = new CommentController(commentService,commentMapper);
 
 	private static final AttachmentService attachmentService = new AttachmentServiceImpl(attachmentRepository,
 			ticketRepository, authorization, commentRepository);

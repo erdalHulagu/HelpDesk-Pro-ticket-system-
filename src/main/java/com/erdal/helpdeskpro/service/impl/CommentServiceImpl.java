@@ -37,7 +37,7 @@ public class CommentServiceImpl implements CommentService {
 	}
 
 	@Override
-	public void createComment(Comment comment, User user) {
+	public Comment createComment(Comment comment, User user) {
 
 		if (comment == null || comment.getTicket() == null || comment.getTicket().getId() == null) {
 			throw new IllegalArgumentException("Ticket ID is missing");
@@ -69,7 +69,7 @@ public class CommentServiceImpl implements CommentService {
 			comment.setType(CommentType.PUBLIC);
 		}
 
-		commentRepository.save(comment);
+		return commentRepository.save(comment);
 	}
 
 	// --------------- Find Comment By Id ----------------

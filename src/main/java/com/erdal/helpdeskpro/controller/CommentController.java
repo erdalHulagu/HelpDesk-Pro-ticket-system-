@@ -11,33 +11,38 @@ import com.erdal.helpdeskpro.service.CommentService;
 public class CommentController {
 
 	private final CommentService commentService;
+	private final CommentMapper commentMapper;
 
-	public CommentController(CommentService commentService) {
+	public CommentController(CommentService commentService, CommentMapper commentMapper) {
 		this.commentService = commentService;
+		this.commentMapper = commentMapper;
 	}
 
 	// comment ekle
-	public void addComment(CommentDTO dto, User user) {
-		Comment comment = CommentMapper.commentDTOtoComment(dto);
-		commentService.createComment(comment, user);
+	public CommentDTO addComment(CommentDTO dto, User user) {
+	    Comment comment = CommentMapper.commentDTOtoComment(dto);
+
+	    Comment savedComment = commentService.createComment(comment, user);
+
+	    return commentMapper.commentToCommentDTO(savedComment);
 	}
 
 	public CommentDTO addComment(Long commnetId) {
 		Comment comment = commentService.findCommentById(commnetId);
-		return CommentMapper.commentToCommentDTO(comment);
+		return commentMapper.commentToCommentDTO(comment);
 
 	}
 
 	// ticket commentleri
 	public List<CommentDTO> getCommentsByTicket(Long ticketId, User currentUser) {
 		List<Comment> comments = commentService.getCommentsByTicket(ticketId, currentUser);
-		return CommentMapper.commentListToCommentDTOList(comments);
+		return commentMapper.commentListToCommentDTOList(comments);
 	}
 
 	// Users comments
 	public List<CommentDTO> findAllUsersComments(User currentUser) {
 		List<Comment> comments = commentService.findAllUsersComments(currentUser);
-		return CommentMapper.commentListToCommentDTOList(comments);
+		return commentMapper.commentListToCommentDTOList(comments);
 	}
 
 	// comment sil
@@ -48,13 +53,13 @@ public class CommentController {
 	// update comment
 	public CommentDTO updateComment(Long commentId, String newContent, User currentUser) {
 		Comment newComment = commentService.updateComment(commentId, newContent, currentUser);
-		return CommentMapper.commentToCommentDTO(newComment);
+		return commentMapper.commentToCommentDTO(newComment);
 	}
 
 	public CommentDTO getCommentById(Long commentId, User currentUser) {
 		Comment comment = commentService.findCommentById(commentId, currentUser);
 
-		return CommentMapper.commentToCommentDTO(comment);
+		return commentMapper.commentToCommentDTO(comment);
 	}
 
 }
