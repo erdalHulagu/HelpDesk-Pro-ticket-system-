@@ -1,5 +1,7 @@
 package com.erdal.helpdeskpro.dtos;
 
+import java.time.LocalDateTime;
+
 import com.erdal.helpdeskpro.enums.TicketCategory;
 import com.erdal.helpdeskpro.enums.TicketPriority;
 import com.erdal.helpdeskpro.enums.TicketStatus;
@@ -15,27 +17,34 @@ public class TicketDTO {
 	private Long assignedToId;
 	private String createdByUsername;
 	private String createdByRole;
+	private LocalDateTime slaDueAt;
+	private LocalDateTime resolvedAt;
 	private boolean isDeleted;
 
 	public TicketDTO() {
 		super();
 	}
 
-	public TicketDTO(Long id, String title, String description, TicketStatus status, TicketCategory category, TicketPriority priority,Long createdById,
-			Long assignedToId, boolean deleted, String createdByUsername, String createdByRole) {
+
+	public TicketDTO(Long id, String title, String description, TicketCategory category, TicketStatus status,
+			TicketPriority priority, Long createdById, Long assignedToId, String createdByUsername,
+			String createdByRole, LocalDateTime slaDueAt, LocalDateTime resolvedAt, boolean isDeleted) {
 		super();
 		this.id = id;
 		this.title = title;
 		this.description = description;
+		this.category = category;
 		this.status = status;
 		this.priority = priority;
 		this.createdById = createdById;
 		this.assignedToId = assignedToId;
-		this.isDeleted = deleted;
-		this.category=category;
-		this.createdByUsername=createdByUsername;
-		this.createdByRole=createdByRole;
+		this.createdByUsername = createdByUsername;
+		this.createdByRole = createdByRole;
+		this.slaDueAt = slaDueAt;
+		this.resolvedAt = resolvedAt;
+		this.isDeleted = isDeleted;
 	}
+
 
 	public Long getId() {
 		return id;
@@ -114,6 +123,28 @@ public class TicketDTO {
 	public void setCreatedByRole(String createdByRole) {
 		this.createdByRole = createdByRole;
 	}
+	
+	
+
+	public LocalDateTime getSlaDueAt() {
+		return slaDueAt;
+	}
+
+
+	public void setSlaDueAt(LocalDateTime slaDueAt) {
+		this.slaDueAt = slaDueAt;
+	}
+
+
+	public LocalDateTime getResolvedAt() {
+		return resolvedAt;
+	}
+
+
+	public void setResolvedAt(LocalDateTime resolvedAt) {
+		this.resolvedAt = resolvedAt;
+	}
+
 
 	public boolean isDeleted() {
 		return isDeleted;

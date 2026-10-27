@@ -22,6 +22,8 @@ public class TicketMapper {
 		ticket.setPriority(ticketDTO.getPriority());
 		ticket.setDeleted(ticketDTO.isDeleted());
 		ticket.setTitle(ticketDTO.getTitle());
+		ticket.setResolvedAt(ticketDTO.getResolvedAt());
+		ticket.setSlaDueAt(ticketDTO.getSlaDueAt());
 
 		return ticket;
 	}
@@ -38,6 +40,8 @@ public static TicketDTO ticketToTicketDTO(Ticket ticket) {
     ticketDTO.setPriority(ticket.getPriority());
     ticketDTO.setDeleted(ticket.isDeleted());
     ticketDTO.setTitle(ticket.getTitle());
+    ticketDTO.setResolvedAt(ticket.getResolvedAt());
+    ticketDTO.setSlaDueAt(ticket.getSlaDueAt());
 
     ticketDTO.setCreatedById(
         ticket.getCreatedBy() != null
