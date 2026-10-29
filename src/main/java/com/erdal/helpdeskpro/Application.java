@@ -10,7 +10,7 @@ import com.erdal.helpdeskpro.http.AuthHttpHandler;
 import com.erdal.helpdeskpro.http.CommentHttpHandler;
 import com.erdal.helpdeskpro.http.TicketHttpHandler;
 import com.erdal.helpdeskpro.http.UserHttpHandler;
-
+import com.erdal.helpdeskpro.http.NotificationHttpHandler;
 public class Application {
 
     public static void main(String[] args) throws Exception {
@@ -62,10 +62,20 @@ public class Application {
                 )
         );
         
+        // attachments
         server.createContext(
                 "/attachments",
                 new AttachmentHttpHandler(
                         DependencyContainer.getAttachmentController(),
+                        DependencyContainer.getAuthService()
+                )
+        );
+        
+     // Notifications
+        server.createContext(
+                "/notifications",
+                new NotificationHttpHandler(
+                        DependencyContainer.getNotificationController(),
                         DependencyContainer.getAuthService()
                 )
         );
