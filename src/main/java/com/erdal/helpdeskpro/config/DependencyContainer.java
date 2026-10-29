@@ -52,7 +52,6 @@ public final class DependencyContainer {
 
 	private static final NotificationRepository notificationRepository = new NotificationDAO(sessionFactory);
 
-	// Authorization
 	private static final Authorization authorization = new AuthorizationImpl();
 
 	// Services
@@ -60,19 +59,13 @@ public final class DependencyContainer {
 
 	private static final TicketService ticketService = new TicketServiceImpl(ticketRepository, authorization);
 
+	private static final NotificationService notificationService = new NotificationServiceImpl(notificationRepository,
+			userRepository, ticketRepository);
+
 	private static final CommentService commentService = new CommentServiceImpl(commentRepository, ticketRepository,
 
-			userRepository, authorization);
-	
-	private static final NotificationService notificationService =
-	        new NotificationServiceImpl(
-	                notificationRepository,
-	                userRepository,
-	                ticketRepository
-	        );
-	
-	
-	
+			userRepository, authorization, notificationService);
+
 	// Token repository
 	private static final AuthTokenRepository authTokenRepository = new AuthTokenDAO(sessionFactory);
 
@@ -138,7 +131,12 @@ public final class DependencyContainer {
 
 		return authorization;
 	}
+
 	public static NotificationController getNotificationController() {
-	    return notificationController;
+		return notificationController;
+	}
+
+	public static NotificationService getNotificationService() {
+		return notificationService;
 	}
 }

@@ -1,7 +1,7 @@
 package com.erdal.helpdeskpro.service.impl;
 
 import java.util.List;
-
+import com.erdal.helpdeskpro.service.NotificationService;
 import com.erdal.helpdeskpro.authorization.Authorization;
 import com.erdal.helpdeskpro.domain.Comment;
 import com.erdal.helpdeskpro.domain.Ticket;
@@ -16,6 +16,9 @@ import com.erdal.helpdeskpro.repository.CommentRepository;
 import com.erdal.helpdeskpro.repository.TicketRepository;
 import com.erdal.helpdeskpro.repository.UserRepository;
 import com.erdal.helpdeskpro.service.CommentService;
+import com.erdal.helpdeskpro.service.NotificationService;
+
+
 
 public class CommentServiceImpl implements CommentService {
 
@@ -23,55 +26,80 @@ public class CommentServiceImpl implements CommentService {
 	private TicketRepository ticketRepository;
 	private UserRepository userRepository;
 	private Authorization authorization;
+	private NotificationService notificationService;
+	
 
-	public CommentServiceImpl(
-	        CommentRepository commentRepository,
-	        TicketRepository ticketRepository,
-	        UserRepository userRepository,
-	        Authorization authorization) {
-
-	    this.commentRepository = commentRepository;
-	    this.ticketRepository = ticketRepository;
-	    this.userRepository = userRepository;
-	    this.authorization = authorization;
+	public CommentServiceImpl(CommentRepository commentRepository, TicketRepository ticketRepository,
+			UserRepository userRepository, Authorization authorization, NotificationService notificationService) {
+		super();
+		this.commentRepository = commentRepository;
+		this.ticketRepository = ticketRepository;
+		this.userRepository = userRepository;
+		this.authorization = authorization;
+		this.notificationService = notificationService;
 	}
 
 	@Override
 	public Comment createComment(Comment comment, User user) {
 
-		if (comment == null || comment.getTicket() == null || comment.getTicket().getId() == null) {
-			throw new IllegalArgumentException("Ticket ID is missing");
-		}
+	    if (comment == null || comment.getTicket() == null || comment.getTicket().getId() == null) {
+	        throw new IllegalArgumentException("Ticket ID is missing");
+	    }
 
-		if (user == null || user.getRole() == null) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
+	    if (user == null || user.getRole() == null) {
+	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	    }
 
-		Long ticketId = comment.getTicket().getId();
+	    Long ticketId = comment.getTicket().getId();
 
-		Ticket ticket = ticketRepository.findById(ticketId);
+	    Ticket ticket = ticketRepository.findById(ticketId);
 
-		if (ticket == null) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-		}
+	    if (ticket == null) {
+	        throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+	    }
 
-		authorization.canComment(ticket, user);
+	    authorization.canComment(ticket, user);
 
-		if (comment.getType() == CommentType.INTERNAL && user.getRole() != Role.ADMIN
-				&& user.getRole() != Role.IT_SUPPORT) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
+	    if (comment.getType() == CommentType.INTERNAL
+	            && user.getRole() != Role.ADMIN
+	            && user.getRole() != Role.IT_SUPPORT) {
+	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	    }
 
-		comment.setAuthor(user);
-		comment.setTicket(ticket);
+	    comment.setAuthor(user);
+	    comment.setTicket(ticket);
 
-		if (comment.getType() == null) {
-			comment.setType(CommentType.PUBLIC);
-		}
+	    if (comment.getType() == null) {
+	        comment.setType(CommentType.PUBLIC);
+	    }
 
-		return commentRepository.save(comment);
+	    // Önce yorumu kaydet.
+	    Comment savedComment = commentRepository.save(comment);
+
+	    // Admin ve IT Manager kullanıcılarına bildirim gönder.
+	    if (user.getRole() == Role.EMPLOYEE || user.getRole() == Role.IT_SUPPORT) {
+
+	        List<User> users = userRepository.findAll();
+
+	        for (User recipient : users) {
+
+	            if (recipient.getRole() == Role.ADMIN
+	                    || recipient.getRole() == Role.IT_MANAGER) {
+
+	                notificationService.createNotification(
+	                        recipient.getId(),
+	                        ticket.getId(),
+	                        user.getId(),
+	                        "NEW_COMMENT",
+	                        "New Comment",
+	                        user.getUsername() + " added a comment to ticket #" + ticket.getId()
+	                );
+	            }
+	        }
+	    }
+
+	    return savedComment;
 	}
-
 	// --------------- Find Comment By Id ----------------
 	@Override
 	public Comment findCommentById(Long commentId) {
