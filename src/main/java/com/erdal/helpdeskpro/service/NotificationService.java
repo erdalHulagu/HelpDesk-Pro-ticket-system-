@@ -1,7 +1,10 @@
+
 package com.erdal.helpdeskpro.service;
+
 import java.util.List;
 
 import com.erdal.helpdeskpro.domain.Notification;
+import com.erdal.helpdeskpro.domain.User;
 
 public interface NotificationService {
 
@@ -14,11 +17,11 @@ public interface NotificationService {
             String message
     );
 
-    List<Notification> getMyNotifications(Long recipientId);
+    List<Notification> getMyNotifications(User currentUser);
 
-    long getUnreadCount(Long recipientId);
+    long getUnreadCount(User currentUser);
 
-    boolean markAsRead(Long notificationId, Long recipientId);
+    boolean markAsRead(Long notificationId, User currentUser);
 
-    int markAllAsRead(Long recipientId);
+    int markAllAsRead(User currentUser);
 }

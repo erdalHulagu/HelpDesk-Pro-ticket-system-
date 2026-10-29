@@ -33,6 +33,11 @@ import com.erdal.helpdeskpro.repository.AttachmentRepository;
 import com.erdal.helpdeskpro.repository.dao.AttachmentDAO;
 import com.erdal.helpdeskpro.service.AttachmentService;
 import com.erdal.helpdeskpro.service.impl.AttachmentServiceImpl;
+import com.erdal.helpdeskpro.controller.NotificationController;
+import com.erdal.helpdeskpro.repository.NotificationRepository;
+import com.erdal.helpdeskpro.repository.dao.NotificationDAO;
+import com.erdal.helpdeskpro.service.NotificationService;
+import com.erdal.helpdeskpro.service.impl.NotificationServiceImpl;
 
 public final class DependencyContainer {
 
@@ -45,11 +50,10 @@ public final class DependencyContainer {
 
 	private static final CommentRepository commentRepository = new CommentDAO(sessionFactory);
 
+	private static final NotificationRepository notificationRepository = new NotificationDAO(sessionFactory);
+
 	// Authorization
 	private static final Authorization authorization = new AuthorizationImpl();
-	
-	
-	
 
 	// Services
 	private static final UserService userService = new UserServiceImpl(userRepository);
@@ -57,7 +61,18 @@ public final class DependencyContainer {
 	private static final TicketService ticketService = new TicketServiceImpl(ticketRepository, authorization);
 
 	private static final CommentService commentService = new CommentServiceImpl(commentRepository, ticketRepository,
+
 			userRepository, authorization);
+	
+	private static final NotificationService notificationService =
+	        new NotificationServiceImpl(
+	                notificationRepository,
+	                userRepository,
+	                ticketRepository
+	        );
+	
+	
+	
 	// Token repository
 	private static final AuthTokenRepository authTokenRepository = new AuthTokenDAO(sessionFactory);
 
@@ -71,14 +86,16 @@ public final class DependencyContainer {
 
 	private static final TicketController ticketController = new TicketController(ticketService);
 
-
 	private static final AuthController authController = new AuthController(authService);
+
+	private static final NotificationController notificationController = new NotificationController(
+			notificationService);
 
 	// Attachments
 	private static final AttachmentRepository attachmentRepository = new AttachmentDAO(sessionFactory);
 	private static final CommentMapper commentMapper = new CommentMapper(attachmentRepository);
 
-	private static final CommentController commentController = new CommentController(commentService,commentMapper);
+	private static final CommentController commentController = new CommentController(commentService, commentMapper);
 
 	private static final AttachmentService attachmentService = new AttachmentServiceImpl(attachmentRepository,
 			ticketRepository, authorization, commentRepository);
@@ -118,7 +135,10 @@ public final class DependencyContainer {
 	}
 
 	public static Authorization getAuthorization() {
-		
+
 		return authorization;
+	}
+	public static NotificationController getNotificationController() {
+	    return notificationController;
 	}
 }

@@ -11,7 +11,11 @@ public interface NotificationRepository {
 
     List<Notification> findAllByRecipientId(Long recipientId);
 
+    List<Notification> findAllNotifications();
+
     long countUnreadByRecipientId(Long recipientId);
+
+    long countAllUnread();
 
     boolean markAsRead(Long notificationId, Long recipientId);
 
