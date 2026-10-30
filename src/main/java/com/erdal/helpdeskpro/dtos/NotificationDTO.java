@@ -20,6 +20,9 @@ public class NotificationDTO {
         this.type = notification.getType();
         this.read = notification.isRead();
         this.createdAt = notification.getCreatedAt();
+        this.ticketId = notification.getTicket() != null
+                ? notification.getTicket().getId()
+                : null;
     }
 
     public Long getId() {
@@ -29,10 +32,16 @@ public class NotificationDTO {
     public String getTitle() {
         return title;
     }
+    
+    public Long getTicketId() {
+        return ticketId;
+    }
 
     public String getMessage() {
         return message;
     }
+    
+    private Long ticketId;
 
     public String getType() {
         return type;
