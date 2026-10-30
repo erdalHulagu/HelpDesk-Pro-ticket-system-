@@ -54,6 +54,10 @@ public class UserController {
 		userService.deactivateUser(currentUser,id);
 
 	}
+	
+	public List<UserDTO> getAllITSupportUsers(User currentUser) {
+	    return userService.getAllITSupportUsers(currentUser);
+	}
 
 	
 

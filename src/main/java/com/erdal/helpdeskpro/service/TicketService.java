@@ -14,7 +14,7 @@ public interface TicketService {
 	
 	List<Ticket> getTicketsForUser(User currentUser);
 	
-	void assignTicket(Long ticketId,User currentUser);
+	void assignTicket(Long ticketId, Long assignedToId, User currentUser);
 	
 	List<Ticket> findAllIncludingDeleted(User currentUser);
 	

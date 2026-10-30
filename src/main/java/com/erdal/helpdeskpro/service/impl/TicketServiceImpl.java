@@ -1,6 +1,7 @@
 package com.erdal.helpdeskpro.service.impl;
 
 import java.time.LocalDateTime;
+import com.erdal.helpdeskpro.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,110 +25,104 @@ public class TicketServiceImpl implements TicketService {
 
 	private TicketRepository ticketRepository;
 	private Authorization authorization;
+	private UserRepository userRepository;
 
-	public TicketServiceImpl(TicketRepository ticketRepository, Authorization authorization) {
+	public TicketServiceImpl(TicketRepository ticketRepository, Authorization authorization,
+			UserRepository userRepository) {
 		this.ticketRepository = ticketRepository;
 		this.authorization = authorization;
+		this.userRepository = userRepository;
 	}
 
-	public TicketServiceImpl(TicketRepository ticketrepository) {
-		this.ticketRepository = ticketRepository;
-	}
 	@Override
 	public void createTicket(Ticket ticket, User currentUser) {
-	    ticket.setCreatedBy(currentUser);
-	    ticket.setStatus(TicketStatus.OPEN);
-	    ticket.setDeleted(false);
+		ticket.setCreatedBy(currentUser);
+		ticket.setStatus(TicketStatus.OPEN);
+		ticket.setDeleted(false);
 
-	    if (ticket.getPriority() == null) {
-	        ticket.setPriority(TicketPriority.MEDIUM);
-	    }
+		if (ticket.getPriority() == null) {
+			ticket.setPriority(TicketPriority.MEDIUM);
+		}
 
-	    ticket.setCreatedAt(LocalDateTime.now());
-	    ticket.setSlaDueAt(
-	        ticket.getCreatedAt().plusHours(getSlaHours(ticket.getPriority()))
-	    );
-	    ticket.setResolvedAt(null);
+		ticket.setCreatedAt(LocalDateTime.now());
+		ticket.setSlaDueAt(ticket.getCreatedAt().plusHours(getSlaHours(ticket.getPriority())));
+		ticket.setResolvedAt(null);
 
-	    ticketRepository.save(ticket);
+		ticketRepository.save(ticket);
 	}
 
 	private int getSlaHours(TicketPriority priority) {
-	    return switch (priority) {
-	        case LOW -> 72;
-	        case MEDIUM -> 24;
-	        case HIGH -> 8;
-	        case CRITICAL -> 4;
-	    };
+		return switch (priority) {
+		case LOW -> 72;
+		case MEDIUM -> 24;
+		case HIGH -> 8;
+		case CRITICAL -> 4;
+		};
 	}
 
 	@Override
 	public void updateStatus(Long ticketId, TicketStatus newStatus, User currentUser) {
 
-	    Ticket ticket = ticketRepository.findById(ticketId);
+		Ticket ticket = ticketRepository.findById(ticketId);
 
-	    if (ticket == null) {
-	        throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-	    }
+		if (ticket == null) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+		}
 
-	    if (newStatus == null) {
-	        throw new BadRequestExeption(ExceptionMessage.INVALID_STATUS_TRANSITION);
-	    }
+		if (newStatus == null) {
+			throw new BadRequestExeption(ExceptionMessage.INVALID_STATUS_TRANSITION);
+		}
 
-	    authorization.canUpdateStatus(ticket, currentUser);
+		authorization.canUpdateStatus(ticket, currentUser);
 
-	    // Status yaşam döngüsü kontrolü
-	    if (!isValidTransition(ticket.getStatus(), newStatus)) {
-	        throw new BadRequestExeption(
-	            ExceptionMessage.INVALID_STATUS_TRANSITION
-	        );
-	    }
+		// Status yaşam döngüsü kontrolü
+		if (!isValidTransition(ticket.getStatus(), newStatus)) {
+			throw new BadRequestExeption(ExceptionMessage.INVALID_STATUS_TRANSITION);
+		}
 
-	    // Güncelleme
-	    ticket.setStatus(newStatus);
+		// Güncelleme
+		ticket.setStatus(newStatus);
 
-	    if (newStatus == TicketStatus.RESOLVED) {
-	        ticket.setResolvedAt(LocalDateTime.now());
-	    }
-	    ticketRepository.update(ticket);
+		if (newStatus == TicketStatus.RESOLVED) {
+			ticket.setResolvedAt(LocalDateTime.now());
+		}
+		ticketRepository.update(ticket);
 	}
 
 	private boolean isValidTransition(TicketStatus current, TicketStatus next) {
-	    if (current == null || next == null) {
-	        return false;
-	    }
+		if (current == null || next == null) {
+			return false;
+		}
 
-	    return switch (current) {
-	        case OPEN -> next == TicketStatus.IN_PROGRESS;
-	        case IN_PROGRESS -> next == TicketStatus.RESOLVED;
-	        case RESOLVED -> next == TicketStatus.CLOSED;
-	        case CLOSED -> false;
-	    };
+		return switch (current) {
+		case OPEN -> next == TicketStatus.IN_PROGRESS;
+		case IN_PROGRESS -> next == TicketStatus.RESOLVED;
+		case RESOLVED -> next == TicketStatus.CLOSED;
+		case CLOSED -> false;
+		};
 	}
 
 	@Override
 	public Ticket getTicketById(Long ticketId, User currentUser) {
 
-	    if (currentUser == null) {
-	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-	    }
+		if (currentUser == null) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
 
-	    Ticket ticket = ticketRepository.findById(ticketId);
+		Ticket ticket = ticketRepository.findById(ticketId);
 
-	    if (ticket == null) {
-	        throw new ResourceNotFoundExeption(
-	                ExceptionMessage.TICKET_NOT_FOUND
-	        );
-	    }
+		if (ticket == null) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+		}
 
-	    authorization.canViewTicket(ticket, currentUser);
+		authorization.canViewTicket(ticket, currentUser);
 
-	    return ticket;
+		return ticket;
 	}
-	
+
 	@Override
 	public List<Ticket> getTicketsForUser(User currentUser) {
-		
+
 		List<Ticket> tickets = ticketRepository.findAllActiveByCreatedBy(currentUser.getId());
 
 		return tickets.stream().filter(t -> t.getCreatedBy().getId().equals(currentUser.getId()))
@@ -136,15 +131,31 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	@Override
-	public void assignTicket(Long ticketId, User currentUser) {
+	public void assignTicket(Long ticketId, Long assignedToId, User currentUser) {
+
+		if (currentUser == null || (currentUser.getRole() != Role.ADMIN && currentUser.getRole() != Role.IT_MANAGER)) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
 
 		Ticket ticket = ticketRepository.findById(ticketId);
-		authorization.canAssignTicket(ticket, currentUser);
 
-		ticket.setAssignedTo(currentUser);
+		if (ticket == null || ticket.isDeleted()) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+		}
 
+		if (assignedToId == null) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
+
+		User assignedUser = userRepository.findById(assignedToId);
+
+		if (assignedUser == null || !assignedUser.isActive() || assignedUser.getRole() != Role.IT_SUPPORT) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
+
+		ticket.setAssignedTo(assignedUser);
+		ticketRepository.update(ticket);
 	}
-
 
 	@Override
 	public List<Ticket> getAllTicketsForAdmin(User currentUser) {
@@ -158,16 +169,17 @@ public class TicketServiceImpl implements TicketService {
 	@Override
 	public List<Ticket> getAllTickets(User currentUser) {
 
-	    if (currentUser == null) {
-	        throw new IllegalArgumentException("User cannot be null");
-	    }
+		if (currentUser == null) {
+			throw new IllegalArgumentException("User cannot be null");
+		}
 
-	    if (currentUser.getRole() == Role.ADMIN) {
-	        return ticketRepository.findAll();
-	    }
+		if (currentUser.getRole() == Role.ADMIN) {
+			return ticketRepository.findAll();
+		}
 
-	    return ticketRepository.findAllActiveByCreatedBy(currentUser.getId());
+		return ticketRepository.findAllActiveByCreatedBy(currentUser.getId());
 	}
+
 	@Override
 	public List<Ticket> findAllIncludingDeleted(User currentUser) {
 
@@ -188,66 +200,59 @@ public class TicketServiceImpl implements TicketService {
 		return ticketRepository.findByIdIncludingDeleted(id);
 	}
 
+	@Override
+	public List<Ticket> findAllActive(User currentUser) {
+		if (currentUser == null || currentUser.getRole() == null || currentUser.getId() == null) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
 
+		Role role = currentUser.getRole();
 
-@Override
-public List<Ticket> findAllActive(User currentUser) {
-    if (currentUser == null || currentUser.getRole() == null
-            || currentUser.getId() == null) {
-        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-    }
+		if (role == Role.EMPLOYEE) {
+			return ticketRepository.findAllActiveByCreatedBy(currentUser.getId());
+		}
 
-    Role role = currentUser.getRole();
+		if (role == Role.IT_SUPPORT) {
+			List<Ticket> assignedTickets = ticketRepository.findAllActiveByAssignedTo(currentUser.getId());
 
-    if (role == Role.EMPLOYEE) {
-        return ticketRepository.findAllActiveByCreatedBy(currentUser.getId());
-    }
+			List<Ticket> createdTickets = ticketRepository.findAllActiveByCreatedBy(currentUser.getId());
 
-    if (role == Role.IT_SUPPORT) {
-        List<Ticket> assignedTickets =
-                ticketRepository.findAllActiveByAssignedTo(currentUser.getId());
+			Map<Long, Ticket> combined = new LinkedHashMap<>();
 
-        List<Ticket> createdTickets =
-                ticketRepository.findAllActiveByCreatedBy(currentUser.getId());
+			for (Ticket ticket : assignedTickets) {
+				if (!ticket.isDeleted()) {
+					combined.put(ticket.getId(), ticket);
+				}
+			}
 
-        Map<Long, Ticket> combined = new LinkedHashMap<>();
+			for (Ticket ticket : createdTickets) {
+				if (!ticket.isDeleted()) {
+					combined.put(ticket.getId(), ticket);
+				}
+			}
 
-        for (Ticket ticket : assignedTickets) {
-            if (!ticket.isDeleted()) {
-                combined.put(ticket.getId(), ticket);
-            }
-        }
+			return new ArrayList<>(combined.values());
+		}
 
-        for (Ticket ticket : createdTickets) {
-            if (!ticket.isDeleted()) {
-                combined.put(ticket.getId(), ticket);
-            }
-        }
+		if (role == Role.ADMIN || role == Role.IT_MANAGER) {
+			return ticketRepository.findAllActive();
+		}
 
-        return new ArrayList<>(combined.values());
-    }
+		throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	}
 
-    if (role == Role.ADMIN || role == Role.IT_MANAGER) {
-        return ticketRepository.findAllActive();
-    }
-
-    throw  new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-}
-
-
-	
 	@Override
 	public void deleteTicket(Long ticketId, User currentUser) {
 
-	    Ticket ticket = ticketRepository.findById(ticketId);
+		Ticket ticket = ticketRepository.findById(ticketId);
 
-	    if (ticket == null) {
-	        throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
-	    }
+		if (ticket == null) {
+			throw new ResourceNotFoundExeption(ExceptionMessage.TICKET_NOT_FOUND);
+		}
 
-	    authorization.canDeleteTicket(ticket, currentUser);
+		authorization.canDeleteTicket(ticket, currentUser);
 
-	    ticket.setDeleted(true);
-	    ticketRepository.update(ticket);
+		ticket.setDeleted(true);
+		ticketRepository.update(ticket);
 	}
 }

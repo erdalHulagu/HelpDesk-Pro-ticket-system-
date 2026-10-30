@@ -19,21 +19,18 @@ public class TicketController {
 	}
 
 	public TicketDTO createTicket(TicketDTO ticketDTO, User currentUser) {
-	    Ticket ticket = TicketMapper.ticketDTOtoTicket(ticketDTO);
+		Ticket ticket = TicketMapper.ticketDTOtoTicket(ticketDTO);
 
-	    ticketService.createTicket(ticket, currentUser);
+		ticketService.createTicket(ticket, currentUser);
 
-	    TicketDTO response = TicketMapper.ticketToTicketDTO(ticket);
-	    response.setCreatedById(currentUser.getId());
-	    response.setCreatedByUsername(currentUser.getUsername());
-	    response.setCreatedByRole(
-	        currentUser.getRole() != null
-	            ? currentUser.getRole().name()
-	            : null
-	    );
+		TicketDTO response = TicketMapper.ticketToTicketDTO(ticket);
+		response.setCreatedById(currentUser.getId());
+		response.setCreatedByUsername(currentUser.getUsername());
+		response.setCreatedByRole(currentUser.getRole() != null ? currentUser.getRole().name() : null);
 
-	    return response;
+		return response;
 	}
+
 	public TicketDTO getTicket(Long ticketId, User currentUser) {
 		Ticket ticket = ticketService.getTicketById(ticketId, currentUser);
 		return TicketMapper.ticketToTicketDTO(ticket);
@@ -70,9 +67,9 @@ public class TicketController {
 		return TicketMapper.ticketToTicketDTO(ticket);
 	}
 
-	public void assignedUserTickets(Long ticketId, User currentUser) {
+	public void assignTicket(Long ticketId, Long assignedToId, User currentUser) {
 
-		ticketService.assignTicket(ticketId, currentUser);
+		ticketService.assignTicket(ticketId, assignedToId, currentUser);
 	}
 
 	public void deleteTicket(Long ticketId, User currentUser) {

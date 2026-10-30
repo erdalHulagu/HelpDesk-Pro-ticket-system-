@@ -17,288 +17,278 @@ import java.util.List;
 
 public class TicketHttpHandler implements HttpHandler {
 
-    private final TicketController ticketController;
-    private final AuthService authService;
+	private final TicketController ticketController;
+	private final AuthService authService;
 
-    public TicketHttpHandler(
-            TicketController ticketController,
-            AuthService authService) {
-        this.ticketController = ticketController;
-        this.authService = authService;
-    }
+	public TicketHttpHandler(TicketController ticketController, AuthService authService) {
+		this.ticketController = ticketController;
+		this.authService = authService;
+	}
 
-    @Override
-    public void handle(HttpExchange exchange) throws IOException {
+	@Override
+	public void handle(HttpExchange exchange) throws IOException {
 
-        try {
-            User authenticatedUser = authenticateRequest(exchange);
+		try {
+			User authenticatedUser = authenticateRequest(exchange);
 
-            if (authenticatedUser == null) {
-            	JsonUtil.sendJson(exchange, 401,
-                        "{\"error\":\"Unauthorized\"}");
-                return;
-            }
+			if (authenticatedUser == null) {
+				JsonUtil.sendJson(exchange, 401, "{\"error\":\"Unauthorized\"}");
+				return;
+			}
 
-            String path = exchange.getRequestURI().getPath();
-            String method = exchange.getRequestMethod();
+			String path = exchange.getRequestURI().getPath();
+			String method = exchange.getRequestMethod();
 
-            if ("POST".equalsIgnoreCase(method)
-                    && path.equals("/tickets")) {
-                handleCreateTicket(exchange, authenticatedUser);
-                return;
-            }
+			if ("POST".equalsIgnoreCase(method) && path.equals("/tickets")) {
+				handleCreateTicket(exchange, authenticatedUser);
+				return;
+			}
 
-            if ("GET".equalsIgnoreCase(method)
-                    && path.equals("/tickets")) {
-                handleGetAllTickets(exchange, authenticatedUser);
-                return;
-            }
+			if ("GET".equalsIgnoreCase(method) && path.equals("/tickets")) {
+				handleGetAllTickets(exchange, authenticatedUser);
+				return;
+			}
 
-            if ("GET".equalsIgnoreCase(method)
-                    && path.equals("/tickets/user")) {
-                handleGetUsersTickets(exchange, authenticatedUser);
-                return;
-            }
+			if ("GET".equalsIgnoreCase(method) && path.equals("/tickets/user")) {
+				handleGetUsersTickets(exchange, authenticatedUser);
+				return;
+			}
 
-            if ("GET".equalsIgnoreCase(method)
-                    && path.equals("/tickets/active")) {
-                handleGetActiveTickets(exchange, authenticatedUser);
-                return;
-            }
+			if ("GET".equalsIgnoreCase(method) && path.equals("/tickets/active")) {
+				handleGetActiveTickets(exchange, authenticatedUser);
+				return;
+			}
 
-            if ("GET".equalsIgnoreCase(method)
-                    && path.matches("/tickets/\\d+")) {
-                handleGetTicketById(exchange, authenticatedUser);
-                return;
-            }
+			if ("GET".equalsIgnoreCase(method) && path.matches("/tickets/\\d+")) {
+				handleGetTicketById(exchange, authenticatedUser);
+				return;
+			}
 
-            if ("PUT".equalsIgnoreCase(method)
-                    && path.matches("/tickets/\\d+/status")) {
-                handleUpdateStatus(exchange, authenticatedUser);
-                return;
-            }
+			if ("PUT".equalsIgnoreCase(method) && path.matches("/tickets/\\d+/status")) {
+				handleUpdateStatus(exchange, authenticatedUser);
+				return;
+			}
 
-            if ("DELETE".equalsIgnoreCase(method)
-                    && path.matches("/tickets/\\d+")) {
-                handleDeleteTicket(exchange, authenticatedUser);
-                return;
-            }
+			if ("PUT".equalsIgnoreCase(method) && path.matches("/tickets/\\d+/assign")) {
+				handleAssignTicket(exchange, authenticatedUser);
+				return;
+			}
 
-            if ("GET".equalsIgnoreCase(method)
-                    && path.equals("/admin/tickets")) {
-                handleGetAllTicketsIncludingDeleted(
-                        exchange, authenticatedUser);
-                return;
-            }
+			if ("DELETE".equalsIgnoreCase(method) && path.matches("/tickets/\\d+")) {
+				handleDeleteTicket(exchange, authenticatedUser);
+				return;
+			}
 
-            if ("GET".equalsIgnoreCase(method)
-                    && path.matches("/admin/tickets/\\d+")) {
-                handleGetTicketIncludingDeleted(
-                        exchange, authenticatedUser);
-                return;
-            }
+			if ("GET".equalsIgnoreCase(method) && path.equals("/admin/tickets")) {
+				handleGetAllTicketsIncludingDeleted(exchange, authenticatedUser);
+				return;
+			}
 
-            JsonUtil.sendJson(exchange, 404,
-                    "{\"error\":\"Endpoint not found\"}");
+			if ("GET".equalsIgnoreCase(method) && path.matches("/admin/tickets/\\d+")) {
+				handleGetTicketIncludingDeleted(exchange, authenticatedUser);
+				return;
+			}
 
-        } catch (ResourceNotFoundExeption e) {
-        	JsonUtil.sendJson(exchange, 404,
-                    "{\"error\":\"Ticket not found\"}");
+			JsonUtil.sendJson(exchange, 404, "{\"error\":\"Endpoint not found\"}");
+
+		} catch (ResourceNotFoundExeption e) {
+			JsonUtil.sendJson(exchange, 404, "{\"error\":\"Ticket not found\"}");
 //
 //        } catch (BadRequestExeption e) {
 //            sendJson(exchange, 403,
 //                    "{\"error\":\"Not allowed\"}");
-        } catch (BadRequestExeption e) {
-            e.printStackTrace();
+		} catch (BadRequestExeption e) {
+			e.printStackTrace();
 
-            JsonUtil.sendJson(exchange, 403,
-                    JsonUtil.toJson(
-                        java.util.Map.of("error", e.getMessage())
-                    ));
-        
+			JsonUtil.sendJson(exchange, 403, JsonUtil.toJson(java.util.Map.of("error", e.getMessage())));
 
-        } catch (JsonProcessingException e) {
-        	JsonUtil.sendJson(exchange, 400,
-                    "{\"error\":\"Invalid JSON\"}");
+		} catch (JsonProcessingException e) {
+			JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid JSON\"}");
 
-        } catch (IllegalArgumentException e) {
-        	JsonUtil.sendJson(exchange, 400,
-                    "{\"error\":\"Invalid request\"}");
+		} catch (IllegalArgumentException e) {
+			JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid request\"}");
 
-        } catch (Exception e) {
-            e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
 
-            try {
-            	JsonUtil.sendJson(exchange, 500,
-                        "{\"error\":\"Internal Server Error\"}");
-            } catch (IOException ignored) {
-                // Yanıt zaten gönderilmiş veya bağlantı kapanmış olabilir.
-            }
-        } finally {
-            exchange.close();
-        }
-    }
+			try {
+				JsonUtil.sendJson(exchange, 500, "{\"error\":\"Internal Server Error\"}");
+			} catch (IOException ignored) {
+				// Yanıt zaten gönderilmiş veya bağlantı kapanmış olabilir.
+			}
+		} finally {
+			exchange.close();
+		}
+	}
 
-    private User authenticateRequest(HttpExchange exchange) {
+	private User authenticateRequest(HttpExchange exchange) {
 
-        String header = exchange.getRequestHeaders()
-                .getFirst("Authorization");
+		String header = exchange.getRequestHeaders().getFirst("Authorization");
 
-        if (header == null
-                || !header.regionMatches(true, 0, "Bearer ", 0, 7)) {
-            return null;
-        }
+		if (header == null || !header.regionMatches(true, 0, "Bearer ", 0, 7)) {
+			return null;
+		}
 
-        String token = header.substring(7).trim();
+		String token = header.substring(7).trim();
 
-        if (token.isEmpty()) {
-            return null;
-        }
+		if (token.isEmpty()) {
+			return null;
+		}
 
-        return authService.authenticate(token);
-    }
+		return authService.authenticate(token);
+	}
 
-    private void handleCreateTicket(
-            HttpExchange exchange, User user) throws IOException {
+	private void handleCreateTicket(HttpExchange exchange, User user) throws IOException {
 
-        String body = new String(
-                exchange.getRequestBody().readAllBytes(),
-                StandardCharsets.UTF_8);
+		String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
 
-        TicketDTO request = JsonUtil.fromJson(body, TicketDTO.class);
-        TicketDTO created = ticketController.createTicket(request, user);
+		TicketDTO request = JsonUtil.fromJson(body, TicketDTO.class);
+		TicketDTO created = ticketController.createTicket(request, user);
 
-        JsonUtil.sendJson(exchange, 201, JsonUtil.toJson(created));
-    }
+		JsonUtil.sendJson(exchange, 201, JsonUtil.toJson(created));
+	}
 
-    private void handleGetAllTickets(
-            HttpExchange exchange, User user) throws IOException {
+	private void handleGetAllTickets(HttpExchange exchange, User user) throws IOException {
 
-        List<TicketDTO> tickets =
-                ticketController.findAllActive(user);
+		List<TicketDTO> tickets = ticketController.findAllActive(user);
 
-        JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(tickets));
-    }
+		JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(tickets));
+	}
 
-    private void handleGetUsersTickets(
-            HttpExchange exchange, User user) throws IOException {
+	private void handleGetUsersTickets(HttpExchange exchange, User user) throws IOException {
 
-        List<TicketDTO> tickets =
-                ticketController.getusersTickets(user);
+		List<TicketDTO> tickets = ticketController.getusersTickets(user);
 
-        JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(tickets));
-    }
+		JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(tickets));
+	}
 
-    private void handleGetTicketById(
-            HttpExchange exchange, User user) throws IOException {
+	private void handleGetTicketById(HttpExchange exchange, User user) throws IOException {
 
-        String path = exchange.getRequestURI().getPath();
-        Long id = Long.parseLong(
-                path.substring("/tickets/".length()));
+		String path = exchange.getRequestURI().getPath();
+		Long id = Long.parseLong(path.substring("/tickets/".length()));
 
-        TicketDTO ticket = ticketController.getTicket(id, user);
+		TicketDTO ticket = ticketController.getTicket(id, user);
 
-        JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(ticket));
-    }
+		JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(ticket));
+	}
 
+	private void handleUpdateStatus(HttpExchange exchange, User user) throws IOException {
 
-private void handleUpdateStatus(
-        HttpExchange exchange, User user) throws IOException {
+		String path = exchange.getRequestURI().getPath();
+		String[] parts = path.split("/");
 
-    String path = exchange.getRequestURI().getPath();
-    String[] parts = path.split("/");
+		if (parts.length != 4 || !"status".equals(parts[3])) {
+			JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid ticket URL\"}");
+			return;
+		}
 
-    if (parts.length != 4 || !"status".equals(parts[3])) {
-    	JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid ticket URL\"}");
-        return;
-    }
+		Long id;
 
-    Long id;
+		try {
+			id = Long.parseLong(parts[2]);
+			if (id <= 0) {
+				JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid ticket ID\"}");
+				return;
+			}
+		} catch (NumberFormatException e) {
+			JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid ticket ID\"}");
+			return;
+		}
 
-    try {
-        id = Long.parseLong(parts[2]);
-        if (id <= 0) {
-        	JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid ticket ID\"}");
-            return;
-        }
-    } catch (NumberFormatException e) {
-    	JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid ticket ID\"}");
-        return;
-    }
+		String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
 
-    String body = new String(
-            exchange.getRequestBody().readAllBytes(),
-            StandardCharsets.UTF_8
-    );
+		try {
+			TicketDTO request = JsonUtil.fromJson(body, TicketDTO.class);
 
-    try {
-        TicketDTO request = JsonUtil.fromJson(body, TicketDTO.class);
+			if (request == null || request.getStatus() == null) {
+				JsonUtil.sendJson(exchange, 400, "{\"error\":\"Status is required\"}");
+				return;
+			}
 
-        if (request == null || request.getStatus() == null) {
-        	JsonUtil.sendJson(exchange, 400, "{\"error\":\"Status is required\"}");
-            return;
-        }
+			ticketController.updateTicketStatus(id, request.getStatus(), user);
 
-        ticketController.updateTicketStatus(
-                id, request.getStatus(), user
-        );
+			exchange.sendResponseHeaders(204, -1);
 
-        exchange.sendResponseHeaders(204, -1);
+		} catch (IllegalArgumentException e) {
+			JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid status or request\"}");
+		}
+	}
 
-    } catch (IllegalArgumentException e) {
-    	JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid status or request\"}");
-    }
-}
+	private void handleDeleteTicket(HttpExchange exchange, User user) throws IOException {
 
+		String path = exchange.getRequestURI().getPath();
+		Long id = Long.parseLong(path.substring("/tickets/".length()));
 
-    private void handleDeleteTicket(
-            HttpExchange exchange, User user) throws IOException {
+		ticketController.deleteTicket(id, user);
 
-        String path = exchange.getRequestURI().getPath();
-        Long id = Long.parseLong(
-                path.substring("/tickets/".length()));
+		exchange.sendResponseHeaders(204, -1);
+	}
 
-        ticketController.deleteTicket(id, user);
+	private void handleGetAllTicketsIncludingDeleted(HttpExchange exchange, User user) throws IOException {
 
-        exchange.sendResponseHeaders(204, -1);
-    }
+		List<TicketDTO> tickets = ticketController.findAllIncludingDeleted(user);
 
-    private void handleGetAllTicketsIncludingDeleted(
-            HttpExchange exchange, User user) throws IOException {
+		JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(tickets));
+	}
 
-        List<TicketDTO> tickets =
-                ticketController.findAllIncludingDeleted(user);
+	private void handleGetTicketIncludingDeleted(HttpExchange exchange, User user) throws IOException {
 
-        JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(tickets));
-    }
+		String path = exchange.getRequestURI().getPath();
+		Long id = Long.parseLong(path.substring("/admin/tickets/".length()));
 
-    private void handleGetTicketIncludingDeleted(
-            HttpExchange exchange, User user) throws IOException {
+		TicketDTO ticket = ticketController.findTicketByIdIncludingDeleted(id, user);
 
-        String path = exchange.getRequestURI().getPath();
-        Long id = Long.parseLong(
-                path.substring("/admin/tickets/".length()));
+		if (ticket == null) {
+			JsonUtil.sendJson(exchange, 404, "{\"error\":\"Ticket not found\"}");
+			return;
+		}
 
-        TicketDTO ticket =
-                ticketController.findTicketByIdIncludingDeleted(id, user);
+		JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(ticket));
+	}
 
-        if (ticket == null) {
-            JsonUtil.sendJson(exchange, 404,
-                    "{\"error\":\"Ticket not found\"}");
-            return;
-        }
+	private void handleGetActiveTickets(HttpExchange exchange, User user) throws IOException {
 
-        JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(ticket));
-    }
+		List<TicketDTO> tickets = ticketController.findAllActive(user);
 
-    private void handleGetActiveTickets(
-            HttpExchange exchange, User user) throws IOException {
+		JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(tickets));
+	}
 
-        List<TicketDTO> tickets =
-                ticketController.findAllActive(user);
+	private void handleAssignTicket(HttpExchange exchange, User user) throws IOException {
 
-        JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(tickets));
-    }
+		String path = exchange.getRequestURI().getPath();
+		String[] parts = path.split("/");
 
-   
+		if (parts.length != 4 || !"assign".equals(parts[3])) {
+			JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid ticket URL\"}");
+			return;
+		}
+
+		Long ticketId;
+
+		try {
+			ticketId = Long.parseLong(parts[2]);
+
+			if (ticketId <= 0) {
+				JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid ticket ID\"}");
+				return;
+			}
+		} catch (NumberFormatException e) {
+			JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid ticket ID\"}");
+			return;
+		}
+
+		String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+
+		TicketDTO request = JsonUtil.fromJson(body, TicketDTO.class);
+
+		if (request == null || request.getAssignedToId() == null) {
+			JsonUtil.sendJson(exchange, 400, "{\"error\":\"Assigned user ID is required\"}");
+			return;
+		}
+
+		ticketController.assignTicket(ticketId, request.getAssignedToId(), user);
+
+		exchange.sendResponseHeaders(204, -1);
+	}
+
 }

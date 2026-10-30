@@ -73,28 +73,19 @@ public class NotificationServiceImpl implements NotificationService {
     public List<Notification> getMyNotifications(User currentUser) {
         validateUser(currentUser);
 
-        Role role = currentUser.getRole();
-
-        if (role == Role.ADMIN || role == Role.IT_MANAGER) {
-            return notificationRepository.findAllNotifications();
-        }
-
-        return notificationRepository.findAllByRecipientId(currentUser.getId());
+        return notificationRepository.findAllByRecipientId(
+                currentUser.getId()
+        );
     }
 
     @Override
     public long getUnreadCount(User currentUser) {
         validateUser(currentUser);
 
-        Role role = currentUser.getRole();
-
-        if (role == Role.ADMIN || role == Role.IT_MANAGER) {
-            return notificationRepository.countAllUnread();
-        }
-
-        return notificationRepository.countUnreadByRecipientId(currentUser.getId());
+        return notificationRepository.countUnreadByRecipientId(
+                currentUser.getId()
+        );
     }
-
     @Override
     public boolean markAsRead(Long notificationId, User currentUser) {
         validateUser(currentUser);
@@ -106,13 +97,13 @@ public class NotificationServiceImpl implements NotificationService {
                 currentUser.getId()
         );
     }
-
     @Override
     public int markAllAsRead(User currentUser) {
         validateUser(currentUser);
 
-        // Yalnızca giriş yapan kullanıcının bildirimleri güncellenir.
-        return notificationRepository.markAllAsRead(currentUser.getId());
+        return notificationRepository.markAllAsRead(
+                currentUser.getId()
+        );
     }
 
     private void validateUser(User user) {

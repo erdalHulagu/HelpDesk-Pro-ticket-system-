@@ -4,10 +4,12 @@ import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.dtos.UserDTO;
 import com.erdal.helpdeskpro.enums.Role;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ExceptionMessage;
 import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
+import com.erdal.helpdeskpro.mapper.UserMapper;
 import com.erdal.helpdeskpro.repository.UserRepository;
 import com.erdal.helpdeskpro.service.UserService;
 
@@ -109,6 +111,21 @@ public class UserServiceImpl implements UserService {
 
 		return updatedUser;
 	}
+	@Override
+	public List<UserDTO> getAllITSupportUsers(User currentUser) {
+
+	    if (currentUser == null ||
+	        (currentUser.getRole() != Role.ADMIN &&
+	         currentUser.getRole() != Role.IT_MANAGER)) {
+
+	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	    }
+
+	    List<User> users = userRepository.findAllITSupportUsers();
+
+	    return UserMapper.userListToUserDTOList(users);
+	}
+
 
 	@Override
 	public void deactivateUser(User currentUser, Long id) {
@@ -119,5 +136,5 @@ public class UserServiceImpl implements UserService {
 		userRepository.deleteById(id);
 
 	}
-
+	
 }

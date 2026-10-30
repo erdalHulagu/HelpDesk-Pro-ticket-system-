@@ -9,7 +9,8 @@ import com.erdal.helpdeskpro.config.util.JsonUtil;
 import com.erdal.helpdeskpro.controller.NotificationController;
 import com.erdal.helpdeskpro.domain.Notification;
 import com.erdal.helpdeskpro.domain.User;
-
+import java.util.stream.Collectors;
+import com.erdal.helpdeskpro.dtos.NotificationDTO;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -96,17 +97,21 @@ public class NotificationHttpHandler implements HttpHandler {
         return authService.authenticate(token);
     }
 
-    // GET /notifications
+ // GET /notifications
     private void handleGetNotifications(
             HttpExchange exchange, User user) throws IOException {
 
         List<Notification> notifications =
                 notificationController.getMyNotifications(user);
 
+        List<NotificationDTO> response = notifications.stream()
+                .map(NotificationDTO::new)
+                .collect(Collectors.toList());
+
         JsonUtil.sendJson(
                 exchange,
                 200,
-                JsonUtil.toJson(notifications)
+                JsonUtil.toJson(response)
         );
     }
 

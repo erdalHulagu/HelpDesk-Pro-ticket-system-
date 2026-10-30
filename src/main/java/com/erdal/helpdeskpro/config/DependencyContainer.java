@@ -57,7 +57,7 @@ public final class DependencyContainer {
 	// Services
 	private static final UserService userService = new UserServiceImpl(userRepository);
 
-	private static final TicketService ticketService = new TicketServiceImpl(ticketRepository, authorization);
+	private static final TicketService ticketService = new TicketServiceImpl(ticketRepository, authorization,userRepository);
 
 	private static final NotificationService notificationService = new NotificationServiceImpl(notificationRepository,
 			userRepository, ticketRepository);

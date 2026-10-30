@@ -8,122 +8,121 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.enums.Role;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ExceptionMessage;
 import com.erdal.helpdeskpro.repository.UserRepository;
 
 public class UserDAO implements UserRepository {
 
-    private SessionFactory sessionFactory;
+	private SessionFactory sessionFactory;
 
-    public UserDAO(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
+	public UserDAO(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
 
+	@Override
+	public void save(User user) {
 
-@Override
-public void save(User user) {
+		Transaction transaction = null;
 
-    Transaction transaction = null;
+		try (Session session = sessionFactory.openSession()) {
+			transaction = session.beginTransaction();
 
-    try (Session session = sessionFactory.openSession()) {
-        transaction = session.beginTransaction();
+			User existingUser = session.createQuery("FROM User u WHERE u.email = :email", User.class)
+					.setParameter("email", user.getEmail()).uniqueResult();
 
-        User existingUser = session.createQuery(
-                "FROM User u WHERE u.email = :email",
-                User.class
-        )
-        .setParameter("email", user.getEmail())
-        .uniqueResult();
+			// Aynı e-posta başka bir kullanıcıya aitse engelle.
+			if (existingUser != null && !existingUser.getId().equals(user.getId())) {
 
-        // Aynı e-posta başka bir kullanıcıya aitse engelle.
-        if (existingUser != null
-                && !existingUser.getId().equals(user.getId())) {
+				throw new BadRequestExeption(ExceptionMessage.USER_ALREADY_EXIST);
+			}
 
-            throw new BadRequestExeption(
-                    ExceptionMessage.USER_ALREADY_EXIST
-            );
-        }
+			if (user.getId() == null) {
+				// Yeni kullanıcı
+				session.persist(user);
+			} else {
+				// Mevcut kullanıcı
+				session.merge(user);
+			}
 
-        if (user.getId() == null) {
-            // Yeni kullanıcı
-            session.persist(user);
-        } else {
-            // Mevcut kullanıcı
-            session.merge(user);
-        }
+			transaction.commit();
 
-        transaction.commit();
+		} catch (RuntimeException e) {
+			if (transaction != null && transaction.isActive()) {
+				transaction.rollback();
+			}
+			throw e;
+		}
+	}
 
-    } catch (RuntimeException e) {
-        if (transaction != null && transaction.isActive()) {
-            transaction.rollback();
-        }
-        throw e;
-    }
-}
+	@Override
+	public User findById(Long id) {
+		try (Session session = sessionFactory.openSession()) {
+			return session.get(User.class, id);
+		}
+	}
 
+	@Override
+	public List<User> findAll() {
 
+		Session session = sessionFactory.openSession();
 
-@Override
-public User findById(Long id) {
-    try (Session session = sessionFactory.openSession()) {
-        return session.get(User.class, id);
-    }
-}
+		List<User> users = session.createQuery("from User", User.class).list();
 
+		List<User> newUsers = users.stream().filter(User::isActive).collect(Collectors.toList());
 
-    @Override
-    public List<User> findAll() {
+		session.close();
 
-        Session session = sessionFactory.openSession();
+		return newUsers;
+	}
 
-        List<User> users =
-                session.createQuery("from User", User.class).list();
+	@Override
+	public void deleteById(Long id) {
 
-        List<User> newUsers = users.stream()
-                .filter(User::isActive)
-                .collect(Collectors.toList());
+		Session session = sessionFactory.openSession();
+		Transaction transaction = session.beginTransaction();
 
-        session.close();
+		User user = session.get(User.class, id);
 
-        return newUsers;
-    }
+		if (user == null) {
+			transaction.rollback();
+			session.close();
 
-    @Override
-    public void deleteById(Long id) {
+			throw new BadRequestExeption(ExceptionMessage.USER_NOT_FOUND);
+		}
 
-        Session session = sessionFactory.openSession();
-        Transaction transaction = session.beginTransaction();
+		user.setActive(false);
 
-        User user = session.get(User.class, id);
+		transaction.commit();
+		session.close();
+	}
 
-        if (user == null) {
-            transaction.rollback();
-            session.close();
+	@Override
+	public User findByEmail(String email) {
 
-            throw new BadRequestExeption(ExceptionMessage.USER_NOT_FOUND);
-        }
+		String hql = "FROM User u WHERE u.email = :email";
 
-        user.setActive(false);
+		Session session = sessionFactory.openSession();
 
-        transaction.commit();
-        session.close();
-    }
+		User user = session.createQuery(hql, User.class).setParameter("email", email).uniqueResult();
 
-    @Override
-    public User findByEmail(String email) {
+		session.close();
 
-        String hql = "FROM User u WHERE u.email = :email";
+		return user;
+	}
+	@Override
+	public List<User> findAllITSupportUsers() {
 
-        Session session = sessionFactory.openSession();
+	    try (Session session = sessionFactory.openSession()) {
 
-        User user = session.createQuery(hql, User.class)
-                .setParameter("email", email)
-                .uniqueResult();
-
-        session.close();
-
-        return user;
-    }
+	        return session.createQuery(
+	                "FROM User u WHERE u.role = :role AND u.isActive = true",
+	                User.class
+	        )
+	        .setParameter("role", Role.IT_SUPPORT)
+	        .list();
+	    }
+	}
+	
 }

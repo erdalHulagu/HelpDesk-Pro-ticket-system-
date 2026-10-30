@@ -30,7 +30,7 @@ public final class UserMapper {
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getPassword(),
+                null,
                 null,
                 user.getRole(),
                 user.isActive()

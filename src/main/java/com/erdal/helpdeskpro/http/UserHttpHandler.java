@@ -75,6 +75,12 @@ public class UserHttpHandler extends BaseAuthHandler implements HttpHandler {
 				handleDeactivateUser(exchange);
 				return;
 			}
+			
+			// GET /users/it-support
+			if ("GET".equalsIgnoreCase(method) && path.equals("/users/it-support")) {
+			    handleGetITSupportUsers(exchange);
+			    return;
+			}
 
 			exchange.sendResponseHeaders(404, -1);
 
@@ -208,6 +214,25 @@ public class UserHttpHandler extends BaseAuthHandler implements HttpHandler {
 
 		exchange.sendResponseHeaders(204, -1);
 		exchange.close();
+	}
+	
+	private void handleGetITSupportUsers(HttpExchange exchange) throws Exception {
+
+	    User currentUser = getAuthenticatedUser(exchange);
+
+	    List<UserDTO> users = userController.getAllITSupportUsers(currentUser);
+
+	    String response = JsonUtil.toJson(users);
+	    byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
+
+	    exchange.getResponseHeaders().set(
+	            "Content-Type",
+	            "application/json; charset=UTF-8"
+	    );
+
+	    exchange.sendResponseHeaders(200, responseBytes.length);
+	    exchange.getResponseBody().write(responseBytes);
+	    exchange.close();
 	}
 
 }

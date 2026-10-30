@@ -31,6 +31,7 @@ import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
 import com.erdal.helpdeskpro.repository.CommentRepository;
 import com.erdal.helpdeskpro.repository.TicketRepository;
 import com.erdal.helpdeskpro.repository.UserRepository;
+import com.erdal.helpdeskpro.service.NotificationService;
 
 class CommentServiceImplTest {
 
@@ -45,6 +46,8 @@ class CommentServiceImplTest {
 
     @Mock
     private Authorization authorization;
+    @Mock
+    private NotificationService notificationService;
 
     private CommentServiceImpl commentService;
 
@@ -56,7 +59,8 @@ class CommentServiceImplTest {
             commentRepository,
             ticketRepository,
             userRepository,
-            authorization
+            authorization,
+            notificationService
         );
     }
 

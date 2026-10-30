@@ -6,12 +6,16 @@ import com.erdal.helpdeskpro.domain.User;
 
 public interface UserRepository {
 
-  void save(User user); 
-  User findById(Long id);
-  List<User> findAll();
-  void deleteById(Long id);
-  User findByEmail(String email);
-  
+	void save(User user);
 
+	User findById(Long id);
+
+	List<User> findAll();
+
+	void deleteById(Long id);
+
+	User findByEmail(String email);
+
+	List<User> findAllITSupportUsers();
 
 }
