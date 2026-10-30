@@ -59,6 +59,9 @@ public class AuthorizationImpl implements Authorization {
         checkTicketAndUser(ticket, user);
         checkNotDeleted(ticket);
         checkNotClosed(ticket);
+
+        // ADMIN, IT_MANAGER, ticket creator EMPLOYEE
+        // and relevant IT_SUPPORT users can comment.
         checkTicketAccess(ticket, user);
     }
 
@@ -70,6 +73,7 @@ public class AuthorizationImpl implements Authorization {
                 && user.getRole() != Role.IT_MANAGER
                 && user.getRole() != Role.IT_SUPPORT
                 && user.getRole() != Role.EMPLOYEE) {
+
             throw notAllowed();
         }
     }
@@ -78,13 +82,17 @@ public class AuthorizationImpl implements Authorization {
     public void canViewComments(Ticket ticket, User user) {
         checkTicketAndUser(ticket, user);
         checkNotDeleted(ticket);
+
+        // ADMIN and IT_MANAGER can view all ticket comments.
+        // EMPLOYEE can view comments on their own tickets.
+        // IT_SUPPORT can view comments on tickets they created
+        // or tickets assigned to them.
         checkTicketAccess(ticket, user);
     }
 
     // =========================
     // HELPER METHODS
     // =========================
-    
 
     @Override
     public void canManageUser(User currentUser, Long targetUserId) {
@@ -99,7 +107,6 @@ public class AuthorizationImpl implements Authorization {
         }
     }
 
-
     private void checkTicketAndUser(Ticket ticket, User user) {
         if (ticket == null) {
             throw new ResourceNotFoundExeption(
@@ -111,7 +118,10 @@ public class AuthorizationImpl implements Authorization {
     }
 
     private void checkUser(User user) {
-        if (user == null || user.getRole() == null) {
+        if (user == null
+                || user.getId() == null
+                || user.getRole() == null) {
+
             throw notAllowed();
         }
     }
@@ -144,6 +154,7 @@ public class AuthorizationImpl implements Authorization {
         if (attachment.getUser() == null
                 || attachment.getUser().getId() == null
                 || !user.getId().equals(attachment.getUser().getId())) {
+
             throw notAllowed();
         }
     }
@@ -154,25 +165,32 @@ public class AuthorizationImpl implements Authorization {
         }
 
         switch (user.getRole()) {
+
             case ADMIN:
             case IT_MANAGER:
                 return;
 
             case EMPLOYEE:
+
                 if (ticket.getCreatedBy() == null
                         || !user.getId().equals(
                                 ticket.getCreatedBy().getId())) {
+
                     throw notAllowed();
                 }
+
                 return;
 
             case IT_SUPPORT:
+
                 if (ticket.getAssignedTo() == null
                         || ticket.getAssignedTo().getId() == null
                         || !user.getId().equals(
                                 ticket.getAssignedTo().getId())) {
+
                     throw notAllowed();
                 }
+
                 return;
 
             default:
@@ -186,19 +204,28 @@ public class AuthorizationImpl implements Authorization {
         }
 
         switch (user.getRole()) {
+
             case ADMIN:
             case IT_MANAGER:
+                // ADMIN and IT_MANAGER can access all tickets.
                 return;
 
             case EMPLOYEE:
+
+                // EMPLOYEE can access only tickets created by them.
                 if (ticket.getCreatedBy() == null
                         || !user.getId().equals(
                                 ticket.getCreatedBy().getId())) {
+
                     throw notAllowed();
                 }
+
                 return;
 
             case IT_SUPPORT:
+
+                // IT_SUPPORT can access tickets they created
+                // or tickets assigned to them.
                 boolean createdBySupport =
                         ticket.getCreatedBy() != null
                         && user.getId().equals(
@@ -212,6 +239,7 @@ public class AuthorizationImpl implements Authorization {
                 if (!createdBySupport && !assignedToSupport) {
                     throw notAllowed();
                 }
+
                 return;
 
             default:
@@ -228,6 +256,7 @@ public class AuthorizationImpl implements Authorization {
     private void checkAdminOrManager(User user) {
         if (user.getRole() != Role.ADMIN
                 && user.getRole() != Role.IT_MANAGER) {
+
             throw notAllowed();
         }
     }
@@ -236,6 +265,7 @@ public class AuthorizationImpl implements Authorization {
         if (user.getRole() != Role.ADMIN
                 && user.getRole() != Role.IT_MANAGER
                 && user.getRole() != Role.IT_SUPPORT) {
+
             throw notAllowed();
         }
     }
@@ -249,6 +279,8 @@ public class AuthorizationImpl implements Authorization {
     }
 
     private BadRequestExeption notAllowed() {
-        return new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+        return new BadRequestExeption(
+                ExceptionMessage.NOT_ALLOWED
+        );
     }
 }
