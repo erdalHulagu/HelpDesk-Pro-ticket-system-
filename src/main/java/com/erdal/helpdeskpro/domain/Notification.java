@@ -45,6 +45,9 @@ public class Notification {
     @Column(name = "is_read", nullable = false)
     private boolean read = false;
 
+    @Column(name = "is_hidden", nullable = false)
+    private boolean hidden = false;
+    
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -110,8 +113,18 @@ public class Notification {
     public void setRead(boolean read) {
         this.read = read;
     }
+    
 
-    public LocalDateTime getCreatedAt() {
+    public boolean isHidden() {
+		return hidden;
+	}
+
+	public void setHidden(boolean hidden) {
+		this.hidden = hidden;
+	}
+
+
+	public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 

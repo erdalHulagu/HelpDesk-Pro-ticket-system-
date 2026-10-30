@@ -66,6 +66,20 @@ public class NotificationHttpHandler implements HttpHandler {
                 handleGetNotifications(exchange, user);
                 return;
             }
+            
+         // DELETE /notifications/clear-all
+            if ("DELETE".equalsIgnoreCase(method)
+                    && "/notifications/clear-all".equals(path)) {
+                handleDeleteAllNotifications(exchange, user);
+                return;
+            }
+
+            // DELETE /notifications/{id}
+            if ("DELETE".equalsIgnoreCase(method)
+                    && path.matches("/notifications/\\d+")) {
+                handleDeleteNotification(exchange, path, user);
+                return;
+            }
 
             sendError(exchange, 404, "Endpoint not found");
 
@@ -170,6 +184,41 @@ public class NotificationHttpHandler implements HttpHandler {
                 exchange,
                 status,
                 JsonUtil.toJson(Map.of("error", message))
+        );
+    }
+    
+ // DELETE /notifications/{id}
+    private void handleDeleteNotification(
+            HttpExchange exchange,
+            String path,
+            User user) throws IOException {
+
+        String[] parts = path.split("/");
+        Long notificationId = Long.parseLong(parts[2]);
+
+        boolean deletedOrHidden =
+                notificationController.deleteNotification(notificationId, user);
+
+        if (!deletedOrHidden) {
+            sendError(exchange, 404, "Notification not found");
+            return;
+        }
+
+        exchange.sendResponseHeaders(204, -1);
+    }
+
+    // DELETE /notifications/clear-all
+    private void handleDeleteAllNotifications(
+            HttpExchange exchange,
+            User user) throws IOException {
+
+        int deletedOrHidden =
+                notificationController.deleteAllNotifications(user);
+
+        JsonUtil.sendJson(
+                exchange,
+                200,
+                JsonUtil.toJson(Map.of("updatedCount", deletedOrHidden))
         );
     }
 };

@@ -111,4 +111,46 @@ public class NotificationServiceImpl implements NotificationService {
             throw new IllegalArgumentException("Geçersiz kullanıcı.");
         }
     }
+    
+ // Delete one notification from the user's notification list.
+    @Override
+    public boolean deleteNotification(Long notificationId, User currentUser) {
+        validateUser(currentUser);
+
+        if (notificationId == null) {
+            throw new IllegalArgumentException("Geçersiz bildirim ID.");
+        }
+
+        // Only ADMIN can permanently delete notifications.
+        if (currentUser.getRole() == Role.ADMIN) {
+            return notificationRepository.permanentlyDelete(
+                    notificationId,
+                    currentUser.getId()
+            );
+        }
+
+        // Other users can only hide their own notifications.
+        return notificationRepository.hideNotification(
+                notificationId,
+                currentUser.getId()
+        );
+    }
+
+    // Clear all notifications from the user's notification list.
+    @Override
+    public int deleteAllNotifications(User currentUser) {
+        validateUser(currentUser);
+
+        // Only ADMIN can permanently delete notifications.
+        if (currentUser.getRole() == Role.ADMIN) {
+            return notificationRepository.permanentlyDeleteAll(
+                    currentUser.getId()
+            );
+        }
+
+        // Other users can only hide their own notifications.
+        return notificationRepository.hideAllNotifications(
+                currentUser.getId()
+        );
+    }
 }

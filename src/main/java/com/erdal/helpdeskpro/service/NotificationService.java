@@ -24,4 +24,8 @@ public interface NotificationService {
     boolean markAsRead(Long notificationId, User currentUser);
 
     int markAllAsRead(User currentUser);
+    
+    boolean deleteNotification(Long notificationId, User currentUser);
+
+    int deleteAllNotifications(User currentUser);
 }

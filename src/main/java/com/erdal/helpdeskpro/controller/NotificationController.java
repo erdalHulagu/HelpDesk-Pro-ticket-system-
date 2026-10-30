@@ -30,4 +30,11 @@ public class NotificationController {
     public int markAllAsRead(User user) {
         return notificationService.markAllAsRead(user);
     }
+    public boolean deleteNotification(Long notificationId, User user) {
+        return notificationService.deleteNotification(notificationId, user);
+    }
+
+    public int deleteAllNotifications(User user) {
+        return notificationService.deleteAllNotifications(user);
+    }
 }
