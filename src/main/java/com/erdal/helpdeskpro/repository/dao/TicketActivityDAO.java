@@ -62,15 +62,14 @@ public class TicketActivityDAO implements TicketActivityRepository {
     @Override
     public List<TicketActivity> findAllByTicketId(Long ticketId) {
         try (Session session = sessionFactory.openSession()) {
-            return session.createQuery(
-                "select a from TicketActivity a " +
-                "join fetch a.performedBy " +
-                "where a.ticket.id = :ticketId " +
-                "order by a.createdAt desc",
-                TicketActivity.class
-            )
-            .setParameter("ticketId", ticketId)
-            .list();
+        	return session.createQuery(
+        		    "SELECT a FROM TicketActivity a " +
+        		    "JOIN FETCH a.performedBy " +
+        		    "JOIN FETCH a.ticket " +
+        		    "WHERE a.ticket.id = :ticketId " +
+        		    "ORDER BY a.createdAt DESC",
+        		    TicketActivity.class
+        		).setParameter("ticketId", ticketId).list();
         }
     }
 }
