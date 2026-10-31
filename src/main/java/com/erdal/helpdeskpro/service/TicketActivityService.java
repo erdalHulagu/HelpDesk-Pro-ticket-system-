@@ -21,4 +21,6 @@ public interface TicketActivityService {
             Long ticketId,
             User currentUser
     );
+
+	List<TicketActivity> getAllActivities(User currentUser);
 }

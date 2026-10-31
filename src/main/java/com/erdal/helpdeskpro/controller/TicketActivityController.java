@@ -10,25 +10,23 @@ import com.erdal.helpdeskpro.service.TicketActivityService;
 
 public class TicketActivityController {
 
-    private final TicketActivityService ticketActivityService;
-    private final TicketActivityMapper ticketActivityMapper;
+	private final TicketActivityService ticketActivityService;
+	private final TicketActivityMapper ticketActivityMapper;
 
-    public TicketActivityController(
-            TicketActivityService ticketActivityService) {
+	public TicketActivityController(TicketActivityService ticketActivityService) {
 
-        this.ticketActivityService = ticketActivityService;
-        this.ticketActivityMapper = new TicketActivityMapper();
-    }
+		this.ticketActivityService = ticketActivityService;
+		this.ticketActivityMapper = new TicketActivityMapper();
+	}
 
-    public List<TicketActivityDTO> getActivitiesByTicketId(
-            Long ticketId,
-            User currentUser) {
+	public List<TicketActivityDTO> getActivitiesByTicketId(Long ticketId, User currentUser) {
 
-        return ticketActivityMapper.toDTOList(
-                ticketActivityService.getActivitiesByTicketId(
-                        ticketId,
-                        currentUser
-                )
-        );
-    }
+		return ticketActivityMapper.toDTOList(ticketActivityService.getActivitiesByTicketId(ticketId, currentUser));
+	}
+
+	public List<TicketActivityDTO> getAllActivities(User currentUser) {
+
+		return ticketActivityMapper.toDTOList(ticketActivityService.getAllActivities(currentUser));
+	}
+
 }

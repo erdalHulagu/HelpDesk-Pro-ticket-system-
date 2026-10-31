@@ -1,5 +1,6 @@
 package com.erdal.helpdeskpro.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.erdal.helpdeskpro.authorization.Authorization;
@@ -7,6 +8,7 @@ import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.TicketActivity;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.enums.TicketActivityType;
+import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ExceptionMessage;
 import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
 import com.erdal.helpdeskpro.repository.TicketActivityRepository;
@@ -80,5 +82,36 @@ public class TicketActivityServiceImpl implements TicketActivityService {
         authorization.canViewTicketActivity(ticket, currentUser);
 
         return ticketActivityRepository.findAllByTicketId(ticketId);
+    }
+
+    @Override
+    public List<TicketActivity> getAllActivities(User currentUser) {
+
+        if (currentUser == null
+                || currentUser.getId() == null
+                || currentUser.getRole() == null) {
+            throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+        }
+
+        List<TicketActivity> allActivities =
+                ticketActivityRepository.findAll();
+
+        List<TicketActivity> accessibleActivities = new ArrayList<>();
+
+        for (TicketActivity activity : allActivities) {
+            try {
+                authorization.canViewTicketActivity(
+                        activity.getTicket(),
+                        currentUser
+                );
+
+                accessibleActivities.add(activity);
+
+            } catch (BadRequestExeption e) {
+                // Skip activities belonging to inaccessible or deleted tickets.
+            }
+        }
+
+        return accessibleActivities;
     }
 }

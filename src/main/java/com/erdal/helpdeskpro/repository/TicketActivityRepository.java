@@ -10,4 +10,6 @@ public interface TicketActivityRepository {
     void save(TicketActivity activity);
 
     List<TicketActivity> findAllByTicketId(Long ticketId);
+    
+    List<TicketActivity> findAll();
 }

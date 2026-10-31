@@ -17,109 +17,101 @@ import java.util.Map;
 
 public class TicketActivityHttpHandler implements HttpHandler {
 
-    private final TicketActivityController ticketActivityController;
-    private final AuthService authService;
+	private final TicketActivityController ticketActivityController;
+	private final AuthService authService;
 
-    public TicketActivityHttpHandler(
-            TicketActivityController ticketActivityController,
-            AuthService authService) {
+	public TicketActivityHttpHandler(TicketActivityController ticketActivityController, AuthService authService) {
 
-        this.ticketActivityController = ticketActivityController;
-        this.authService = authService;
-    }
+		this.ticketActivityController = ticketActivityController;
+		this.authService = authService;
+	}
 
-    @Override
-    public void handle(HttpExchange exchange) throws IOException {
+	@Override
+	public void handle(HttpExchange exchange) throws IOException {
 
-        try {
-            User authenticatedUser = authenticateRequest(exchange);
+		try {
+			User authenticatedUser = authenticateRequest(exchange);
 
-            if (authenticatedUser == null) {
-                JsonUtil.sendJson(exchange, 401,
-                        "{\"error\":\"Unauthorized\"}");
-                return;
-            }
+			if (authenticatedUser == null) {
+				JsonUtil.sendJson(exchange, 401, "{\"error\":\"Unauthorized\"}");
+				return;
+			}
 
-            String path = exchange.getRequestURI().getPath();
-            String method = exchange.getRequestMethod();
+			String path = exchange.getRequestURI().getPath();
+			String method = exchange.getRequestMethod();
 
-            // GET /activities/ticket/{ticketId}
-            if ("GET".equalsIgnoreCase(method)
-                    && path.matches("/activities/ticket/\\d+")) {
+			// GET /activities/ticket/{ticketId}
+			if ("GET".equalsIgnoreCase(method) && path.matches("/activities/ticket/\\d+")) {
 
-                handleGetActivitiesByTicket(exchange, authenticatedUser);
-                return;
-            }
+				handleGetActivitiesByTicket(exchange, authenticatedUser);
+				return;
+			}
+			// GET /activities
+			if ("GET".equalsIgnoreCase(method) && "/activities".equals(path)) {
 
-            JsonUtil.sendJson(exchange, 404,
-                    "{\"error\":\"Endpoint not found\"}");
+				handleGetAllActivities(exchange, authenticatedUser);
+				return;
+			}
 
-        } catch (ResourceNotFoundExeption e) {
+			JsonUtil.sendJson(exchange, 404, "{\"error\":\"Endpoint not found\"}");
 
-            JsonUtil.sendJson(exchange, 404,
-                    JsonUtil.toJson(Map.of("error", e.getMessage())));
+		} catch (ResourceNotFoundExeption e) {
 
-        } catch (BadRequestExeption e) {
+			JsonUtil.sendJson(exchange, 404, JsonUtil.toJson(Map.of("error", e.getMessage())));
 
-            JsonUtil.sendJson(exchange, 403,
-                    JsonUtil.toJson(Map.of("error", e.getMessage())));
+		} catch (BadRequestExeption e) {
 
-        } catch (IllegalArgumentException e) {
+			JsonUtil.sendJson(exchange, 403, JsonUtil.toJson(Map.of("error", e.getMessage())));
 
-        	e.printStackTrace();
-            JsonUtil.sendJson(exchange, 400,
-                    "{\"error\":\"Invalid request\"}");
+		} catch (IllegalArgumentException e) {
 
-        } catch (Exception e) {
+			e.printStackTrace();
+			JsonUtil.sendJson(exchange, 400, "{\"error\":\"Invalid request\"}");
 
-            e.printStackTrace();
+		} catch (Exception e) {
 
-            JsonUtil.sendJson(exchange, 500,
-                    "{\"error\":\"Internal Server Error\"}");
+			e.printStackTrace();
 
-        } finally {
-            exchange.close();
-        }
-    }
+			JsonUtil.sendJson(exchange, 500, "{\"error\":\"Internal Server Error\"}");
 
-    private User authenticateRequest(HttpExchange exchange) {
+		} finally {
+			exchange.close();
+		}
+	}
 
-        String header = exchange.getRequestHeaders()
-                .getFirst("Authorization");
+	private User authenticateRequest(HttpExchange exchange) {
 
-        if (header == null
-                || !header.regionMatches(true, 0, "Bearer ", 0, 7)) {
-            return null;
-        }
+		String header = exchange.getRequestHeaders().getFirst("Authorization");
 
-        String token = header.substring(7).trim();
+		if (header == null || !header.regionMatches(true, 0, "Bearer ", 0, 7)) {
+			return null;
+		}
 
-        if (token.isEmpty()) {
-            return null;
-        }
+		String token = header.substring(7).trim();
 
-        return authService.authenticate(token);
-    }
+		if (token.isEmpty()) {
+			return null;
+		}
 
-    private void handleGetActivitiesByTicket(
-            HttpExchange exchange,
-            User user) throws IOException {
+		return authService.authenticate(token);
+	}
 
-        String path = exchange.getRequestURI().getPath();
+	private void handleGetActivitiesByTicket(HttpExchange exchange, User user) throws IOException {
 
-        Long ticketId = Long.parseLong(
-                path.substring("/activities/ticket/".length()));
+		String path = exchange.getRequestURI().getPath();
 
-        List<TicketActivityDTO> activities =
-                ticketActivityController.getActivitiesByTicketId(
-                        ticketId,
-                        user
-                );
+		Long ticketId = Long.parseLong(path.substring("/activities/ticket/".length()));
 
-        JsonUtil.sendJson(
-                exchange,
-                200,
-                JsonUtil.toJson(activities)
-        );
-    }
+		List<TicketActivityDTO> activities = ticketActivityController.getActivitiesByTicketId(ticketId, user);
+
+		JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(activities));
+	}
+
+	private void handleGetAllActivities(HttpExchange exchange, User user) throws IOException {
+
+		List<TicketActivityDTO> activities = ticketActivityController.getAllActivities(user);
+
+		JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(activities));
+	}
+
 }
