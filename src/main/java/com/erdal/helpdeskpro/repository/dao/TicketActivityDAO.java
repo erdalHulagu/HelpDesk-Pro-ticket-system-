@@ -53,12 +53,16 @@ public class TicketActivityDAO implements TicketActivityRepository {
 
         } catch (RuntimeException e) {
             if (transaction != null && transaction.isActive()) {
-                transaction.rollback();
+                try {
+                    transaction.rollback();
+                } catch (RuntimeException rollbackException) {
+                    e.addSuppressed(rollbackException);
+                }
             }
+
             throw e;
         }
     }
-
     @Override
     public List<TicketActivity> findAllByTicketId(Long ticketId) {
         try (Session session = sessionFactory.openSession()) {

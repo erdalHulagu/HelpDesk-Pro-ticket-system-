@@ -1,12 +1,13 @@
 package com.erdal.helpdeskpro.enums;
 
-public enum TicketActivityRoles {
+public enum TicketActivityType {
 	TICKET_CREATED,
 	STATUS_CHANGED,
 	ASSIGNED,
 	COMMENT_ADDED,
 	INTERNAL_NOTE_ADDED,
 	TICKET_UPDATED,
-	TICKET_RESOLVED
+	TICKET_RESOLVED,
+	TICKET_DELETED
 
 }

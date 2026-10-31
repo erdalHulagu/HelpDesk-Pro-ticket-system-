@@ -30,6 +30,7 @@ import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
 import com.erdal.helpdeskpro.repository.TicketRepository;
 import com.erdal.helpdeskpro.repository.UserRepository;
+import com.erdal.helpdeskpro.service.TicketActivityService;
 
 class TicketServiceImplTest {
 
@@ -44,6 +45,9 @@ class TicketServiceImplTest {
     
     @Mock
     private UserRepository userRepository;
+    
+    @Mock
+	private TicketActivityService ticketActivityService;
 
     @BeforeEach
     void setUp() {
@@ -52,7 +56,9 @@ class TicketServiceImplTest {
         ticketService = new TicketServiceImpl(
             ticketRepository,
             authorization,
-            userRepository
+            userRepository,
+            ticketActivityService
+            
         );
     }
 

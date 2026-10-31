@@ -66,6 +66,7 @@ public class TicketActivityHttpHandler implements HttpHandler {
 
         } catch (IllegalArgumentException e) {
 
+        	e.printStackTrace();
             JsonUtil.sendJson(exchange, 400,
                     "{\"error\":\"Invalid request\"}");
 

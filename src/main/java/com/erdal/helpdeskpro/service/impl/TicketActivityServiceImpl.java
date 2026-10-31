@@ -6,6 +6,7 @@ import com.erdal.helpdeskpro.authorization.Authorization;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.TicketActivity;
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.enums.TicketActivityType;
 import com.erdal.helpdeskpro.exception.ExceptionMessage;
 import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
 import com.erdal.helpdeskpro.repository.TicketActivityRepository;
@@ -32,7 +33,7 @@ public class TicketActivityServiceImpl implements TicketActivityService {
     public void createActivity(
             Long ticketId,
             User currentUser,
-            String activityType,
+            TicketActivityType activityType,
             String description,
             String oldValue,
             String newValue) {

@@ -64,17 +64,17 @@ public final class DependencyContainer {
 	// Services
 	private static final UserService userService = new UserServiceImpl(userRepository);
 
+	private static final TicketActivityService ticketActivityService = new TicketActivityServiceImpl(
+			ticketActivityRepository, ticketRepository, authorization);
+
 	private static final TicketService ticketService = new TicketServiceImpl(ticketRepository, authorization,
-			userRepository);
+			userRepository, ticketActivityService);
 
 	private static final NotificationService notificationService = new NotificationServiceImpl(notificationRepository,
 			userRepository, ticketRepository);
 
 	private static final CommentService commentService = new CommentServiceImpl(commentRepository, ticketRepository,
-
 			userRepository, authorization, notificationService);
-	private static final TicketActivityService ticketActivityService = new TicketActivityServiceImpl(
-			ticketActivityRepository, ticketRepository, authorization);
 
 	// Token repository
 	private static final AuthTokenRepository authTokenRepository = new AuthTokenDAO(sessionFactory);
@@ -95,7 +95,6 @@ public final class DependencyContainer {
 			notificationService);
 	private static final TicketActivityController ticketActivityController = new TicketActivityController(
 			ticketActivityService);
-	
 
 	// Attachments
 	private static final AttachmentRepository attachmentRepository = new AttachmentDAO(sessionFactory);

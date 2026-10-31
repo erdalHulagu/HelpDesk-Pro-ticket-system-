@@ -4,6 +4,8 @@ package com.erdal.helpdeskpro.domain;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import com.erdal.helpdeskpro.enums.TicketActivityType;
+
 @Entity
 @Table(name = "ticket_activities")
 public class TicketActivity {
@@ -20,8 +22,9 @@ public class TicketActivity {
     @JoinColumn(name = "performed_by", nullable = false)
     private User performedBy;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "activity_type", nullable = false, length = 50)
-    private String activityType;
+    private TicketActivityType activityType;
 
     @Column(nullable = false, length = 500)
     private String description;
@@ -63,15 +66,15 @@ public class TicketActivity {
         this.performedBy = performedBy;
     }
 
-    public String getActivityType() {
-        return activityType;
-    }
+    public TicketActivityType getActivityType() {
+		return activityType;
+	}
 
-    public void setActivityType(String activityType) {
-        this.activityType = activityType;
-    }
+	public void setActivityType(TicketActivityType activityType) {
+		this.activityType = activityType;
+	}
 
-    public String getDescription() {
+	public String getDescription() {
         return description;
     }
 

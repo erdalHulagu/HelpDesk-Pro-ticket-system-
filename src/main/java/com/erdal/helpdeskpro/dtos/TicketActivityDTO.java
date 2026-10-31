@@ -3,11 +3,13 @@ package com.erdal.helpdeskpro.dtos;
 
 import java.time.LocalDateTime;
 
+import com.erdal.helpdeskpro.enums.TicketActivityType;
+
 public class TicketActivityDTO {
 
     private Long id;
     private Long ticketId;
-    private String activityType;
+    private TicketActivityType activityType;
     private String description;
     private String oldValue;
     private String newValue;
@@ -34,15 +36,17 @@ public class TicketActivityDTO {
         this.ticketId = ticketId;
     }
 
-    public String getActivityType() {
-        return activityType;
-    }
+   
 
-    public void setActivityType(String activityType) {
-        this.activityType = activityType;
-    }
+    public TicketActivityType getActivityType() {
+		return activityType;
+	}
 
-    public String getDescription() {
+	public void setActivityType(TicketActivityType activityType) {
+		this.activityType = activityType;
+	}
+
+	public String getDescription() {
         return description;
     }
 

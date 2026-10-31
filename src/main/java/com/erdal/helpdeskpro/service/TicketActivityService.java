@@ -4,13 +4,14 @@ import java.util.List;
 
 import com.erdal.helpdeskpro.domain.TicketActivity;
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.enums.TicketActivityType;
 
 public interface TicketActivityService {
 
     void createActivity(
             Long ticketId,
             User currentUser,
-            String activityType,
+            TicketActivityType ticketCreated,
             String description,
             String oldValue,
             String newValue

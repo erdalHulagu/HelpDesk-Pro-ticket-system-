@@ -12,6 +12,7 @@ import com.erdal.helpdeskpro.authorization.Authorization;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.enums.Role;
+import com.erdal.helpdeskpro.enums.TicketActivityType;
 import com.erdal.helpdeskpro.enums.TicketPriority;
 import com.erdal.helpdeskpro.enums.TicketStatus;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
@@ -20,35 +21,51 @@ import com.erdal.helpdeskpro.exception.ExceptionMessage;
 import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
 import com.erdal.helpdeskpro.repository.TicketRepository;
 import com.erdal.helpdeskpro.service.TicketService;
+import com.erdal.helpdeskpro.service.TicketActivityService;
 
 public class TicketServiceImpl implements TicketService {
 
 	private TicketRepository ticketRepository;
 	private Authorization authorization;
 	private UserRepository userRepository;
+	private TicketActivityService ticketActivityService;
 
-	public TicketServiceImpl(TicketRepository ticketRepository, Authorization authorization,
-			UserRepository userRepository) {
-		this.ticketRepository = ticketRepository;
-		this.authorization = authorization;
-		this.userRepository = userRepository;
+	public TicketServiceImpl(
+	        TicketRepository ticketRepository,
+	        Authorization authorization,
+	        UserRepository userRepository,
+	        TicketActivityService ticketActivityService) {
+
+	    this.ticketRepository = ticketRepository;
+	    this.authorization = authorization;
+	    this.userRepository = userRepository;
+	    this.ticketActivityService = ticketActivityService;
 	}
 
 	@Override
 	public void createTicket(Ticket ticket, User currentUser) {
-		ticket.setCreatedBy(currentUser);
-		ticket.setStatus(TicketStatus.OPEN);
-		ticket.setDeleted(false);
+	    ticket.setCreatedBy(currentUser);
+	    ticket.setStatus(TicketStatus.OPEN);
+	    ticket.setDeleted(false);
 
-		if (ticket.getPriority() == null) {
-			ticket.setPriority(TicketPriority.MEDIUM);
-		}
+	    if (ticket.getPriority() == null) {
+	        ticket.setPriority(TicketPriority.MEDIUM);
+	    }
 
-		ticket.setCreatedAt(LocalDateTime.now());
-		ticket.setSlaDueAt(ticket.getCreatedAt().plusHours(getSlaHours(ticket.getPriority())));
-		ticket.setResolvedAt(null);
+	    ticket.setCreatedAt(LocalDateTime.now());
+	    ticket.setSlaDueAt(ticket.getCreatedAt().plusHours(getSlaHours(ticket.getPriority())));
+	    ticket.setResolvedAt(null);
 
-		ticketRepository.save(ticket);
+	    ticketRepository.save(ticket);
+
+	    ticketActivityService.createActivity(
+	        ticket.getId(),
+	        currentUser,
+	        TicketActivityType.TICKET_CREATED,
+	        "Ticket created",
+	        null,
+	        null
+	    );
 	}
 
 	private int getSlaHours(TicketPriority priority) {
@@ -80,6 +97,7 @@ public class TicketServiceImpl implements TicketService {
 			throw new BadRequestExeption(ExceptionMessage.INVALID_STATUS_TRANSITION);
 		}
 
+		TicketStatus oldStatus = ticket.getStatus();
 		// Güncelleme
 		ticket.setStatus(newStatus);
 
@@ -87,6 +105,15 @@ public class TicketServiceImpl implements TicketService {
 			ticket.setResolvedAt(LocalDateTime.now());
 		}
 		ticketRepository.update(ticket);
+		
+		ticketActivityService.createActivity(
+			    ticketId,
+			    currentUser,
+			    TicketActivityType.STATUS_CHANGED,
+			    "Status changed from " + oldStatus.name() + " to " + newStatus.name(),
+			    oldStatus.name(),
+			    newStatus.name()
+			);
 	}
 
 	private boolean isValidTransition(TicketStatus current, TicketStatus next) {
@@ -152,9 +179,24 @@ public class TicketServiceImpl implements TicketService {
 		if (assignedUser == null || !assignedUser.isActive() || assignedUser.getRole() != Role.IT_SUPPORT) {
 			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
 		}
+		User previousAssignee = ticket.getAssignedTo();
 
+		String oldAssignee = previousAssignee == null
+		        ? "Unassigned"
+		        : previousAssignee.getUsername();
+
+		String newAssignee = assignedUser.getUsername();
 		ticket.setAssignedTo(assignedUser);
 		ticketRepository.update(ticket);
+		
+		ticketActivityService.createActivity(
+			    ticketId,
+			    currentUser,
+			    TicketActivityType.ASSIGNED,
+			    "Ticket assignment changed",
+			    oldAssignee,
+			    newAssignee
+			);
 	}
 
 	@Override
@@ -254,5 +296,13 @@ public class TicketServiceImpl implements TicketService {
 
 		ticket.setDeleted(true);
 		ticketRepository.update(ticket);
+		ticketActivityService.createActivity(
+			    ticketId,
+			    currentUser,
+			    TicketActivityType.TICKET_DELETED,
+			    "Ticket deleted",
+			    null,
+			    null
+			);
 	}
 }
