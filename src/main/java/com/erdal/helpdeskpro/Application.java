@@ -11,6 +11,7 @@ import com.erdal.helpdeskpro.http.CommentHttpHandler;
 import com.erdal.helpdeskpro.http.TicketHttpHandler;
 import com.erdal.helpdeskpro.http.UserHttpHandler;
 import com.erdal.helpdeskpro.http.NotificationHttpHandler;
+import com.erdal.helpdeskpro.http.TicketActivityHttpHandler;
 public class Application {
 
     public static void main(String[] args) throws Exception {
@@ -76,6 +77,14 @@ public class Application {
                 "/notifications",
                 new NotificationHttpHandler(
                         DependencyContainer.getNotificationController(),
+                        DependencyContainer.getAuthService()
+                )
+        );
+        
+        server.createContext(
+                "/activities",
+                new TicketActivityHttpHandler(
+                        DependencyContainer.getTicketActivityController(),
                         DependencyContainer.getAuthService()
                 )
         );

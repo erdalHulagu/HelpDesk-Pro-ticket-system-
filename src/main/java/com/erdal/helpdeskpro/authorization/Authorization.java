@@ -24,4 +24,6 @@ public interface Authorization {
     void canCheckUserProfile(Attachment attachment, User user);
 
 	void canManageUser(User currentUser, Long targetUserId);
+	
+	void canViewTicketActivity(Ticket ticket, User user);
 }

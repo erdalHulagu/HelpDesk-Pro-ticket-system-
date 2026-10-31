@@ -89,6 +89,13 @@ public class AuthorizationImpl implements Authorization {
         // or tickets assigned to them.
         checkTicketAccess(ticket, user);
     }
+    
+    @Override
+    public void canViewTicketActivity(Ticket ticket, User user) {
+        checkTicketAndUser(ticket, user);
+        checkNotDeleted(ticket);
+        checkTicketAccess(ticket, user);
+    }
 
     // =========================
     // HELPER METHODS

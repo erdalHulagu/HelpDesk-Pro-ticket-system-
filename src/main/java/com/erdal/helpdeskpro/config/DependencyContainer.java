@@ -31,6 +31,7 @@ import com.erdal.helpdeskpro.service.impl.UserServiceImpl;
 import com.erdal.helpdeskpro.controller.AttachmentController;
 import com.erdal.helpdeskpro.repository.AttachmentRepository;
 import com.erdal.helpdeskpro.repository.dao.AttachmentDAO;
+import com.erdal.helpdeskpro.repository.dao.TicketActivityDAO;
 import com.erdal.helpdeskpro.service.AttachmentService;
 import com.erdal.helpdeskpro.service.impl.AttachmentServiceImpl;
 import com.erdal.helpdeskpro.controller.NotificationController;
@@ -38,6 +39,10 @@ import com.erdal.helpdeskpro.repository.NotificationRepository;
 import com.erdal.helpdeskpro.repository.dao.NotificationDAO;
 import com.erdal.helpdeskpro.service.NotificationService;
 import com.erdal.helpdeskpro.service.impl.NotificationServiceImpl;
+import com.erdal.helpdeskpro.repository.TicketActivityRepository;
+import com.erdal.helpdeskpro.service.TicketActivityService;
+import com.erdal.helpdeskpro.service.impl.TicketActivityServiceImpl;
+import com.erdal.helpdeskpro.controller.TicketActivityController;
 
 public final class DependencyContainer {
 
@@ -54,10 +59,13 @@ public final class DependencyContainer {
 
 	private static final Authorization authorization = new AuthorizationImpl();
 
+	private static final TicketActivityRepository ticketActivityRepository = new TicketActivityDAO(sessionFactory);
+
 	// Services
 	private static final UserService userService = new UserServiceImpl(userRepository);
 
-	private static final TicketService ticketService = new TicketServiceImpl(ticketRepository, authorization,userRepository);
+	private static final TicketService ticketService = new TicketServiceImpl(ticketRepository, authorization,
+			userRepository);
 
 	private static final NotificationService notificationService = new NotificationServiceImpl(notificationRepository,
 			userRepository, ticketRepository);
@@ -65,6 +73,8 @@ public final class DependencyContainer {
 	private static final CommentService commentService = new CommentServiceImpl(commentRepository, ticketRepository,
 
 			userRepository, authorization, notificationService);
+	private static final TicketActivityService ticketActivityService = new TicketActivityServiceImpl(
+			ticketActivityRepository, ticketRepository, authorization);
 
 	// Token repository
 	private static final AuthTokenRepository authTokenRepository = new AuthTokenDAO(sessionFactory);
@@ -83,6 +93,9 @@ public final class DependencyContainer {
 
 	private static final NotificationController notificationController = new NotificationController(
 			notificationService);
+	private static final TicketActivityController ticketActivityController = new TicketActivityController(
+			ticketActivityService);
+	
 
 	// Attachments
 	private static final AttachmentRepository attachmentRepository = new AttachmentDAO(sessionFactory);
@@ -138,5 +151,9 @@ public final class DependencyContainer {
 
 	public static NotificationService getNotificationService() {
 		return notificationService;
+	}
+
+	public static TicketActivityController getTicketActivityController() {
+		return ticketActivityController;
 	}
 }
