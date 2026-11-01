@@ -11,6 +11,7 @@ import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.enums.CommentType;
 import com.erdal.helpdeskpro.enums.Role;
+import com.erdal.helpdeskpro.enums.TicketActivityType;
 import com.erdal.helpdeskpro.enums.TicketStatus;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ExceptionMessage;
@@ -20,6 +21,7 @@ import com.erdal.helpdeskpro.repository.TicketRepository;
 import com.erdal.helpdeskpro.repository.UserRepository;
 import com.erdal.helpdeskpro.service.CommentService;
 import com.erdal.helpdeskpro.service.NotificationService;
+import com.erdal.helpdeskpro.service.TicketActivityService;
 
 public class CommentServiceImpl implements CommentService {
 
@@ -28,20 +30,22 @@ public class CommentServiceImpl implements CommentService {
     private UserRepository userRepository;
     private Authorization authorization;
     private NotificationService notificationService;
+    private TicketActivityService ticketActivityService;
 
     public CommentServiceImpl(
             CommentRepository commentRepository,
             TicketRepository ticketRepository,
             UserRepository userRepository,
             Authorization authorization,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            TicketActivityService ticketActivityService) {
 
-        super();
         this.commentRepository = commentRepository;
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
         this.authorization = authorization;
         this.notificationService = notificationService;
+        this.ticketActivityService = ticketActivityService;
     }
 
     // ---------------- Create Comment ----------------
@@ -92,6 +96,31 @@ public class CommentServiceImpl implements CommentService {
 
         // Save comment first.
         Comment savedComment = commentRepository.save(comment);
+        
+     // ---------------- Activity History Logic ----------------
+
+        if (savedComment.getType() == CommentType.INTERNAL) {
+
+            ticketActivityService.createActivity(
+                    ticket.getId(),
+                    user,
+                    TicketActivityType.INTERNAL_NOTE_ADDED,
+                    "Internal note added to ticket #" + ticket.getId(),
+                    null,
+                    null
+            );
+
+        } else {
+
+            ticketActivityService.createActivity(
+                    ticket.getId(),
+                    user,
+                    TicketActivityType.COMMENT_ADDED,
+                    "Comment added to ticket #" + ticket.getId(),
+                    null,
+                    null
+            );
+        }
 
         // ---------------- Notification Logic ----------------
 

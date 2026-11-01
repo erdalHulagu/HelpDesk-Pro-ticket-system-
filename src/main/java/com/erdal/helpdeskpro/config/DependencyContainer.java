@@ -60,6 +60,9 @@ public final class DependencyContainer {
 	private static final Authorization authorization = new AuthorizationImpl();
 
 	private static final TicketActivityRepository ticketActivityRepository = new TicketActivityDAO(sessionFactory);
+	
+	
+	
 
 	// Services
 	private static final UserService userService = new UserServiceImpl(userRepository);
@@ -74,7 +77,7 @@ public final class DependencyContainer {
 			userRepository, ticketRepository);
 
 	private static final CommentService commentService = new CommentServiceImpl(commentRepository, ticketRepository,
-			userRepository, authorization, notificationService);
+			userRepository, authorization, notificationService,ticketActivityService);
 
 	// Token repository
 	private static final AuthTokenRepository authTokenRepository = new AuthTokenDAO(sessionFactory);
