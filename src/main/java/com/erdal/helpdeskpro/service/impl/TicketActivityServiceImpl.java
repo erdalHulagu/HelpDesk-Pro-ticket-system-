@@ -1,3 +1,4 @@
+
 package com.erdal.helpdeskpro.service.impl;
 
 import java.util.ArrayList;
@@ -7,6 +8,7 @@ import com.erdal.helpdeskpro.authorization.Authorization;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.TicketActivity;
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.enums.Role;
 import com.erdal.helpdeskpro.enums.TicketActivityType;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ExceptionMessage;
@@ -81,7 +83,10 @@ public class TicketActivityServiceImpl implements TicketActivityService {
 
         authorization.canViewTicketActivity(ticket, currentUser);
 
-        return ticketActivityRepository.findAllByTicketId(ticketId);
+        List<TicketActivity> activities =
+                ticketActivityRepository.findAllByTicketId(ticketId);
+
+        return filterInternalActivities(activities, currentUser);
     }
 
     @Override
@@ -90,6 +95,7 @@ public class TicketActivityServiceImpl implements TicketActivityService {
         if (currentUser == null
                 || currentUser.getId() == null
                 || currentUser.getRole() == null) {
+
             throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
         }
 
@@ -99,19 +105,79 @@ public class TicketActivityServiceImpl implements TicketActivityService {
         List<TicketActivity> accessibleActivities = new ArrayList<>();
 
         for (TicketActivity activity : allActivities) {
+
             try {
-                authorization.canViewTicketActivity(
-                        activity.getTicket(),
-                        currentUser
-                );
+                Ticket ticket = activity.getTicket();
+
+                if (ticket == null) {
+                    continue;
+                }
+
+                authorization.canViewTicketActivity(ticket, currentUser);
+
+                if (isInternalNote(activity)
+                        && !canViewInternalNote(ticket, currentUser)) {
+                    continue;
+                }
 
                 accessibleActivities.add(activity);
 
             } catch (BadRequestExeption e) {
-                // Skip activities belonging to inaccessible or deleted tickets.
+                // Skip activities belonging to inaccessible tickets.
             }
         }
 
         return accessibleActivities;
+    }
+
+    private List<TicketActivity> filterInternalActivities(
+            List<TicketActivity> activities,
+            User currentUser) {
+
+        List<TicketActivity> filteredActivities = new ArrayList<>();
+
+        for (TicketActivity activity : activities) {
+
+            if (isInternalNote(activity)
+                    && !canViewInternalNote(
+                            activity.getTicket(), currentUser)) {
+                continue;
+            }
+
+            filteredActivities.add(activity);
+        }
+
+        return filteredActivities;
+    }
+
+    private boolean isInternalNote(TicketActivity activity) {
+
+        return activity.getActivityType()
+                == TicketActivityType.INTERNAL_NOTE_ADDED;
+    }
+
+    private boolean canViewInternalNote(
+            Ticket ticket,
+            User currentUser) {
+
+        if (ticket == null
+                || currentUser == null
+                || currentUser.getRole() == null
+                || currentUser.getId() == null) {
+
+            return false;
+        }
+
+        Role role = currentUser.getRole();
+
+        if (role == Role.ADMIN || role == Role.IT_MANAGER) {
+            return true;
+        }
+
+        return role == Role.IT_SUPPORT
+                && ticket.getAssignedTo() != null
+                && ticket.getAssignedTo().getId() != null
+                && ticket.getAssignedTo().getId()
+                        .equals(currentUser.getId());
     }
 }
