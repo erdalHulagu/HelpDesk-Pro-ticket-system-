@@ -16,6 +16,7 @@ public class TicketActivityDTO {
     private LocalDateTime createdAt;
     private Long performedById;
     private String performedByUsername;
+    private String performedByRole;
 
     public TicketActivityDTO() {
     }
@@ -36,17 +37,15 @@ public class TicketActivityDTO {
         this.ticketId = ticketId;
     }
 
-   
-
     public TicketActivityType getActivityType() {
-		return activityType;
-	}
+        return activityType;
+    }
 
-	public void setActivityType(TicketActivityType activityType) {
-		this.activityType = activityType;
-	}
+    public void setActivityType(TicketActivityType activityType) {
+        this.activityType = activityType;
+    }
 
-	public String getDescription() {
+    public String getDescription() {
         return description;
     }
 
@@ -92,5 +91,13 @@ public class TicketActivityDTO {
 
     public void setPerformedByUsername(String performedByUsername) {
         this.performedByUsername = performedByUsername;
+    }
+
+    public String getPerformedByRole() {
+        return performedByRole;
+    }
+
+    public void setPerformedByRole(String performedByRole) {
+        this.performedByRole = performedByRole;
     }
 }
