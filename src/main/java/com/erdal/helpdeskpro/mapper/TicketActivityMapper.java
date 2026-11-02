@@ -18,7 +18,11 @@ public class TicketActivityMapper {
         TicketActivityDTO dto = new TicketActivityDTO();
 
         dto.setId(activity.getId());
-        dto.setTicketId(activity.getTicket().getId());
+
+        if (activity.getTicket() != null) {
+            dto.setTicketId(activity.getTicket().getId());
+        }
+
         dto.setActivityType(activity.getActivityType());
         dto.setDescription(activity.getDescription());
         dto.setOldValue(activity.getOldValue());
@@ -26,10 +30,22 @@ public class TicketActivityMapper {
         dto.setCreatedAt(activity.getCreatedAt());
 
         if (activity.getPerformedBy() != null) {
-            dto.setPerformedById(activity.getPerformedBy().getId());
+
+            dto.setPerformedById(
+                    activity.getPerformedBy().getId()
+            );
+
             dto.setPerformedByUsername(
                     activity.getPerformedBy().getUsername()
             );
+
+            dto.setPerformedByRole(
+                    activity.getPerformedBy().getRole() != null
+                            ? activity.getPerformedBy().getRole().name()
+                            : "UNKNOWN"
+            );
+        } else {
+            dto.setPerformedByRole("UNKNOWN");
         }
 
         return dto;
