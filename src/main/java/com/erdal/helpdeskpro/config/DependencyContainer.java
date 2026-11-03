@@ -13,21 +13,26 @@ import com.erdal.helpdeskpro.controller.AuthController;
 import com.erdal.helpdeskpro.controller.CommentController;
 import com.erdal.helpdeskpro.controller.TicketController;
 import com.erdal.helpdeskpro.controller.UserController;
+import com.erdal.helpdeskpro.controller.AnnouncementController;
 import com.erdal.helpdeskpro.mapper.CommentMapper;
 import com.erdal.helpdeskpro.repository.CommentRepository;
 import com.erdal.helpdeskpro.repository.TicketRepository;
 import com.erdal.helpdeskpro.repository.UserRepository;
 import com.erdal.helpdeskpro.repository.AuthTokenRepository;
+import com.erdal.helpdeskpro.repository.AnnouncementRepository;
 import com.erdal.helpdeskpro.repository.dao.CommentDAO;
 import com.erdal.helpdeskpro.repository.dao.TicketDAO;
 import com.erdal.helpdeskpro.repository.dao.UserDAO;
 import com.erdal.helpdeskpro.repository.dao.AuthTokenDAO;
+import com.erdal.helpdeskpro.repository.dao.AnnouncementDAO;
 import com.erdal.helpdeskpro.service.CommentService;
 import com.erdal.helpdeskpro.service.TicketService;
 import com.erdal.helpdeskpro.service.UserService;
+import com.erdal.helpdeskpro.service.AnnouncementService;
 import com.erdal.helpdeskpro.service.impl.CommentServiceImpl;
 import com.erdal.helpdeskpro.service.impl.TicketServiceImpl;
 import com.erdal.helpdeskpro.service.impl.UserServiceImpl;
+import com.erdal.helpdeskpro.service.impl.AnnouncementServiceImpl;
 import com.erdal.helpdeskpro.controller.AttachmentController;
 import com.erdal.helpdeskpro.repository.AttachmentRepository;
 import com.erdal.helpdeskpro.repository.dao.AttachmentDAO;
@@ -60,6 +65,8 @@ public final class DependencyContainer {
 	private static final Authorization authorization = new AuthorizationImpl();
 
 	private static final TicketActivityRepository ticketActivityRepository = new TicketActivityDAO(sessionFactory);
+	private static final AnnouncementRepository announcementRepository =
+	        new AnnouncementDAO(sessionFactory);
 	
 	
 	
@@ -78,6 +85,9 @@ public final class DependencyContainer {
 
 	private static final CommentService commentService = new CommentServiceImpl(commentRepository, ticketRepository,
 			userRepository, authorization, notificationService,ticketActivityService);
+	
+	private static final AnnouncementService announcementService =
+	        new AnnouncementServiceImpl(announcementRepository);
 
 	// Token repository
 	private static final AuthTokenRepository authTokenRepository = new AuthTokenDAO(sessionFactory);
@@ -98,6 +108,9 @@ public final class DependencyContainer {
 			notificationService);
 	private static final TicketActivityController ticketActivityController = new TicketActivityController(
 			ticketActivityService);
+	
+	private static final AnnouncementController announcementController =
+	        new AnnouncementController(announcementService);
 
 	// Attachments
 	private static final AttachmentRepository attachmentRepository = new AttachmentDAO(sessionFactory);
