@@ -18,8 +18,8 @@ public class Announcement {
     private String message;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "target_role", nullable = false, length = 30)
-    private Role targetRole ;
+    @Column(name = "target_role", nullable = true, length = 30)
+    private Role targetRole;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")

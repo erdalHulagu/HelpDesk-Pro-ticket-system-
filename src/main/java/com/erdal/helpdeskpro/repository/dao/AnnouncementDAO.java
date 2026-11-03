@@ -21,35 +21,48 @@ public class AnnouncementDAO implements AnnouncementRepository {
         this.sessionFactory = sessionFactory;
     }
 
+  
     @Override
     public Announcement save(Announcement announcement) {
+
         Transaction transaction = null;
 
         try (Session session = sessionFactory.openSession()) {
-            transaction = session.beginTransaction();
 
-            Announcement saved;
+            try {
+                transaction = session.beginTransaction();
 
-            if (announcement.getId() == null) {
-                session.persist(announcement);
-                saved = announcement;
-            } else {
-                saved = session.merge(announcement);
+                Announcement savedAnnouncement;
+
+                if (announcement.getId() == null) {
+                    session.persist(announcement);
+                    savedAnnouncement = announcement;
+                } else {
+                    savedAnnouncement = session.merge(announcement);
+                }
+
+                session.flush();
+                transaction.commit();
+
+                return savedAnnouncement;
+
+            } catch (RuntimeException e) {
+
+                // Rollback only if the transaction is still active.
+                if (transaction != null && transaction.isActive()) {
+                    try {
+                        transaction.rollback();
+                    } catch (RuntimeException rollbackException) {
+                        e.addSuppressed(rollbackException);
+                    }
+                }
+
+                // Preserve the original database exception.
+                throw e;
             }
-
-            session.flush();
-            transaction.commit();
-
-            return saved;
-
-        } catch (RuntimeException e) {
-            if (transaction != null && transaction.isActive()) {
-                transaction.rollback();
-            }
-            throw e;
         }
     }
-
+    
     @Override
     public Optional<Announcement> findById(Long id) {
         try (Session session = sessionFactory.openSession()) {

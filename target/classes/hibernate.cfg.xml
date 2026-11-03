@@ -26,6 +26,8 @@
 		<mapping class="com.erdal.helpdeskpro.domain.User" />
 
 		<mapping class="com.erdal.helpdeskpro.domain.Notification" />
+		
+		<mapping class="com.erdal.helpdeskpro.domain.Announcement"/>
 
 	</session-factory>
 

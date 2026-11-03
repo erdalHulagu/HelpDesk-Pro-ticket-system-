@@ -4,6 +4,7 @@ package com.erdal.helpdeskpro.config.util;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
+import com.erdal.helpdeskpro.domain.Announcement;
 import com.erdal.helpdeskpro.domain.Attachment;
 import com.erdal.helpdeskpro.domain.AuthToken;
 import com.erdal.helpdeskpro.domain.Comment;
@@ -22,6 +23,7 @@ public class HibernateUtil {
 					.addAnnotatedClass(Ticket.class).addAnnotatedClass(Comment.class)
 					.addAnnotatedClass(Attachment.class).addAnnotatedClass(AuthToken.class)
 					.addAnnotatedClass(Notification.class).addAnnotatedClass(TicketActivity.class)
+					.addAnnotatedClass(Announcement.class)
 					.buildSessionFactory();
 
 		} catch (Exception e) {
