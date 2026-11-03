@@ -171,4 +171,7 @@ public final class DependencyContainer {
 	public static TicketActivityController getTicketActivityController() {
 		return ticketActivityController;
 	}
+	public static AnnouncementController getAnnouncementController() {
+	    return announcementController;
+	}
 }

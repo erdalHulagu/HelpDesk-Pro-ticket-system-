@@ -1,4 +1,3 @@
-
 package com.erdal.helpdeskpro;
 
 import java.net.InetSocketAddress;
@@ -12,6 +11,8 @@ import com.erdal.helpdeskpro.http.TicketHttpHandler;
 import com.erdal.helpdeskpro.http.UserHttpHandler;
 import com.erdal.helpdeskpro.http.NotificationHttpHandler;
 import com.erdal.helpdeskpro.http.TicketActivityHttpHandler;
+import com.erdal.helpdeskpro.http.AnnouncementHttpHandler;
+
 public class Application {
 
     public static void main(String[] args) throws Exception {
@@ -19,7 +20,7 @@ public class Application {
         HttpServer server =
                 HttpServer.create(new InetSocketAddress(8080), 0);
 
-     // Authentication
+        // Authentication
         server.createContext(
                 "/auth",
                 new AuthHttpHandler(
@@ -28,14 +29,15 @@ public class Application {
                 )
         );
 
+        // Users
         server.createContext(
-        	    "/users",
-        	    new UserHttpHandler(
-        	        DependencyContainer.getUserController(),
-        	        DependencyContainer.getAuthService(),
-        	        DependencyContainer.getAuthorization()
-        	    )
-        	);
+                "/users",
+                new UserHttpHandler(
+                        DependencyContainer.getUserController(),
+                        DependencyContainer.getAuthService(),
+                        DependencyContainer.getAuthorization()
+                )
+        );
 
         // Tickets
         server.createContext(
@@ -62,8 +64,8 @@ public class Application {
                         DependencyContainer.getAuthService()
                 )
         );
-        
-        // attachments
+
+        // Attachments
         server.createContext(
                 "/attachments",
                 new AttachmentHttpHandler(
@@ -71,8 +73,8 @@ public class Application {
                         DependencyContainer.getAuthService()
                 )
         );
-        
-     // Notifications
+
+        // Notifications
         server.createContext(
                 "/notifications",
                 new NotificationHttpHandler(
@@ -80,11 +82,21 @@ public class Application {
                         DependencyContainer.getAuthService()
                 )
         );
-        
+
+        // Ticket Activities
         server.createContext(
                 "/activities",
                 new TicketActivityHttpHandler(
                         DependencyContainer.getTicketActivityController(),
+                        DependencyContainer.getAuthService()
+                )
+        );
+
+        // Announcements
+        server.createContext(
+                "/announcements",
+                new AnnouncementHttpHandler(
+                        DependencyContainer.getAnnouncementController(),
                         DependencyContainer.getAuthService()
                 )
         );

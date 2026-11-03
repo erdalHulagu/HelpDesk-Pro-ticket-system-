@@ -1,4 +1,4 @@
-```java
+
 package com.erdal.helpdeskpro.http;
 
 import java.io.IOException;
