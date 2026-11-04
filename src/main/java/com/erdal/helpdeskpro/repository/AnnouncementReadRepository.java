@@ -1,6 +1,7 @@
 
 package com.erdal.helpdeskpro.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface AnnouncementReadRepository {
@@ -10,4 +11,6 @@ public interface AnnouncementReadRepository {
     boolean isRead(Long announcementId, Long userId);
 
     List<Long> getReadAnnouncementIds(Long userId);
+
+	LocalDateTime getReadAt(Long announcementId, Long userId);
 }

@@ -1,3 +1,4 @@
+
 package com.erdal.helpdeskpro;
 
 import java.net.InetSocketAddress;
@@ -97,6 +98,7 @@ public class Application {
                 "/announcements",
                 new AnnouncementHttpHandler(
                         DependencyContainer.getAnnouncementController(),
+                        DependencyContainer.getAnnouncementReadController(),
                         DependencyContainer.getAuthService()
                 )
         );

@@ -48,6 +48,11 @@ import com.erdal.helpdeskpro.repository.TicketActivityRepository;
 import com.erdal.helpdeskpro.service.TicketActivityService;
 import com.erdal.helpdeskpro.service.impl.TicketActivityServiceImpl;
 import com.erdal.helpdeskpro.controller.TicketActivityController;
+import com.erdal.helpdeskpro.repository.AnnouncementReadRepository;
+import com.erdal.helpdeskpro.repository.dao.AnnouncementReadDAO;
+import com.erdal.helpdeskpro.service.AnnouncementReadService;
+import com.erdal.helpdeskpro.service.impl.AnnouncementReadServiceImpl;
+import com.erdal.helpdeskpro.controller.AnnouncementReadController;
 
 public final class DependencyContainer {
 
@@ -65,11 +70,11 @@ public final class DependencyContainer {
 	private static final Authorization authorization = new AuthorizationImpl();
 
 	private static final TicketActivityRepository ticketActivityRepository = new TicketActivityDAO(sessionFactory);
-	private static final AnnouncementRepository announcementRepository =
-	        new AnnouncementDAO(sessionFactory);
-	
-	
-	
+
+	private static final AnnouncementRepository announcementRepository = new AnnouncementDAO(sessionFactory);
+
+	private static final AnnouncementReadRepository announcementReadRepository = new AnnouncementReadDAO(
+			sessionFactory);
 
 	// Services
 	private static final UserService userService = new UserServiceImpl(userRepository);
@@ -84,10 +89,12 @@ public final class DependencyContainer {
 			userRepository, ticketRepository);
 
 	private static final CommentService commentService = new CommentServiceImpl(commentRepository, ticketRepository,
-			userRepository, authorization, notificationService,ticketActivityService);
-	
-	private static final AnnouncementService announcementService =
-	        new AnnouncementServiceImpl(announcementRepository);
+			userRepository, authorization, notificationService, ticketActivityService);
+
+	private static final AnnouncementService announcementService = new AnnouncementServiceImpl(announcementRepository);
+
+	private static final AnnouncementReadService announcementReadService = new AnnouncementReadServiceImpl(
+			announcementReadRepository, announcementRepository);
 
 	// Token repository
 	private static final AuthTokenRepository authTokenRepository = new AuthTokenDAO(sessionFactory);
@@ -108,12 +115,14 @@ public final class DependencyContainer {
 			notificationService);
 	private static final TicketActivityController ticketActivityController = new TicketActivityController(
 			ticketActivityService);
-	
-	private static final AnnouncementController announcementController =
-	        new AnnouncementController(announcementService);
+	private static final AnnouncementController announcementController = new AnnouncementController(
+			announcementService);
+	private static final AnnouncementReadController announcementReadController = new AnnouncementReadController(
+			announcementReadService);
 
 	// Attachments
 	private static final AttachmentRepository attachmentRepository = new AttachmentDAO(sessionFactory);
+
 	private static final CommentMapper commentMapper = new CommentMapper(attachmentRepository);
 
 	private static final CommentController commentController = new CommentController(commentService, commentMapper);
@@ -171,7 +180,12 @@ public final class DependencyContainer {
 	public static TicketActivityController getTicketActivityController() {
 		return ticketActivityController;
 	}
+
 	public static AnnouncementController getAnnouncementController() {
-	    return announcementController;
+		return announcementController;
+	}
+
+	public static AnnouncementReadController getAnnouncementReadController() {
+		return announcementReadController;
 	}
 }

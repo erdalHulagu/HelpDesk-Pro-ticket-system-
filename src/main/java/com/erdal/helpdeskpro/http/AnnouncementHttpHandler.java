@@ -4,17 +4,20 @@ package com.erdal.helpdeskpro.http;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.erdal.helpdeskpro.auth.AuthService;
 import com.erdal.helpdeskpro.config.util.JsonUtil;
 import com.erdal.helpdeskpro.controller.AnnouncementController;
+import com.erdal.helpdeskpro.controller.AnnouncementReadController;
 import com.erdal.helpdeskpro.domain.Announcement;
-import com.erdal.helpdeskpro.enums.Role;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.dtos.AnnouncementDTO;
+import com.erdal.helpdeskpro.enums.Role;
 import com.erdal.helpdeskpro.mapper.AnnouncementMapper;
 import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
@@ -23,13 +26,16 @@ import com.sun.net.httpserver.HttpHandler;
 public class AnnouncementHttpHandler implements HttpHandler {
 
     private final AnnouncementController announcementController;
+    private final AnnouncementReadController announcementReadController;
     private final AuthService authService;
 
     public AnnouncementHttpHandler(
             AnnouncementController announcementController,
+            AnnouncementReadController announcementReadController,
             AuthService authService) {
 
         this.announcementController = announcementController;
+        this.announcementReadController = announcementReadController;
         this.authService = authService;
     }
 
@@ -68,6 +74,14 @@ public class AnnouncementHttpHandler implements HttpHandler {
                     && "/announcements".equals(path)) {
 
                 handleCreateAnnouncement(exchange, user);
+                return;
+            }
+
+            // PUT /announcements/{id}/read
+            if ("PUT".equalsIgnoreCase(method)
+                    && path.matches("/announcements/\\d+/read")) {
+
+                handleMarkAsRead(exchange, path, user);
                 return;
             }
 
@@ -141,16 +155,57 @@ public class AnnouncementHttpHandler implements HttpHandler {
             HttpExchange exchange,
             User user) throws IOException {
 
-        List<AnnouncementDTO> response =
-                announcementController.getMyAnnouncements(user)
-                        .stream()
-                        .map(AnnouncementMapper::toDTO)
-                        .collect(Collectors.toList());
+        List<Announcement> announcements =
+                announcementController.getMyAnnouncements(user);
+
+        Set<Long> readIds = new HashSet<>(
+                announcementReadController.getReadAnnouncementIds(user)
+        );
+
+        List<AnnouncementDTO> response = announcements.stream()
+                .map(announcement -> {
+
+                    boolean read = readIds.contains(announcement.getId());
+
+                    LocalDateTime readAt = read
+                            ? announcementReadController.getReadAt(
+                                    announcement.getId(), user)
+                            : null;
+
+                    return AnnouncementMapper.toDTOWithReadStatus(
+                            announcement,
+                            read,
+                            readAt
+                    );
+                })
+                .collect(Collectors.toList());
 
         JsonUtil.sendJson(
                 exchange,
                 200,
                 JsonUtil.toJson(response)
+        );
+    }
+
+    private void handleMarkAsRead(
+            HttpExchange exchange,
+            String path,
+            User user) throws IOException {
+
+        Long announcementId = extractReadId(path);
+
+        announcementReadController.markAsRead(
+                announcementId,
+                user
+        );
+
+        JsonUtil.sendJson(
+                exchange,
+                200,
+                JsonUtil.toJson(Map.of(
+                        "message",
+                        "Announcement marked as read"
+                ))
         );
     }
 
@@ -250,6 +305,12 @@ public class AnnouncementHttpHandler implements HttpHandler {
         return Long.parseLong(parts[2]);
     }
 
+    private Long extractReadId(String path) {
+
+        String[] parts = path.split("/");
+        return Long.parseLong(parts[2]);
+    }
+
     private Role parseRole(String role) {
 
         if (role == null || role.isBlank()) {
@@ -258,8 +319,8 @@ public class AnnouncementHttpHandler implements HttpHandler {
 
         try {
             return Role.valueOf(role.trim().toUpperCase());
-        } catch (java.lang.IllegalArgumentException e) {
-            throw new java.lang.IllegalArgumentException(
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
                     "Invalid announcement target role: " + role
             );
         }

@@ -1,6 +1,8 @@
 
 package com.erdal.helpdeskpro.mapper;
 
+import java.time.LocalDateTime;
+
 import com.erdal.helpdeskpro.domain.Announcement;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.dtos.AnnouncementDTO;
@@ -40,4 +42,35 @@ public class AnnouncementMapper {
 
         return dto;
     }
+    
+
+    public static AnnouncementDTO toDTO(
+            Announcement announcement,
+            boolean read,
+           LocalDateTime readAt) {
+
+        AnnouncementDTO dto = toDTO(announcement);
+
+        if (dto != null) {
+            dto.setRead(read);
+            dto.setReadAt(readAt);
+        }
+
+        return dto;
+    }
+    public static AnnouncementDTO toDTOWithReadStatus(
+            Announcement announcement,
+            boolean read,
+            LocalDateTime readAt) {
+
+        AnnouncementDTO dto = toDTO(announcement);
+
+        if (dto != null) {
+            dto.setRead(read);
+            dto.setReadAt(readAt);
+        }
+
+        return dto;
+    }
+    
 }
