@@ -151,6 +151,7 @@ public final class DependencyContainer {
 	public static AuthController getAuthController() {
 		return authController;
 	}
+	
 
 	public static AuthService getAuthService() {
 		return authService;

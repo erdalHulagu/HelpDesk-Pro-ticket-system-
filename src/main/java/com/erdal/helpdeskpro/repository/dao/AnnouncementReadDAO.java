@@ -118,4 +118,68 @@ public class AnnouncementReadDAO implements AnnouncementReadRepository {
         }
     }
     
+    
+    @Override
+    public void markAllAsRead(List<Long> announcementIds, Long userId) {
+
+        if (announcementIds == null || announcementIds.isEmpty()) {
+            return;
+        }
+
+        Transaction transaction = null;
+
+        try (Session session = sessionFactory.openSession()) {
+
+            transaction = session.beginTransaction();
+
+            User user = session.get(User.class, userId);
+
+            if (user == null) {
+                throw new IllegalArgumentException("User not found");
+            }
+
+            for (Long announcementId : announcementIds) {
+
+                if (announcementId == null) {
+                    continue;
+                }
+
+                Long count = session.createQuery(
+                        "SELECT COUNT(ar.id) FROM AnnouncementRead ar " +
+                        "WHERE ar.announcement.id = :announcementId " +
+                        "AND ar.user.id = :userId",
+                        Long.class
+                )
+                .setParameter("announcementId", announcementId)
+                .setParameter("userId", userId)
+                .uniqueResult();
+
+                if (count != null && count == 0) {
+
+                    Announcement announcement =
+                            session.get(Announcement.class, announcementId);
+
+                    if (announcement != null) {
+                        AnnouncementRead announcementRead =
+                                new AnnouncementRead(announcement, user);
+
+                        session.persist(announcementRead);
+                    }
+                }
+            }
+
+            transaction.commit();
+
+        } catch (Exception e) {
+
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+
+            throw new RuntimeException(
+                    "Failed to mark all announcements as read",
+                    e
+            );
+        }
+    }
 }

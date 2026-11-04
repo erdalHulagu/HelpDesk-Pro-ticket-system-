@@ -1,6 +1,8 @@
+
 package com.erdal.helpdeskpro.config.util;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 import com.erdal.helpdeskpro.exception.ExceptionMessage;
@@ -10,15 +12,16 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
 import com.sun.net.httpserver.HttpExchange;
-import java.nio.charset.StandardCharsets;
 
 public class JsonUtil {
 
     private static final Gson gson = new GsonBuilder()
-        .registerTypeAdapter(LocalDateTime.class,
-            (JsonSerializer<LocalDateTime>) (src, type, ctx) ->
-                new JsonPrimitive(src.toString()))
-        .create();
+            .registerTypeAdapter(
+                    LocalDateTime.class,
+                    (JsonSerializer<LocalDateTime>) (src, type, ctx) ->
+                            new JsonPrimitive(src.toString())
+            )
+            .create();
 
     public static String toJson(Object obj) {
         return gson.toJson(obj);
@@ -26,11 +29,25 @@ public class JsonUtil {
 
     public static <T> T fromJson(String json, Class<T> clazz) {
         if (json == null || json.isBlank()) {
-            throw new IllegalArgumentException(ExceptionMessage.JSON_BODY_CANNOT_BE_EMPTY);
+            throw new IllegalArgumentException(
+                    ExceptionMessage.JSON_BODY_CANNOT_BE_EMPTY
+            );
         }
 
         return gson.fromJson(json, clazz);
     }
+
+    // Object verildiğinde JSON'a dönüştürür.
+    public static void sendJson(
+            HttpExchange exchange,
+            int status,
+            Object data) throws IOException {
+
+        String json = gson.toJson(data);
+        sendJson(exchange, status, json);
+    }
+
+    // Hazır JSON metnini HTTP response olarak gönderir.
     public static void sendJson(
             HttpExchange exchange,
             int status,
@@ -44,27 +61,11 @@ public class JsonUtil {
         );
 
         exchange.sendResponseHeaders(status, bytes.length);
-        exchange.getResponseBody().write(bytes);
-        exchange.close();
+
+        try {
+            exchange.getResponseBody().write(bytes);
+        } finally {
+            exchange.close();
+        }
     }
-
-/**
- * JSON utility for serializing/deserializing objects.
- */
-
-//
-//    private static final ObjectMapper objectMapper = new ObjectMapper();
-//
-//    public static String toJson(Object obj) throws Exception {
-//        return objectMapper.writeValueAsString(obj);
-//    }
-//
-//    public static <T> T fromJson(String json, Class<T> cls) throws Exception {
-//        return objectMapper.readValue(json, cls);
-//    }
-//    
-//    
-//    
-//    
-//}
 }

@@ -13,4 +13,6 @@ public interface AnnouncementReadRepository {
     List<Long> getReadAnnouncementIds(Long userId);
 
 	LocalDateTime getReadAt(Long announcementId, Long userId);
+
+	void markAllAsRead(List<Long> announcementIds, Long userId);
 }

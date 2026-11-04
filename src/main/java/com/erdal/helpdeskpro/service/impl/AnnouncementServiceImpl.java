@@ -72,13 +72,22 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 		return announcementRepository.findAllAnnouncements();
 	}
 
+	
 	@Override
 	public List<Announcement> getMyAnnouncements(User currentUser) {
 
-		validateUser(currentUser);
+	    validateUser(currentUser);
 
-		return announcementRepository.findActiveAnnouncementsByRole(currentUser.getRole());
+	    return announcementRepository
+	            .findActiveAnnouncementsByRole(currentUser.getRole())
+	            .stream()
+	            .filter(announcement ->
+	                    announcement.getCreatedBy() == null
+	                    || !announcement.getCreatedBy().getId()
+	                            .equals(currentUser.getId()))
+	            .toList();
 	}
+	
 
 	@Override
 	public boolean deleteAnnouncement(Long announcementId, User currentUser) {
@@ -99,13 +108,14 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 		}
 	}
 
-	private void validateAdmin(User user) {
-
-		validateUser(user);
-
-		if (user.getRole() != Role.ADMIN) {
-			throw new SecurityException("Only administrators can manage announcements.");
-		}
+	private void validateAdmin(User currentUser) {
+	    if (currentUser == null ||
+	            (currentUser.getRole() != Role.ADMIN &&
+	             currentUser.getRole() != Role.IT_MANAGER)) {
+	        throw new SecurityException(
+	                "Only admins and IT managers can perform this action"
+	        );
+	    }
 	}
 
 	private void validateAnnouncementData(String title, String message, LocalDateTime expiresAt) {

@@ -43,4 +43,12 @@ public class AnnouncementReadController {
     public LocalDateTime getReadAt(Long announcementId, User currentUser) {
         return announcementReadService.getReadAt(announcementId, currentUser);
     }
+    
+    
+    /**
+     * Marks all announcement as read by the current user.
+     */
+    public void markAllAsRead(User currentUser) {
+        announcementReadService.markAllAsRead(currentUser);
+    }
 }

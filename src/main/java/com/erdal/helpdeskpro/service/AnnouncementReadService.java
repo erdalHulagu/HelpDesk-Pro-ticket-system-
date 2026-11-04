@@ -14,4 +14,6 @@ public interface AnnouncementReadService {
     List<Long> getReadAnnouncementIds(User currentUser);
 
 	LocalDateTime getReadAt(Long announcementId, User currentUser);
+
+	void markAllAsRead(User currentUser);
 }

@@ -3,6 +3,7 @@ package com.erdal.helpdeskpro.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.erdal.helpdeskpro.domain.Announcement;
 import com.erdal.helpdeskpro.domain.User;
@@ -102,6 +103,28 @@ public class AnnouncementReadServiceImpl
 
         return announcementReadRepository.getReadAt(
                 announcementId,
+                currentUser.getId()
+        );
+    }
+    
+    @Override
+    public void markAllAsRead(User currentUser) {
+
+        if (currentUser == null) {
+            throw new SecurityException("User not authenticated");
+        }
+
+        List<Announcement> announcements =
+                announcementRepository.findActiveAnnouncementsByRole(
+                        currentUser.getRole()
+                );
+
+        List<Long> announcementIds = announcements.stream()
+                .map(Announcement::getId)
+                .collect(Collectors.toList());
+
+        announcementReadRepository.markAllAsRead(
+                announcementIds,
                 currentUser.getId()
         );
     }

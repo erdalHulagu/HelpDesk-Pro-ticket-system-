@@ -92,6 +92,13 @@ public class AnnouncementHttpHandler implements HttpHandler {
                 handleUpdateAnnouncement(exchange, path, user);
                 return;
             }
+            
+            if ("PUT".equalsIgnoreCase(exchange.getRequestMethod())
+                    && "/announcements/read-all".equals(path)) {
+
+                handleMarkAllAsRead(exchange);
+                return;
+            }
 
             // DELETE /announcements/{id}
             if ("DELETE".equalsIgnoreCase(method)
@@ -265,6 +272,29 @@ public class AnnouncementHttpHandler implements HttpHandler {
                 JsonUtil.toJson(response)
         );
     }
+    
+    private void handleMarkAllAsRead(HttpExchange exchange)
+            throws IOException {
+
+        User user = authenticateRequest(exchange);
+
+        if (user == null) {
+            JsonUtil.sendJson(
+                    exchange,
+                    401,
+                    Map.of("message", "Unauthorized")
+            );
+            return;
+        }
+
+        announcementReadController.markAllAsRead(user);
+
+        JsonUtil.sendJson(
+                exchange,
+                200,
+                Map.of("message", "All announcements marked as read")
+        );
+    }
 
     private void handleDeleteAnnouncement(
             HttpExchange exchange,
@@ -349,6 +379,8 @@ public class AnnouncementHttpHandler implements HttpHandler {
                 ))
         );
     }
+    
+    
 
     private static class AnnouncementRequest {
 
