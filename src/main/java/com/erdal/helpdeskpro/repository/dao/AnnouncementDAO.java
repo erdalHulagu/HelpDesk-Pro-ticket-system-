@@ -21,14 +21,11 @@ public class AnnouncementDAO implements AnnouncementRepository {
         this.sessionFactory = sessionFactory;
     }
 
-  
     @Override
     public Announcement save(Announcement announcement) {
-
         Transaction transaction = null;
 
         try (Session session = sessionFactory.openSession()) {
-
             try {
                 transaction = session.beginTransaction();
 
@@ -47,8 +44,6 @@ public class AnnouncementDAO implements AnnouncementRepository {
                 return savedAnnouncement;
 
             } catch (RuntimeException e) {
-
-                // Rollback only if the transaction is still active.
                 if (transaction != null && transaction.isActive()) {
                     try {
                         transaction.rollback();
@@ -57,12 +52,11 @@ public class AnnouncementDAO implements AnnouncementRepository {
                     }
                 }
 
-                // Preserve the original database exception.
                 throw e;
             }
         }
     }
-    
+
     @Override
     public Optional<Announcement> findById(Long id) {
         try (Session session = sessionFactory.openSession()) {
@@ -109,26 +103,33 @@ public class AnnouncementDAO implements AnnouncementRepository {
 
     @Override
     public boolean deleteById(Long id) {
-        Transaction transaction = null;
-
         try (Session session = sessionFactory.openSession()) {
-            transaction = session.beginTransaction();
+            Transaction transaction = null;
 
-            int deleted = session.createMutationQuery(
-                    "delete from Announcement a "
-                    + "where a.id = :id")
-                    .setParameter("id", id)
-                    .executeUpdate();
+            try {
+                transaction = session.beginTransaction();
 
-            transaction.commit();
+                int deleted = session.createMutationQuery(
+                        "delete from Announcement a "
+                        + "where a.id = :id")
+                        .setParameter("id", id)
+                        .executeUpdate();
 
-            return deleted > 0;
+                transaction.commit();
 
-        } catch (RuntimeException e) {
-            if (transaction != null && transaction.isActive()) {
-                transaction.rollback();
+                return deleted > 0;
+
+            } catch (RuntimeException e) {
+                if (transaction != null && transaction.isActive()) {
+                    try {
+                        transaction.rollback();
+                    } catch (RuntimeException rollbackException) {
+                        e.addSuppressed(rollbackException);
+                    }
+                }
+
+                throw e;
             }
-            throw e;
         }
     }
 }
