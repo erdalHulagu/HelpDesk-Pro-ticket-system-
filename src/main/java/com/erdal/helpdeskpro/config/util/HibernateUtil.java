@@ -13,6 +13,7 @@ import com.erdal.helpdeskpro.domain.Notification;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.TicketActivity;
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.domain.SecurityLog;
 
 public class HibernateUtil {
 
@@ -24,9 +25,8 @@ public class HibernateUtil {
 					.addAnnotatedClass(Ticket.class).addAnnotatedClass(Comment.class)
 					.addAnnotatedClass(Attachment.class).addAnnotatedClass(AuthToken.class)
 					.addAnnotatedClass(Notification.class).addAnnotatedClass(TicketActivity.class)
-					.addAnnotatedClass(Announcement.class)
-					.addAnnotatedClass(AnnouncementRead.class)
-					.buildSessionFactory();
+					.addAnnotatedClass(Announcement.class).addAnnotatedClass(AnnouncementRead.class)
+					.addAnnotatedClass(SecurityLog.class).buildSessionFactory();
 
 		} catch (Exception e) {
 			throw new RuntimeException("SessionFactory oluşturulamadı", e);
