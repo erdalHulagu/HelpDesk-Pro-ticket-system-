@@ -1,6 +1,5 @@
 package com.erdal.helpdeskpro.auth;
 
-
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.web.request.LoginRequest;
 import com.erdal.helpdeskpro.web.request.RegisterRequest;
@@ -8,15 +7,15 @@ import com.erdal.helpdeskpro.web.response.LoginResponse;
 
 public interface AuthService {
 
-    // Yeni kullanıcı kaydı işlemini başlatır.
-    void register(RegisterRequest request);
+    void register(RegisterRequest registerRequest);
 
-    // Kullanıcıyı doğrular ve başarılı girişte token döndürür.
     LoginResponse login(LoginRequest request);
 
-    // Token üzerinden giriş yapan kullanıcıyı bulur.
+    LoginResponse login(LoginRequest request, String ipAddress);
+
     User authenticate(String token);
 
-    // Mevcut oturumu sonlandırır.
     void logout(String token);
+
+    void logout(String token, String ipAddress);
 }

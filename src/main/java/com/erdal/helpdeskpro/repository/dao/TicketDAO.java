@@ -1,5 +1,6 @@
 package com.erdal.helpdeskpro.repository.dao;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hibernate.Session;
@@ -145,6 +146,24 @@ public class TicketDAO implements TicketRepository {
 							+ "where t.isDeleted = false " + "and t.assignedTo.id = :userId", Ticket.class)
 					.setParameter("userId", userId).list();
 		}
+	}
+	
+	@Override
+	public List<Ticket> findAllByCreatedAtBetween(
+	        LocalDateTime startDate,
+	        LocalDateTime endDate) {
+
+	    try (Session session = sessionFactory.openSession()) {
+	        return session.createQuery(
+	                "from Ticket t where t.isDeleted = false "
+	                + "and t.createdAt >= :startDate "
+	                + "and t.createdAt <= :endDate "
+	                + "order by t.createdAt desc",
+	                Ticket.class)
+	            .setParameter("startDate", startDate)
+	            .setParameter("endDate", endDate)
+	            .list();
+	    }
 	}
 
 }

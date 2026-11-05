@@ -3,6 +3,7 @@ package com.erdal.helpdeskpro.service;
 import java.util.List;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.dtos.UserDTO;
+import com.erdal.helpdeskpro.web.request.RegisterRequest;
 
 public interface UserService {
 	

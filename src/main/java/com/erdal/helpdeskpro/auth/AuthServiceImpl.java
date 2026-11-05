@@ -2,6 +2,8 @@
 package com.erdal.helpdeskpro.auth;
 
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.mapper.UserMapper;
+import com.erdal.helpdeskpro.service.SecurityLogService;
 import com.erdal.helpdeskpro.service.UserService;
 import com.erdal.helpdeskpro.web.request.LoginRequest;
 import com.erdal.helpdeskpro.web.request.RegisterRequest;
@@ -11,57 +13,72 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserService userService;
     private final TokenService tokenService;
+    private final SecurityLogService securityLogService;
 
     public AuthServiceImpl(
             UserService userService,
-            TokenService tokenService) {
+            TokenService tokenService,
+            SecurityLogService securityLogService) {
 
         this.userService = userService;
         this.tokenService = tokenService;
+        this.securityLogService = securityLogService;
     }
 
     @Override
-    public void register(RegisterRequest request) {
+    public void register(RegisterRequest registerRequest) {
 
-        // Boş kayıt isteğini reddet.
-        if (request == null
-                || isBlank(request.getUsername())
-                || isBlank(request.getEmail())
-                || isBlank(request.getPassword())) {
-            throw new IllegalArgumentException(
-                    "Username, email and password are required");
-        }
+        User user = UserMapper.registerRequestToUser(registerRequest);
 
-        // Rolü ve aktiflik durumunu kullanıcıdan alma.
-        User user = new User();
-        user.setUsername(request.getUsername().trim());
-        user.setEmail(request.getEmail().trim());
-        user.setPassword(request.getPassword());
-
-        // Mevcut servis şifreyi BCrypt ile hash'ler.
         userService.registerUser(user);
     }
 
     @Override
     public LoginResponse login(LoginRequest request) {
+        return login(request, null);
+    }
+
+    @Override
+    public LoginResponse login(LoginRequest request, String ipAddress) {
 
         if (request == null
-                || isBlank(request.getEmail())
-                || isBlank(request.getPassword())) {
+                || request.getEmail() == null
+                || request.getEmail().isBlank()
+                || request.getPassword() == null
+                || request.getPassword().isBlank()) {
+
             throw new IllegalArgumentException(
-                    "Email and password are required");
+                    "Email and password are required.");
         }
 
-        // Mevcut servis kullanıcıyı ve şifreyi doğrular.
-        User user = userService.login(
-                request.getEmail().trim(),
-                request.getPassword()
-        );
+        String email = request.getEmail().trim();
 
-        // Doğrulanan kullanıcı için token üret.
+        User user;
+
+        try {
+            user = userService.login(email, request.getPassword());
+        } catch (RuntimeException e) {
+            safeLog(
+                    null,
+                    email,
+                    "LOGIN_FAILED",
+                    ipAddress,
+                    "Login failed: " + e.getMessage()
+            );
+
+            throw e;
+        }
+
         String token = tokenService.createToken(user);
 
-     // // Şifreyi response'a ekleme.
+        safeLog(
+                user.getId(),
+                user.getUsername(),
+                "LOGIN_SUCCESS",
+                ipAddress,
+                "Successful login"
+        );
+
         return new LoginResponse(
                 token,
                 user.getId(),
@@ -75,17 +92,51 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public User authenticate(String token) {
-        // Token geçersizse veya bulunamazsa null dönebilir.
         return tokenService.getUserByToken(token);
     }
 
     @Override
     public void logout(String token) {
-        // Mevcut token'ı geçersiz kıl.
-        tokenService.revokeToken(token);
+        logout(token, null);
     }
 
-    private boolean isBlank(String value) {
-        return value == null || value.isBlank();
+    @Override
+    public void logout(String token, String ipAddress) {
+
+        User user = authenticate(token);
+
+        tokenService.revokeToken(token);
+
+        safeLog(
+                user.getId(),
+                user.getUsername(),
+                "LOGOUT",
+                ipAddress,
+                "User logged out"
+        );
+    }
+
+    private void safeLog(
+            Long userId,
+            String username,
+            String action,
+            String ipAddress,
+            String details) {
+
+        try {
+            securityLogService.log(
+                    userId,
+                    username,
+                    action,
+                    ipAddress,
+                    details
+            );
+
+            System.out.println("SECURITY LOG SAVED: " + action);
+
+        } catch (RuntimeException e) {
+            System.err.println("SECURITY LOG ERROR:");
+            e.printStackTrace();
+        }
     }
 }

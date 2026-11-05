@@ -2,14 +2,17 @@
 package com.erdal.helpdeskpro.config;
 
 import org.hibernate.SessionFactory;
-
+import com.erdal.helpdeskpro.repository.SecurityLogRepository;
+import com.erdal.helpdeskpro.repository.dao.SecurityLogDAO;
+import com.erdal.helpdeskpro.service.SecurityLogService;
+import com.erdal.helpdeskpro.service.impl.SecurityLogServiceImpl;
+import com.erdal.helpdeskpro.auth.AuthController;
 import com.erdal.helpdeskpro.auth.AuthService;
 import com.erdal.helpdeskpro.auth.AuthServiceImpl;
 import com.erdal.helpdeskpro.auth.TokenService;
 import com.erdal.helpdeskpro.authorization.Authorization;
 import com.erdal.helpdeskpro.authorization.AuthorizationImpl;
 import com.erdal.helpdeskpro.config.util.HibernateUtil;
-import com.erdal.helpdeskpro.controller.AuthController;
 import com.erdal.helpdeskpro.controller.CommentController;
 import com.erdal.helpdeskpro.controller.TicketController;
 import com.erdal.helpdeskpro.controller.UserController;
@@ -53,6 +56,8 @@ import com.erdal.helpdeskpro.repository.dao.AnnouncementReadDAO;
 import com.erdal.helpdeskpro.service.AnnouncementReadService;
 import com.erdal.helpdeskpro.service.impl.AnnouncementReadServiceImpl;
 import com.erdal.helpdeskpro.controller.AnnouncementReadController;
+import com.erdal.helpdeskpro.service.ExcelExportService;
+import com.erdal.helpdeskpro.service.impl.ExcelExportServiceImpl;
 
 public final class DependencyContainer {
 
@@ -75,6 +80,7 @@ public final class DependencyContainer {
 
 	private static final AnnouncementReadRepository announcementReadRepository = new AnnouncementReadDAO(
 			sessionFactory);
+	private static final SecurityLogRepository securityLogRepository = new SecurityLogDAO(sessionFactory);
 
 	// Services
 	private static final UserService userService = new UserServiceImpl(userRepository);
@@ -95,6 +101,9 @@ public final class DependencyContainer {
 
 	private static final AnnouncementReadService announcementReadService = new AnnouncementReadServiceImpl(
 			announcementReadRepository, announcementRepository);
+	private static final SecurityLogService securityLogService = new SecurityLogServiceImpl(securityLogRepository);
+
+	private static final ExcelExportService excelExportService = new ExcelExportServiceImpl();
 
 	// Token repository
 	private static final AuthTokenRepository authTokenRepository = new AuthTokenDAO(sessionFactory);
@@ -102,7 +111,7 @@ public final class DependencyContainer {
 	// Authentication
 	private static final TokenService tokenService = new TokenService(authTokenRepository, userRepository);
 
-	private static final AuthService authService = new AuthServiceImpl(userService, tokenService);
+	private static final AuthService authService = new AuthServiceImpl(userService, tokenService, securityLogService);
 
 	// Controllers
 	private static final UserController userController = new UserController(userService);
@@ -151,7 +160,6 @@ public final class DependencyContainer {
 	public static AuthController getAuthController() {
 		return authController;
 	}
-	
 
 	public static AuthService getAuthService() {
 		return authService;
@@ -189,4 +197,22 @@ public final class DependencyContainer {
 	public static AnnouncementReadController getAnnouncementReadController() {
 		return announcementReadController;
 	}
+
+	public static SecurityLogService getSecurityLogService() {
+		return securityLogService;
+	}
+	
+	public static ExcelExportService getExcelExportService() {
+	    return excelExportService;
+	}
+	public static UserService getUserService() {
+		return userService;
+	}
+
+	public static TicketService getTicketService() {
+		
+		return ticketService;
+	}
+
+	
 }

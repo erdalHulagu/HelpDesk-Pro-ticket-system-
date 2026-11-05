@@ -4,7 +4,9 @@ package com.erdal.helpdeskpro;
 import java.net.InetSocketAddress;
 
 import com.sun.net.httpserver.HttpServer;
+
 import com.erdal.helpdeskpro.config.DependencyContainer;
+
 import com.erdal.helpdeskpro.http.AttachmentHttpHandler;
 import com.erdal.helpdeskpro.http.AuthHttpHandler;
 import com.erdal.helpdeskpro.http.CommentHttpHandler;
@@ -12,7 +14,11 @@ import com.erdal.helpdeskpro.http.TicketHttpHandler;
 import com.erdal.helpdeskpro.http.UserHttpHandler;
 import com.erdal.helpdeskpro.http.NotificationHttpHandler;
 import com.erdal.helpdeskpro.http.TicketActivityHttpHandler;
+import com.erdal.helpdeskpro.http.TicketExportHttpHandler;
 import com.erdal.helpdeskpro.http.AnnouncementHttpHandler;
+import com.erdal.helpdeskpro.http.SecurityLogHttpHandler;
+import com.erdal.helpdeskpro.http.ExcelExportHttpHandler;
+import com.erdal.helpdeskpro.http.UserExportHttpHandler;
 
 public class Application {
 
@@ -102,6 +108,43 @@ public class Application {
                         DependencyContainer.getAuthService()
                 )
         );
+
+        // Security Logs - ADMIN ONLY
+        server.createContext(
+                "/security-logs",
+                new SecurityLogHttpHandler(
+                        DependencyContainer.getSecurityLogService(),
+                        DependencyContainer.getAuthService()
+                )
+        );
+        
+     // Exel 
+        server.createContext(
+        	    "/export/security-logs",
+        	    new ExcelExportHttpHandler(
+        	        DependencyContainer.getExcelExportService(),
+        	        DependencyContainer.getSecurityLogService(),
+        	        DependencyContainer.getAuthService()
+        	    )
+        	);
+        
+        server.createContext(
+        	    "/export/users",
+        	    new UserExportHttpHandler(
+        	        DependencyContainer.getExcelExportService(),
+        	        DependencyContainer.getUserService(),
+        	        DependencyContainer.getAuthService()
+        	    )
+        	);
+        
+        server.createContext(
+        	    "/export/tickets",
+        	    new TicketExportHttpHandler(
+        	        DependencyContainer.getExcelExportService(),
+        	        DependencyContainer.getTicketService(),
+        	        DependencyContainer.getAuthService()
+        	    )
+        	);
 
         server.setExecutor(null);
         server.start();

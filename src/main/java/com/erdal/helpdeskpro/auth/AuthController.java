@@ -1,7 +1,6 @@
 
-package com.erdal.helpdeskpro.controller;
+package com.erdal.helpdeskpro.auth;
 
-import com.erdal.helpdeskpro.auth.AuthService;
 import com.erdal.helpdeskpro.web.request.LoginRequest;
 import com.erdal.helpdeskpro.web.request.RegisterRequest;
 import com.erdal.helpdeskpro.web.response.LoginResponse;
@@ -10,23 +9,27 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // AuthService dışarıdan verilir.
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
-    // Yeni kullanıcı kaydı başlatır.
     public void register(RegisterRequest request) {
         authService.register(request);
     }
 
-    // Giriş yapar ve token döndürür.
     public LoginResponse login(LoginRequest request) {
         return authService.login(request);
     }
 
-    // Çıkış yaparak tokenı iptal eder.
+    public LoginResponse login(LoginRequest request, String ipAddress) {
+        return authService.login(request, ipAddress);
+    }
+
     public void logout(String token) {
         authService.logout(token);
+    }
+
+    public void logout(String token, String ipAddress) {
+        authService.logout(token, ipAddress);
     }
 }

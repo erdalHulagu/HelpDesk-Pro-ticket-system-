@@ -3,12 +3,14 @@ package com.erdal.helpdeskpro.http;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.erdal.helpdeskpro.auth.AuthController;
 import com.erdal.helpdeskpro.auth.AuthService;
 import com.erdal.helpdeskpro.config.util.JsonUtil;
-import com.erdal.helpdeskpro.controller.AuthController;
 import com.erdal.helpdeskpro.web.request.LoginRequest;
 import com.erdal.helpdeskpro.web.request.RegisterRequest;
 
@@ -27,6 +29,7 @@ public class AuthHttpHandler implements HttpHandler {
 
         this.authController = authController;
         this.authService = authService;
+
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
     }
@@ -38,7 +41,7 @@ public class AuthHttpHandler implements HttpHandler {
         String method = exchange.getRequestMethod();
 
         try {
-            // ---------------- POST /auth/register ----------------
+
             if ("POST".equalsIgnoreCase(method)
                     && path.equals("/auth/register")) {
 
@@ -46,7 +49,6 @@ public class AuthHttpHandler implements HttpHandler {
                 return;
             }
 
-            // ---------------- POST /auth/login ----------------
             if ("POST".equalsIgnoreCase(method)
                     && path.equals("/auth/login")) {
 
@@ -54,7 +56,6 @@ public class AuthHttpHandler implements HttpHandler {
                 return;
             }
 
-            // ---------------- POST /auth/logout ----------------
             if ("POST".equalsIgnoreCase(method)
                     && path.equals("/auth/logout")) {
 
@@ -62,7 +63,6 @@ public class AuthHttpHandler implements HttpHandler {
                 return;
             }
 
-            // Tanımlanmamış endpoint
             if (path.equals("/auth/register")
                     || path.equals("/auth/login")
                     || path.equals("/auth/logout")) {
@@ -75,24 +75,41 @@ public class AuthHttpHandler implements HttpHandler {
             sendResponse(exchange, 404, "Endpoint not found");
 
         } catch (JsonProcessingException e) {
-        	 e.printStackTrace();
-        	    sendResponse(
-        	            exchange,
-        	            400,
-        	            "Invalid JSON: " + e.getOriginalMessage()
-        	    );
+
+            e.printStackTrace();
+
+            sendResponse(
+                    exchange,
+                    400,
+                    "Invalid JSON: " + e.getOriginalMessage()
+            );
 
         } catch (IllegalArgumentException e) {
+
             sendResponse(exchange, 400, e.getMessage());
 
         } catch (Exception e) {
-            // Ayrıntıları sunucu loguna yaz; istemciye gizle.
+
             e.printStackTrace();
+
             sendResponse(exchange, 500, "Internal Server Error");
         }
     }
 
-    // ---------------- Helper methods ----------------
+    // IP adresini alır.
+    private String getClientIpAddress(HttpExchange exchange) {
+
+        if (exchange.getRemoteAddress() == null
+                || exchange.getRemoteAddress().getAddress() == null) {
+            return null;
+        }
+
+        return exchange.getRemoteAddress()
+                .getAddress()
+                .getHostAddress();
+    }
+
+    // ---------------- REGISTER ----------------
 
     private void handleRegister(HttpExchange exchange) throws Exception {
 
@@ -109,6 +126,8 @@ public class AuthHttpHandler implements HttpHandler {
         sendResponse(exchange, 201, "User registered");
     }
 
+    // ---------------- LOGIN ----------------
+
     private void handleLogin(HttpExchange exchange) throws Exception {
 
         String body = new String(
@@ -119,7 +138,9 @@ public class AuthHttpHandler implements HttpHandler {
         LoginRequest request =
                 objectMapper.readValue(body, LoginRequest.class);
 
-        var response = authController.login(request);
+        String ipAddress = getClientIpAddress(exchange);
+
+        var response = authController.login(request, ipAddress);
 
         JsonUtil.sendJson(
                 exchange,
@@ -127,6 +148,8 @@ public class AuthHttpHandler implements HttpHandler {
                 objectMapper.writeValueAsString(response)
         );
     }
+
+    // ---------------- LOGOUT ----------------
 
     private void handleLogout(HttpExchange exchange) throws IOException {
 
@@ -147,7 +170,8 @@ public class AuthHttpHandler implements HttpHandler {
         String token = authorizationHeader.substring(7).trim();
 
         if (token.isBlank()) {
-        	 JsonUtil.sendJson(
+
+            JsonUtil.sendJson(
                     exchange,
                     401,
                     "{\"message\":\"Missing or invalid token\"}"
@@ -155,9 +179,9 @@ public class AuthHttpHandler implements HttpHandler {
             return;
         }
 
-        // Tokenın geçerliliğini kontrol et.
         if (authService.authenticate(token) == null) {
-        	 JsonUtil.sendJson(
+
+            JsonUtil.sendJson(
                     exchange,
                     401,
                     "{\"message\":\"Invalid or expired token\"}"
@@ -165,8 +189,9 @@ public class AuthHttpHandler implements HttpHandler {
             return;
         }
 
-        // Geçerli tokenı iptal et.
-        authService.logout(token);
+        String ipAddress = getClientIpAddress(exchange);
+
+        authController.logout(token, ipAddress);
 
         JsonUtil.sendJson(
                 exchange,
@@ -174,6 +199,8 @@ public class AuthHttpHandler implements HttpHandler {
                 "{\"message\":\"Logged out successfully\"}"
         );
     }
+
+    // ---------------- RESPONSE ----------------
 
     private void sendResponse(
             HttpExchange exchange,
@@ -191,6 +218,4 @@ public class AuthHttpHandler implements HttpHandler {
         exchange.getResponseBody().write(bytes);
         exchange.close();
     }
-
-   
 }

@@ -1,33 +1,33 @@
 package com.erdal.helpdeskpro.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
 
-public interface TicketRepository  {
-	
-	 void save(Ticket ticket);
-	
-	 Ticket findById( Long id);
-	
-	 List<Ticket> findAll();
-	 
-	 void update(Ticket ticket);
-	 
-	 List<Ticket> findAllIncludingDeleted();
+public interface TicketRepository {
 
-	 void deleteById(Long id);
+	void save(Ticket ticket);
+
+	Ticket findById(Long id);
+
+	List<Ticket> findAll();
+
+	void update(Ticket ticket);
+
+	List<Ticket> findAllIncludingDeleted();
+
+	void deleteById(Long id);
 
 	Ticket findByIdIncludingDeleted(Long id);
-	 
-	 List<Ticket> findAllActive();
+
+	List<Ticket> findAllActive();
 
 	List<Ticket> findAllActiveByCreatedBy(Long id);
 
 	List<Ticket> findAllActiveByAssignedTo(Long userId);
 
-	
-	
+	List<Ticket> findAllByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 
 }
