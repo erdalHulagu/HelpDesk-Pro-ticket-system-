@@ -10,44 +10,62 @@ import com.erdal.helpdeskpro.web.request.RegisterRequest;
 
 public final class UserMapper {
 
-	private UserMapper() {
-	}
+    private UserMapper() {
+    }
 
-	public static User userDTOtoUser(UserDTO userDTO) {
-		User user = new User();
+    public static User userDTOtoUser(UserDTO userDTO) {
 
-		user.setId(userDTO.getId());
-		user.setUsername(userDTO.getUsername());
-		user.setEmail(userDTO.getEmail());
-		user.setPassword(userDTO.getPassword());
-		user.setRole(userDTO.getRole());
-		user.setActive(userDTO.isActive());
+        User user = new User();
 
-		return user;
-	}
+        user.setId(userDTO.getId());
+        user.setUsername(userDTO.getUsername());
+        user.setEmail(userDTO.getEmail());
+        user.setPassword(userDTO.getPassword());
+        user.setRole(userDTO.getRole());
 
-	public static UserDTO userToUserDTO(User user) {
-		return new UserDTO(user.getId(), user.getUsername(), user.getEmail(), null, null, user.getRole(),
-				user.isActive());
-	}
+        // Only update active status when it is provided.
+        if (userDTO.isActive() != null) {
+            user.setActive(userDTO.isActive());
+        }
 
-	public static List<User> userDTOlistToUserList(List<UserDTO> userDTOs) {
-		return userDTOs.stream().map(UserMapper::userDTOtoUser).collect(Collectors.toList());
-	}
+        return user;
+    }
 
-	public static List<UserDTO> userListToUserDTOList(List<User> users) {
-		return users.stream().map(user -> new UserDTO(user.getId(), user.getUsername(), user.getEmail(), null, null,
-				user.getRole(), user.isActive())).collect(Collectors.toList());
-	}
+    public static UserDTO userToUserDTO(User user) {
 
-	public static User registerRequestToUser(RegisterRequest registerRequest) {
-		User user = new User();
+        return new UserDTO(
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
+            null,
+            null,
+            user.getRole(),
+            user.isActive()
+        );
+    }
 
-		user.setUsername(registerRequest.getUsername());
-		user.setEmail(registerRequest.getEmail());
-		user.setPassword(registerRequest.getPassword());
-		return user;
+    public static List<User> userDTOlistToUserList(List<UserDTO> userDTOs) {
 
-	}
+        return userDTOs.stream()
+            .map(UserMapper::userDTOtoUser)
+            .collect(Collectors.toList());
+    }
 
+    public static List<UserDTO> userListToUserDTOList(List<User> users) {
+
+        return users.stream()
+            .map(UserMapper::userToUserDTO)
+            .collect(Collectors.toList());
+    }
+
+    public static User registerRequestToUser(RegisterRequest registerRequest) {
+
+        User user = new User();
+
+        user.setUsername(registerRequest.getUsername());
+        user.setEmail(registerRequest.getEmail());
+        user.setPassword(registerRequest.getPassword());
+
+        return user;
+    }
 }

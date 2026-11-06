@@ -167,6 +167,10 @@ public class UserHttpHandler extends BaseAuthHandler implements HttpHandler {
 		UserDTO userDTO = JsonUtil.fromJson(new String(is.readAllBytes(), StandardCharsets.UTF_8), UserDTO.class);
 
 		UserDTO existingUser = userController.findUserById(id);
+		// Preserve the current account status if the request does not include it.
+		if (userDTO.isActive() == null) {
+		    userDTO.setActive(existingUser.isActive());
+		}
 
 		// Only admins can manage other users.
 		if (currentUser.getRole() == Role.ADMIN) {
