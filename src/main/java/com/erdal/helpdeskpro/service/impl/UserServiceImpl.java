@@ -1,4 +1,3 @@
-
 package com.erdal.helpdeskpro.service.impl;
 
 import java.time.LocalDateTime;
@@ -26,11 +25,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void registerUser(User user) {
-
         User createdUser = new User();
 
         createdUser.setUsername(user.getUsername());
         createdUser.setEmail(user.getEmail());
+
         createdUser.setPassword(
             BCrypt.hashpw(user.getPassword(), BCrypt.gensalt())
         );
@@ -43,7 +42,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User login(String email, String password) {
-
         User user = userRepository.findByEmail(email);
 
         if (user == null) {
@@ -69,7 +67,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUser(Long id) {
-
         User user = userRepository.findById(id);
 
         if (user == null) {
@@ -83,7 +80,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getAllUsers(User currentUser) {
-
         if (currentUser == null ||
             (currentUser.getRole() != Role.ADMIN &&
              currentUser.getRole() != Role.IT_MANAGER)) {
@@ -102,7 +98,6 @@ public class UserServiceImpl implements UserService {
         LocalDateTime startDate,
         LocalDateTime endDate
     ) {
-
         if (currentUser == null ||
             currentUser.getRole() != Role.ADMIN) {
 
@@ -175,7 +170,11 @@ public class UserServiceImpl implements UserService {
             updatedUser.setRole(user.getRole());
         }
 
-        // Update account active/inactive status
+        /*
+         * Account status is updated from the mapped User object.
+         * The HTTP handler preserves the existing status when
+         * isActive is not included in the request.
+         */
         updatedUser.setActive(user.isActive());
 
         userRepository.save(updatedUser);

@@ -2,7 +2,6 @@ package com.erdal.helpdeskpro.repository.dao;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -16,142 +15,172 @@ import com.erdal.helpdeskpro.repository.UserRepository;
 
 public class UserDAO implements UserRepository {
 
-	private SessionFactory sessionFactory;
+    private SessionFactory sessionFactory;
 
-	public UserDAO(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
+    public UserDAO(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
 
-	@Override
-	public void save(User user) {
+    @Override
+    public void save(User user) {
 
-		Transaction transaction = null;
+        Transaction transaction = null;
 
-		try (Session session = sessionFactory.openSession()) {
-			transaction = session.beginTransaction();
+        try (Session session = sessionFactory.openSession()) {
 
-			User existingUser = session.createQuery("FROM User u WHERE u.email = :email", User.class)
-					.setParameter("email", user.getEmail()).uniqueResult();
+            transaction = session.beginTransaction();
 
-			// Aynı e-posta başka bir kullanıcıya aitse engelle.
-			if (existingUser != null && !existingUser.getId().equals(user.getId())) {
+            User existingUser = session.createQuery(
+                    "FROM User u WHERE u.email = :email",
+                    User.class
+            )
+            .setParameter("email", user.getEmail())
+            .uniqueResult();
 
-				throw new BadRequestExeption(ExceptionMessage.USER_ALREADY_EXIST);
-			}
+            // Prevent duplicate email addresses.
+            if (existingUser != null &&
+                !existingUser.getId().equals(user.getId())) {
 
-			if (user.getId() == null) {
-				// Yeni kullanıcı
-				session.persist(user);
-			} else {
-				// Mevcut kullanıcı
-				session.merge(user);
-			}
+                throw new BadRequestExeption(
+                    ExceptionMessage.USER_ALREADY_EXIST
+                );
+            }
 
-			transaction.commit();
+            if (user.getId() == null) {
+                session.persist(user);
+            } else {
+                session.merge(user);
+            }
 
-		} catch (RuntimeException e) {
-			if (transaction != null && transaction.isActive()) {
-				transaction.rollback();
-			}
-			throw e;
-		}
-	}
+            transaction.commit();
 
-	@Override
-	public User findById(Long id) {
-		try (Session session = sessionFactory.openSession()) {
-			return session.get(User.class, id);
-		}
-	}
+        } catch (RuntimeException e) {
 
-	@Override
-	public List<User> findAll() {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
 
-		Session session = sessionFactory.openSession();
+            throw e;
+        }
+    }
 
-		List<User> users = session.createQuery("from User", User.class).list();
+    @Override
+    public User findById(Long id) {
 
-		List<User> newUsers = users.stream().filter(User::isActive).collect(Collectors.toList());
+        try (Session session = sessionFactory.openSession()) {
+            return session.get(User.class, id);
+        }
+    }
 
-		session.close();
+    @Override
+    public List<User> findAll() {
 
-		return newUsers;
-	}
+        try (Session session = sessionFactory.openSession()) {
 
-	@Override
-	public void deleteById(Long id) {
+            // Return ALL users, including inactive accounts.
+            return session.createQuery(
+                "FROM User u ORDER BY u.id DESC",
+                User.class
+            ).list();
+        }
+    }
 
-		Session session = sessionFactory.openSession();
-		Transaction transaction = session.beginTransaction();
+    @Override
+    public void deleteById(Long id) {
 
-		User user = session.get(User.class, id);
+        Transaction transaction = null;
 
-		if (user == null) {
-			transaction.rollback();
-			session.close();
+        try (Session session = sessionFactory.openSession()) {
 
-			throw new BadRequestExeption(ExceptionMessage.USER_NOT_FOUND);
-		}
+            transaction = session.beginTransaction();
 
-		user.setActive(false);
+            User user = session.get(User.class, id);
 
-		transaction.commit();
-		session.close();
-	}
+            if (user == null) {
+                throw new BadRequestExeption(
+                    ExceptionMessage.USER_NOT_FOUND
+                );
+            }
 
-	@Override
-	public User findByEmail(String email) {
+            // Soft delete: deactivate account instead of deleting it.
+            user.setActive(false);
 
-		String hql = "FROM User u WHERE u.email = :email";
+            transaction.commit();
 
-		Session session = sessionFactory.openSession();
+        } catch (RuntimeException e) {
 
-		User user = session.createQuery(hql, User.class).setParameter("email", email).uniqueResult();
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
 
-		session.close();
+            throw e;
+        }
+    }
 
-		return user;
-	}
+    @Override
+    public User findByEmail(String email) {
 
-	@Override
-	public List<User> findAllITSupportUsers() {
+        String hql = "FROM User u WHERE u.email = :email";
 
-		try (Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.openSession()) {
 
-			return session.createQuery("FROM User u WHERE u.role = :role AND u.isActive = true", User.class)
-					.setParameter("role", Role.IT_SUPPORT).list();
-		}
-	}
+            return session.createQuery(hql, User.class)
+                    .setParameter("email", email)
+                    .uniqueResult();
+        }
+    }
 
-	@Override
-	public List<User> findAllByCreatedAtRange(LocalDateTime startDate, LocalDateTime endDate) {
+    @Override
+    public List<User> findAllITSupportUsers() {
 
-		try (Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.openSession()) {
 
-			StringBuilder hql = new StringBuilder("FROM User u WHERE u.isActive = true");
+            return session.createQuery(
+                "FROM User u WHERE u.role = :role AND u.isActive = true",
+                User.class
+            )
+            .setParameter("role", Role.IT_SUPPORT)
+            .list();
+        }
+    }
 
-			if (startDate != null) {
-				hql.append(" AND u.createdAt >= :startDate");
-			}
+    @Override
+    public List<User> findAllByCreatedAtRange(
+        LocalDateTime startDate,
+        LocalDateTime endDate
+    ) {
 
-			if (endDate != null) {
-				hql.append(" AND u.createdAt <= :endDate");
-			}
+        try (Session session = sessionFactory.openSession()) {
 
-			hql.append(" ORDER BY u.createdAt DESC");
+            // Include both active and inactive users in exports.
+            StringBuilder hql = new StringBuilder(
+                "FROM User u WHERE 1=1"
+            );
 
-			var query = session.createQuery(hql.toString(), User.class);
+            if (startDate != null) {
+                hql.append(" AND u.createdAt >= :startDate");
+            }
 
-			if (startDate != null) {
-				query.setParameter("startDate", startDate);
-			}
+            if (endDate != null) {
+                hql.append(" AND u.createdAt <= :endDate");
+            }
 
-			if (endDate != null) {
-				query.setParameter("endDate", endDate);
-			}
+            hql.append(" ORDER BY u.createdAt DESC");
 
-			return query.list();
-		}
-	}
+            var query = session.createQuery(
+                hql.toString(),
+                User.class
+            );
 
+            if (startDate != null) {
+                query.setParameter("startDate", startDate);
+            }
+
+            if (endDate != null) {
+                query.setParameter("endDate", endDate);
+            }
+
+            return query.list();
+        }
+    }
 }
