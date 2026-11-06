@@ -1,9 +1,11 @@
+
 package com.erdal.helpdeskpro.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
+
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.dtos.UserDTO;
 import com.erdal.helpdeskpro.enums.Role;
@@ -16,142 +18,199 @@ import com.erdal.helpdeskpro.service.UserService;
 
 public class UserServiceImpl implements UserService {
 
-	private final UserRepository userRepository;
+    private final UserRepository userRepository;
 
-	public UserServiceImpl(UserRepository userRepository) {
-		this.userRepository = userRepository;
+    public UserServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
-	}
+    @Override
+    public void registerUser(User user) {
 
-	@Override
-	public void registerUser(User user) {
+        User createdUser = new User();
 
-		User createdUser = new User();
+        createdUser.setUsername(user.getUsername());
+        createdUser.setEmail(user.getEmail());
+        createdUser.setPassword(
+            BCrypt.hashpw(user.getPassword(), BCrypt.gensalt())
+        );
 
-		createdUser.setUsername(user.getUsername());
-		createdUser.setEmail(user.getEmail());
-		createdUser.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
+        createdUser.setRole(Role.EMPLOYEE);
+        createdUser.setActive(true);
 
-		createdUser.setRole(Role.EMPLOYEE);
-		createdUser.setActive(true);
+        userRepository.save(createdUser);
+    }
 
-		userRepository.save(createdUser);
-	}
+    @Override
+    public User login(String email, String password) {
 
-	@Override
-	public User login(String email, String password) {
+        User user = userRepository.findByEmail(email);
 
-		User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new ResourceNotFoundExeption(
+                ExceptionMessage.USER_NOT_FOUND
+            );
+        }
 
-		if (user == null) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
-		}
+        if (!BCrypt.checkpw(password, user.getPassword())) {
+            throw new BadRequestExeption(
+                ExceptionMessage.WRONG_PASSWORD
+            );
+        }
 
-		if (!BCrypt.checkpw(password, user.getPassword())) {
-			throw new BadRequestExeption(ExceptionMessage.WRONG_PASSWORD);
-		}
+        if (!user.isActive()) {
+            throw new BadRequestExeption(
+                ExceptionMessage.USER_NOT_ACTIVE
+            );
+        }
 
-		if (!user.isActive()) {
-			throw new BadRequestExeption(ExceptionMessage.USER_NOT_ACTIVE);
-		}
+        return user;
+    }
 
-		return user;
-	}
+    @Override
+    public User getUser(Long id) {
 
-	@Override
-	public User getUser(Long id) {
+        User user = userRepository.findById(id);
 
-		User user = userRepository.findById(id);
+        if (user == null) {
+            throw new ResourceNotFoundExeption(
+                String.format(ExceptionMessage.USER_NOT_FOUND, id)
+            );
+        }
 
-		if (user == null) {
-			throw new ResourceNotFoundExeption(String.format(ExceptionMessage.USER_NOT_FOUND, id));
+        return user;
+    }
 
-		}
+    @Override
+    public List<User> getAllUsers(User currentUser) {
 
-		return user;
-	}
+        if (currentUser == null ||
+            (currentUser.getRole() != Role.ADMIN &&
+             currentUser.getRole() != Role.IT_MANAGER)) {
 
-	@Override
-	public List<User> getAllUsers(User currentUser) {
-		if (currentUser == null || (currentUser.getRole() != Role.ADMIN && currentUser.getRole() != Role.IT_MANAGER)) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
+            throw new BadRequestExeption(
+                ExceptionMessage.NOT_ALLOWED
+            );
+        }
 
-		return userRepository.findAll();
-	}
+        return userRepository.findAll();
+    }
 
-	@Override
-	public List<User> getUsersForExport(User currentUser, LocalDateTime startDate, LocalDateTime endDate) {
+    @Override
+    public List<User> getUsersForExport(
+        User currentUser,
+        LocalDateTime startDate,
+        LocalDateTime endDate
+    ) {
 
-		if (currentUser == null || currentUser.getRole() != Role.ADMIN) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
+        if (currentUser == null ||
+            currentUser.getRole() != Role.ADMIN) {
 
-		if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
-			throw new BadRequestExeption("Start date cannot be after end date.");
-		}
+            throw new BadRequestExeption(
+                ExceptionMessage.NOT_ALLOWED
+            );
+        }
 
-		if (startDate == null && endDate == null) {
-			return userRepository.findAll();
-		}
+        if (startDate != null &&
+            endDate != null &&
+            startDate.isAfter(endDate)) {
 
-		return userRepository.findAllByCreatedAtRange(startDate, endDate);
-	}
+            throw new BadRequestExeption(
+                "Start date cannot be after end date."
+            );
+        }
 
-	@Override
-	public User updateUser(User user) {
-		if (user == null || user.getId() == null) {
-			throw new IllegalArgumentException("User and user ID are required");
-		}
+        if (startDate == null && endDate == null) {
+            return userRepository.findAll();
+        }
 
-		User updatedUser = userRepository.findById(user.getId());
+        return userRepository.findAllByCreatedAtRange(
+            startDate,
+            endDate
+        );
+    }
 
-		if (updatedUser == null) {
-			throw new ResourceNotFoundExeption(ExceptionMessage.USER_NOT_FOUND);
-		}
+    @Override
+    public User updateUser(User user) {
 
-		if (user.getUsername() != null && !user.getUsername().isBlank()) {
-			updatedUser.setUsername(user.getUsername().trim());
-		}
+        if (user == null || user.getId() == null) {
+            throw new IllegalArgumentException(
+                "User and user ID are required"
+            );
+        }
 
-		if (user.getEmail() != null && !user.getEmail().isBlank()) {
-			updatedUser.setEmail(user.getEmail().trim());
-		}
+        User updatedUser = userRepository.findById(user.getId());
 
-		if (user.getPassword() != null && !user.getPassword().isBlank()) {
-			updatedUser.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
-		}
+        if (updatedUser == null) {
+            throw new ResourceNotFoundExeption(
+                ExceptionMessage.USER_NOT_FOUND
+            );
+        }
 
-		if (user.getRole() != null) {
-			updatedUser.setRole(user.getRole());
-		}
+        if (user.getUsername() != null &&
+            !user.getUsername().isBlank()) {
 
-		userRepository.save(updatedUser);
+            updatedUser.setUsername(
+                user.getUsername().trim()
+            );
+        }
 
-		return updatedUser;
-	}
+        if (user.getEmail() != null &&
+            !user.getEmail().isBlank()) {
 
-	@Override
-	public List<UserDTO> getAllITSupportUsers(User currentUser) {
+            updatedUser.setEmail(
+                user.getEmail().trim()
+            );
+        }
 
-		if (currentUser == null || (currentUser.getRole() != Role.ADMIN && currentUser.getRole() != Role.IT_MANAGER)) {
+        if (user.getPassword() != null &&
+            !user.getPassword().isBlank()) {
 
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
+            updatedUser.setPassword(
+                BCrypt.hashpw(user.getPassword(), BCrypt.gensalt())
+            );
+        }
 
-		List<User> users = userRepository.findAllITSupportUsers();
+        if (user.getRole() != null) {
+            updatedUser.setRole(user.getRole());
+        }
 
-		return UserMapper.userListToUserDTOList(users);
-	}
+        // Update account active/inactive status
+        updatedUser.setActive(user.isActive());
 
-	@Override
-	public void deactivateUser(User currentUser, Long id) {
-		if (currentUser.getRole() != Role.ADMIN) {
-			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		}
+        userRepository.save(updatedUser);
 
-		userRepository.deleteById(id);
+        return updatedUser;
+    }
 
-	}
+    @Override
+    public List<UserDTO> getAllITSupportUsers(User currentUser) {
 
+        if (currentUser == null ||
+            (currentUser.getRole() != Role.ADMIN &&
+             currentUser.getRole() != Role.IT_MANAGER)) {
+
+            throw new BadRequestExeption(
+                ExceptionMessage.NOT_ALLOWED
+            );
+        }
+
+        List<User> users = userRepository.findAllITSupportUsers();
+
+        return UserMapper.userListToUserDTOList(users);
+    }
+
+    @Override
+    public void deactivateUser(User currentUser, Long id) {
+
+        if (currentUser == null ||
+            currentUser.getRole() != Role.ADMIN) {
+
+            throw new BadRequestExeption(
+                ExceptionMessage.NOT_ALLOWED
+            );
+        }
+
+        userRepository.deleteById(id);
+    }
 }
