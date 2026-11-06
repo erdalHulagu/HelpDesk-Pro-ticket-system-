@@ -207,6 +207,26 @@ public class TicketServiceImpl implements TicketService {
 
 		return ticketRepository.findAll();
 	}
+	
+	public List<Ticket> getTicketsForExport(
+	        User currentUser,
+	        LocalDateTime startDate,
+	        LocalDateTime endDate) {
+
+	    if (currentUser == null || currentUser.getRole() != Role.ADMIN) {
+	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+	    }
+
+	    if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+	        throw new BadRequestExeption("Start date cannot be after end date.");
+	    }
+
+	    if (startDate == null && endDate == null) {
+	        return ticketRepository.findAll();
+	    }
+
+	    return ticketRepository.findAllByCreatedAtRange(startDate, endDate);
+	}
 
 	@Override
 	public List<Ticket> getAllTickets(User currentUser) {

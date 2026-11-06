@@ -1,5 +1,6 @@
 package com.erdal.helpdeskpro.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.erdal.helpdeskpro.domain.User;
@@ -17,5 +18,7 @@ public interface UserRepository {
 	User findByEmail(String email);
 
 	List<User> findAllITSupportUsers();
+
+	List<User> findAllByCreatedAtRange(LocalDateTime startDate, LocalDateTime endDate);
 
 }

@@ -1,5 +1,6 @@
 package com.erdal.helpdeskpro.repository.dao;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -111,18 +112,46 @@ public class UserDAO implements UserRepository {
 
 		return user;
 	}
+
 	@Override
 	public List<User> findAllITSupportUsers() {
 
-	    try (Session session = sessionFactory.openSession()) {
+		try (Session session = sessionFactory.openSession()) {
 
-	        return session.createQuery(
-	                "FROM User u WHERE u.role = :role AND u.isActive = true",
-	                User.class
-	        )
-	        .setParameter("role", Role.IT_SUPPORT)
-	        .list();
-	    }
+			return session.createQuery("FROM User u WHERE u.role = :role AND u.isActive = true", User.class)
+					.setParameter("role", Role.IT_SUPPORT).list();
+		}
 	}
-	
+
+	@Override
+	public List<User> findAllByCreatedAtRange(LocalDateTime startDate, LocalDateTime endDate) {
+
+		try (Session session = sessionFactory.openSession()) {
+
+			StringBuilder hql = new StringBuilder("FROM User u WHERE u.isActive = true");
+
+			if (startDate != null) {
+				hql.append(" AND u.createdAt >= :startDate");
+			}
+
+			if (endDate != null) {
+				hql.append(" AND u.createdAt <= :endDate");
+			}
+
+			hql.append(" ORDER BY u.createdAt DESC");
+
+			var query = session.createQuery(hql.toString(), User.class);
+
+			if (startDate != null) {
+				query.setParameter("startDate", startDate);
+			}
+
+			if (endDate != null) {
+				query.setParameter("endDate", endDate);
+			}
+
+			return query.list();
+		}
+	}
+
 }

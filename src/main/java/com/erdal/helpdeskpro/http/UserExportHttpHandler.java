@@ -2,6 +2,11 @@
 package com.erdal.helpdeskpro.http;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,7 +57,6 @@ public class UserExportHttpHandler implements HttpHandler {
             }
 
             String token = authHeader.substring(7);
-
             User currentUser = authService.authenticate(token);
 
             if (currentUser == null || currentUser.getRole() != Role.ADMIN) {
@@ -60,7 +64,41 @@ public class UserExportHttpHandler implements HttpHandler {
                 return;
             }
 
-            List<User> users = userService.getAllUsers(currentUser);
+            // Read date filters
+            String startDateParam = getQueryParam(exchange, "startDate");
+            String endDateParam = getQueryParam(exchange, "endDate");
+
+            LocalDateTime startDate = null;
+            LocalDateTime endDate = null;
+
+            try {
+                if (startDateParam != null && !startDateParam.isBlank()) {
+                    startDate = LocalDate.parse(startDateParam).atStartOfDay();
+                }
+
+                if (endDateParam != null && !endDateParam.isBlank()) {
+                    endDate = LocalDate.parse(endDateParam).atTime(LocalTime.MAX);
+                }
+
+            } catch (java.time.format.DateTimeParseException e) {
+                sendError(exchange, 400,
+                        "Invalid date format. Use yyyy-MM-dd.");
+                return;
+            }
+
+            if (startDate != null && endDate != null
+                    && startDate.isAfter(endDate)) {
+                sendError(exchange, 400,
+                        "Start date cannot be after end date.");
+                return;
+            }
+
+            // Fetch filtered users
+            List<User> users = userService.getUsersForExport(
+                    currentUser,
+                    startDate,
+                    endDate
+            );
 
             List<String> headers = Arrays.asList(
                     "ID",
@@ -114,7 +152,6 @@ public class UserExportHttpHandler implements HttpHandler {
             }
 
         } catch (Exception e) {
-
             e.printStackTrace();
 
             if (exchange.getResponseCode() == -1) {
@@ -123,12 +160,39 @@ public class UserExportHttpHandler implements HttpHandler {
         }
     }
 
+    private String getQueryParam(HttpExchange exchange, String paramName) {
+
+        String query = exchange.getRequestURI().getRawQuery();
+
+        if (query == null || query.isBlank()) {
+            return null;
+        }
+
+        for (String param : query.split("&")) {
+
+            String[] parts = param.split("=", 2);
+
+            String key = URLDecoder.decode(
+                    parts[0],
+                    StandardCharsets.UTF_8
+            );
+
+            if (key.equals(paramName)) {
+                return parts.length > 1
+                        ? URLDecoder.decode(parts[1], StandardCharsets.UTF_8)
+                        : "";
+            }
+        }
+
+        return null;
+    }
+
     private void sendError(
             HttpExchange exchange,
             int statusCode,
             String message) throws IOException {
 
-        byte[] response = message.getBytes("UTF-8");
+        byte[] response = message.getBytes(StandardCharsets.UTF_8);
 
         exchange.getResponseHeaders().set(
                 "Content-Type",

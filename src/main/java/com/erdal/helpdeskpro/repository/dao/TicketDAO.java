@@ -149,21 +149,39 @@ public class TicketDAO implements TicketRepository {
 	}
 	
 	@Override
-	public List<Ticket> findAllByCreatedAtBetween(
+	public List<Ticket> findAllByCreatedAtRange(
 	        LocalDateTime startDate,
 	        LocalDateTime endDate) {
 
 	    try (Session session = sessionFactory.openSession()) {
-	        return session.createQuery(
-	                "from Ticket t where t.isDeleted = false "
-	                + "and t.createdAt >= :startDate "
-	                + "and t.createdAt <= :endDate "
-	                + "order by t.createdAt desc",
-	                Ticket.class)
-	            .setParameter("startDate", startDate)
-	            .setParameter("endDate", endDate)
-	            .list();
+
+	        StringBuilder hql = new StringBuilder(
+	            "from Ticket t where t.isDeleted = false"
+	        );
+
+	        if (startDate != null) {
+	            hql.append(" and t.createdAt >= :startDate");
+	        }
+
+	        if (endDate != null) {
+	            hql.append(" and t.createdAt <= :endDate");
+	        }
+
+	        hql.append(" order by t.createdAt desc");
+
+	        var query = session.createQuery(hql.toString(), Ticket.class);
+
+	        if (startDate != null) {
+	            query.setParameter("startDate", startDate);
+	        }
+
+	        if (endDate != null) {
+	            query.setParameter("endDate", endDate);
+	        }
+
+	        return query.list();
 	    }
+	
 	}
 
 }

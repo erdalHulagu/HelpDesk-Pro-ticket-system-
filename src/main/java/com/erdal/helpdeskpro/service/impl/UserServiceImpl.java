@@ -1,5 +1,6 @@
 package com.erdal.helpdeskpro.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
@@ -80,6 +81,24 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	public List<User> getUsersForExport(User currentUser, LocalDateTime startDate, LocalDateTime endDate) {
+
+		if (currentUser == null || currentUser.getRole() != Role.ADMIN) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
+
+		if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+			throw new BadRequestExeption("Start date cannot be after end date.");
+		}
+
+		if (startDate == null && endDate == null) {
+			return userRepository.findAll();
+		}
+
+		return userRepository.findAllByCreatedAtRange(startDate, endDate);
+	}
+
+	@Override
 	public User updateUser(User user) {
 		if (user == null || user.getId() == null) {
 			throw new IllegalArgumentException("User and user ID are required");
@@ -111,21 +130,19 @@ public class UserServiceImpl implements UserService {
 
 		return updatedUser;
 	}
+
 	@Override
 	public List<UserDTO> getAllITSupportUsers(User currentUser) {
 
-	    if (currentUser == null ||
-	        (currentUser.getRole() != Role.ADMIN &&
-	         currentUser.getRole() != Role.IT_MANAGER)) {
+		if (currentUser == null || (currentUser.getRole() != Role.ADMIN && currentUser.getRole() != Role.IT_MANAGER)) {
 
-	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-	    }
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
 
-	    List<User> users = userRepository.findAllITSupportUsers();
+		List<User> users = userRepository.findAllITSupportUsers();
 
-	    return UserMapper.userListToUserDTOList(users);
+		return UserMapper.userListToUserDTOList(users);
 	}
-
 
 	@Override
 	public void deactivateUser(User currentUser, Long id) {
@@ -136,5 +153,5 @@ public class UserServiceImpl implements UserService {
 		userRepository.deleteById(id);
 
 	}
-	
+
 }

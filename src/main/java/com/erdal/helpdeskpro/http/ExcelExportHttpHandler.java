@@ -2,9 +2,14 @@
 package com.erdal.helpdeskpro.http;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +29,9 @@ public class ExcelExportHttpHandler implements HttpHandler {
     private final SecurityLogService securityLogService;
     private final AuthService authService;
 
+    private static final DateTimeFormatter DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     public ExcelExportHttpHandler(
             ExcelExportService excelExportService,
             SecurityLogService securityLogService,
@@ -38,35 +46,126 @@ public class ExcelExportHttpHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
 
         try {
-            // Only GET is allowed
             if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
                 exchange.getResponseHeaders().set("Allow", "GET");
                 sendError(exchange, 405, "Method Not Allowed");
                 return;
             }
 
-            // Authenticate user
-            User user = authenticateRequest(exchange);
+            User currentUser = authenticateRequest(exchange);
 
-            if (user == null) {
+            if (currentUser == null) {
                 sendError(exchange, 401, "Unauthorized");
                 return;
             }
 
-            // Only ADMIN can export security logs
-            if (user.getRole() != Role.ADMIN) {
+            if (currentUser.getRole() != Role.ADMIN) {
                 sendError(exchange, 403, "Access denied. Admin only.");
                 return;
             }
 
-            String path = exchange.getRequestURI().getPath();
+            Map<String, String> params = parseQuery(
+                    exchange.getRequestURI().getRawQuery()
+            );
 
-            if (!"/export/security-logs".equals(path)) {
-                sendError(exchange, 404, "Endpoint not found");
+            LocalDateTime startDate = null;
+            LocalDateTime endDate = null;
+
+            try {
+                String startDateParam = params.get("startDate");
+                String endDateParam = params.get("endDate");
+
+                if (startDateParam != null && !startDateParam.isBlank()) {
+                    startDate = LocalDate.parse(startDateParam.trim())
+                            .atStartOfDay();
+                }
+
+                if (endDateParam != null && !endDateParam.isBlank()) {
+                    endDate = LocalDate.parse(endDateParam.trim())
+                            .atTime(LocalTime.MAX);
+                }
+
+            } catch (DateTimeParseException e) {
+                sendError(
+                        exchange,
+                        400,
+                        "Invalid date format. Use yyyy-MM-dd."
+                );
                 return;
             }
 
-            exportSecurityLogs(exchange);
+            if (startDate != null && endDate != null
+                    && startDate.isAfter(endDate)) {
+                sendError(
+                        exchange,
+                        400,
+                        "Start date cannot be after end date."
+                );
+                return;
+            }
+
+            List<SecurityLog> logs =
+                    securityLogService.getLogsForExport(
+                            startDate,
+                            endDate
+                    );
+
+            List<String> headers = List.of(
+                    "ID",
+                    "Username",
+                    "Action",
+                    "IP Address",
+                    "Details",
+                    "Date & Time"
+            );
+
+            List<List<String>> data = new ArrayList<>();
+
+            for (SecurityLog log : logs) {
+
+                List<String> row = new ArrayList<>();
+
+                row.add(String.valueOf(log.getId()));
+                row.add(log.getUsername());
+                row.add(log.getAction());
+                row.add(log.getIpAddress());
+                row.add(log.getDetails());
+
+                row.add(
+                        log.getCreatedAt() == null
+                                ? ""
+                                : log.getCreatedAt().format(DATE_FORMATTER)
+                );
+
+                data.add(row);
+            }
+
+            byte[] excelFile = excelExportService.exportToExcel(
+                    "Security Logs",
+                    headers,
+                    data
+            );
+
+            exchange.getResponseHeaders().set(
+                    "Content-Type",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            );
+
+            exchange.getResponseHeaders().set(
+                    "Content-Disposition",
+                    "attachment; filename=\"security-logs.xlsx\""
+            );
+
+            exchange.getResponseHeaders().set(
+                    "Cache-Control",
+                    "no-store"
+            );
+
+            exchange.sendResponseHeaders(200, excelFile.length);
+
+            try (var outputStream = exchange.getResponseBody()) {
+                outputStream.write(excelFile);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -96,68 +195,34 @@ public class ExcelExportHttpHandler implements HttpHandler {
         return authService.authenticate(token);
     }
 
-    private void exportSecurityLogs(HttpExchange exchange)
-            throws IOException {
+    private Map<String, String> parseQuery(String query) {
 
-        List<SecurityLog> logs = securityLogService.getAllLogs();
+        Map<String, String> params = new LinkedHashMap<>();
 
-        List<String> headers = Arrays.asList(
-                "ID",
-                "Username",
-                "Action",
-                "IP Address",
-                "Details",
-                "Date & Time"
-        );
+        if (query == null || query.isBlank()) {
+            return params;
+        }
 
-        List<List<String>> data = new ArrayList<>();
+        for (String pair : query.split("&")) {
 
-        for (SecurityLog log : logs) {
+            String[] parts = pair.split("=", 2);
 
-            List<String> row = Arrays.asList(
-                    String.valueOf(log.getId()),
-                    safeString(log.getUsername()),
-                    safeString(log.getAction()),
-                    safeString(log.getIpAddress()),
-                    safeString(log.getDetails()),
-                    log.getCreatedAt() == null
-                            ? ""
-                            : log.getCreatedAt().toString()
+            String key = URLDecoder.decode(
+                    parts[0],
+                    StandardCharsets.UTF_8
             );
 
-            data.add(row);
+            String value = parts.length > 1
+                    ? URLDecoder.decode(
+                            parts[1],
+                            StandardCharsets.UTF_8
+                    )
+                    : "";
+
+            params.put(key, value);
         }
 
-        byte[] excelFile = excelExportService.exportToExcel(
-                "Security Logs",
-                headers,
-                data
-        );
-
-        exchange.getResponseHeaders().set(
-                "Content-Type",
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        );
-
-        exchange.getResponseHeaders().set(
-                "Content-Disposition",
-                "attachment; filename=\"security-logs.xlsx\""
-        );
-
-        exchange.getResponseHeaders().set(
-                "Cache-Control",
-                "no-store"
-        );
-
-        exchange.sendResponseHeaders(200, excelFile.length);
-
-        try (OutputStream outputStream = exchange.getResponseBody()) {
-            outputStream.write(excelFile);
-        }
-    }
-
-    private String safeString(String value) {
-        return value == null ? "" : value;
+        return params;
     }
 
     private void sendError(
@@ -168,20 +233,18 @@ public class ExcelExportHttpHandler implements HttpHandler {
         Map<String, String> error = new LinkedHashMap<>();
         error.put("error", message);
 
-        String json = new com.google.gson.Gson().toJson(error);
+        byte[] response = com.erdal.helpdeskpro.config.util.JsonUtil
+                .toJson(error)
+                .getBytes(StandardCharsets.UTF_8);
 
         exchange.getResponseHeaders().set(
                 "Content-Type",
                 "application/json; charset=UTF-8"
         );
 
-        byte[] response = json.getBytes(
-                java.nio.charset.StandardCharsets.UTF_8
-        );
-
         exchange.sendResponseHeaders(status, response.length);
 
-        try (OutputStream outputStream = exchange.getResponseBody()) {
+        try (var outputStream = exchange.getResponseBody()) {
             outputStream.write(response);
         }
     }

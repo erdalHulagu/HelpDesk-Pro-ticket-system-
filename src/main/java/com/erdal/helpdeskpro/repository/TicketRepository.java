@@ -28,6 +28,6 @@ public interface TicketRepository {
 
 	List<Ticket> findAllActiveByAssignedTo(Long userId);
 
-	List<Ticket> findAllByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+	List<Ticket> findAllByCreatedAtRange(LocalDateTime startDate, LocalDateTime endDate);
 
 }
