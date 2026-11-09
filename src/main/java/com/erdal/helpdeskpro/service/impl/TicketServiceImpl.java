@@ -334,21 +334,34 @@ public class TicketServiceImpl implements TicketService {
 	        return "UNKNOWN";
 	    }
 
-	    // Çözülen veya kapatılan ticket
-	    if (ticket.getStatus() == TicketStatus.RESOLVED
-	            || ticket.getStatus() == TicketStatus.CLOSED) {
-	        return "COMPLETED";
+	    boolean isCompleted =
+	            ticket.getStatus() == TicketStatus.RESOLVED
+	            || ticket.getStatus() == TicketStatus.CLOSED;
+
+	    LocalDateTime deadline = ticket.getSlaDueAt();
+
+	    if (isCompleted) {
+
+	        LocalDateTime resolvedAt = ticket.getResolvedAt();
+
+	        // Eski kayıtlar için geriye dönük uyumluluk
+	        if (resolvedAt == null) {
+	            return "COMPLETED";
+	        }
+
+	        if (!resolvedAt.isAfter(deadline)) {
+	            return "COMPLETED_ON_TIME";
+	        }
+
+	        return "COMPLETED_LATE";
 	    }
 
 	    LocalDateTime now = LocalDateTime.now();
-	    LocalDateTime deadline = ticket.getSlaDueAt();
 
-	    // SLA süresi aşılmış
 	    if (now.isAfter(deadline)) {
 	        return "BREACHED";
 	    }
 
-	    // Son 1 saat
 	    if (!now.isBefore(deadline.minusHours(1))) {
 	        return "AT_RISK";
 	    }
