@@ -376,9 +376,23 @@ public class TicketServiceImpl implements TicketService {
 	        return "N/A";
 	    }
 
-	    if (ticket.getStatus() == TicketStatus.RESOLVED
-	            || ticket.getStatus() == TicketStatus.CLOSED) {
-	        return "Completed";
+	    boolean isCompleted =
+	            ticket.getStatus() == TicketStatus.RESOLVED
+	            || ticket.getStatus() == TicketStatus.CLOSED;
+
+	    if (isCompleted) {
+
+	        LocalDateTime resolvedAt = ticket.getResolvedAt();
+
+	        if (resolvedAt == null) {
+	            return "Completed";
+	        }
+
+	        if (!resolvedAt.isAfter(ticket.getSlaDueAt())) {
+	            return "Completed on time";
+	        }
+
+	        return "Completed late";
 	    }
 
 	    Duration duration = Duration.between(

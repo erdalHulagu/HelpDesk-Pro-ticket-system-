@@ -2,12 +2,12 @@
 package com.erdal.helpdeskpro.auth;
 
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.domain.request.LoginRequest;
+import com.erdal.helpdeskpro.domain.request.RegisterRequest;
+import com.erdal.helpdeskpro.domain.response.LoginResponse;
 import com.erdal.helpdeskpro.mapper.UserMapper;
 import com.erdal.helpdeskpro.service.SecurityLogService;
 import com.erdal.helpdeskpro.service.UserService;
-import com.erdal.helpdeskpro.web.request.LoginRequest;
-import com.erdal.helpdeskpro.web.request.RegisterRequest;
-import com.erdal.helpdeskpro.web.response.LoginResponse;
 
 public class AuthServiceImpl implements AuthService {
 

@@ -30,6 +30,8 @@
 		<mapping class="com.erdal.helpdeskpro.domain.Announcement"/>
 		
 		<mapping class="com.erdal.helpdeskpro.domain.AnnouncementRead"/>
+		
+		<mapping class="com.erdal.helpdeskpro.domain.Asset"/>
 
 	</session-factory>
 

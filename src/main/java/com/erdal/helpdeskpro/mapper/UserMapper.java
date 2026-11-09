@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.domain.request.RegisterRequest;
 import com.erdal.helpdeskpro.dtos.UserDTO;
-import com.erdal.helpdeskpro.web.request.RegisterRequest;
 
 public final class UserMapper {
 

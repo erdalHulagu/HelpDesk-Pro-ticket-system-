@@ -11,9 +11,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.erdal.helpdeskpro.auth.AuthController;
 import com.erdal.helpdeskpro.auth.AuthService;
 import com.erdal.helpdeskpro.config.util.JsonUtil;
-import com.erdal.helpdeskpro.web.request.LoginRequest;
-import com.erdal.helpdeskpro.web.request.RegisterRequest;
-
+import com.erdal.helpdeskpro.domain.request.LoginRequest;
+import com.erdal.helpdeskpro.domain.request.RegisterRequest;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 

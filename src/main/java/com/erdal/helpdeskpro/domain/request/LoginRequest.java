@@ -1,4 +1,4 @@
-package com.erdal.helpdeskpro.web.request;
+package com.erdal.helpdeskpro.domain.request;
 
 public class LoginRequest {
 

@@ -1,4 +1,4 @@
-package com.erdal.helpdeskpro.web.response;
+package com.erdal.helpdeskpro.domain.response;
 
 import java.time.LocalDateTime;
 
