@@ -9,8 +9,10 @@ import com.erdal.helpdeskpro.config.util.JsonUtil;
 import com.erdal.helpdeskpro.controller.NotificationController;
 import com.erdal.helpdeskpro.domain.Notification;
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.domain.dtos.NotificationDTO;
+
 import java.util.stream.Collectors;
-import com.erdal.helpdeskpro.dtos.NotificationDTO;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 

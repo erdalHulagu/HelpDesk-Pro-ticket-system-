@@ -5,7 +5,7 @@ import com.erdal.helpdeskpro.auth.AuthService;
 import com.erdal.helpdeskpro.config.util.JsonUtil;
 import com.erdal.helpdeskpro.controller.TicketActivityController;
 import com.erdal.helpdeskpro.domain.User;
-import com.erdal.helpdeskpro.dtos.TicketActivityDTO;
+import com.erdal.helpdeskpro.domain.dtos.TicketActivityDTO;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
 import com.sun.net.httpserver.HttpExchange;

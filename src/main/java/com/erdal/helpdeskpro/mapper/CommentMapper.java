@@ -11,7 +11,7 @@ import com.erdal.helpdeskpro.domain.Attachment;
 import com.erdal.helpdeskpro.domain.Comment;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
-import com.erdal.helpdeskpro.dtos.CommentDTO;
+import com.erdal.helpdeskpro.domain.dtos.CommentDTO;
 import com.erdal.helpdeskpro.enums.CommentType;
 import com.erdal.helpdeskpro.repository.AttachmentRepository;
 

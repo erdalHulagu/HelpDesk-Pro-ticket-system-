@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.erdal.helpdeskpro.domain.TicketActivity;
-import com.erdal.helpdeskpro.dtos.TicketActivityDTO;
+import com.erdal.helpdeskpro.domain.dtos.TicketActivityDTO;
 
 public class TicketActivityMapper {
 

@@ -4,7 +4,7 @@ package com.erdal.helpdeskpro.controller;
 import java.util.List;
 
 import com.erdal.helpdeskpro.domain.User;
-import com.erdal.helpdeskpro.dtos.TicketActivityDTO;
+import com.erdal.helpdeskpro.domain.dtos.TicketActivityDTO;
 import com.erdal.helpdeskpro.mapper.TicketActivityMapper;
 import com.erdal.helpdeskpro.service.TicketActivityService;
 

@@ -3,8 +3,8 @@ package com.erdal.helpdeskpro.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import com.erdal.helpdeskpro.domain.User;
+import com.erdal.helpdeskpro.domain.dtos.UserDTO;
 import com.erdal.helpdeskpro.domain.request.RegisterRequest;
-import com.erdal.helpdeskpro.dtos.UserDTO;
 
 public interface UserService {
 

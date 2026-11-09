@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.erdal.helpdeskpro.domain.Comment;
 import com.erdal.helpdeskpro.domain.User;
-import com.erdal.helpdeskpro.dtos.CommentDTO;
+import com.erdal.helpdeskpro.domain.dtos.CommentDTO;
 import com.erdal.helpdeskpro.mapper.CommentMapper;
 import com.erdal.helpdeskpro.service.CommentService;
 

@@ -6,7 +6,7 @@ import java.util.List;
 import org.mindrot.jbcrypt.BCrypt;
 
 import com.erdal.helpdeskpro.domain.User;
-import com.erdal.helpdeskpro.dtos.UserDTO;
+import com.erdal.helpdeskpro.domain.dtos.UserDTO;
 import com.erdal.helpdeskpro.enums.Role;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ExceptionMessage;

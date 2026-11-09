@@ -1,38 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN" "http://hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://hibernate.org/dtd/hibernate-configuration-3.0.dtd">
 
 <hibernate-configuration>
 
-	<session-factory>
+    <session-factory>
 
-		<property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
+        <!-- Database Connection -->
+        <property name="hibernate.connection.driver_class">
+            org.postgresql.Driver
+        </property>
 
-		<property name="hibernate.connection.url">
-			jdbc:postgresql://localhost:5432/helpdesk_pro</property>
+        <property name="hibernate.connection.url">
+            jdbc:postgresql://localhost:5432/helpdesk_pro
+        </property>
 
-		<property name="hibernate.connection.username">proHelpDesk</property>
+        <property name="hibernate.connection.username">
+            proHelpDesk
+        </property>
 
-		<property name="hibernate.connection.password">password</property>
+        <property name="hibernate.connection.password">
+            password
+        </property>
 
-		<property name="hibernate.dialect">
-			org.hibernate.dialect.PostgreSQLDialect</property>
+        <!-- Hibernate Configuration -->
+        <property name="hibernate.dialect">
+            org.hibernate.dialect.PostgreSQLDialect
+        </property>
 
-		<property name="hibernate.show_sql">true</property>
+        <property name="hibernate.show_sql">true</property>
 
-		<property name="hibernate.format_sql">true</property>
+        <property name="hibernate.format_sql">true</property>
 
-		<property name="hibernate.hbm2ddl.auto">update</property>
+        <property name="hibernate.hbm2ddl.auto">update</property>
 
-		<mapping class="com.erdal.helpdeskpro.domain.User" />
 
-		<mapping class="com.erdal.helpdeskpro.domain.Notification" />
-		
-		<mapping class="com.erdal.helpdeskpro.domain.Announcement"/>
-		
-		<mapping class="com.erdal.helpdeskpro.domain.AnnouncementRead"/>
-		
-		<mapping class="com.erdal.helpdeskpro.domain.Asset"/>
+        <!-- User Management -->
+        <mapping class="com.erdal.helpdeskpro.domain.User"/>
 
-	</session-factory>
+
+        <!-- Ticket Management -->
+        <mapping class="com.erdal.helpdeskpro.domain.Ticket"/>
+        <mapping class="com.erdal.helpdeskpro.domain.Comment"/>
+        <mapping class="com.erdal.helpdeskpro.domain.Attachment"/>
+        <mapping class="com.erdal.helpdeskpro.domain.TicketActivity"/>
+
+
+        <!-- Authentication -->
+        <mapping class="com.erdal.helpdeskpro.domain.AuthToken"/>
+
+
+        <!-- Notification Center -->
+        <mapping class="com.erdal.helpdeskpro.domain.Notification"/>
+
+
+        <!-- Announcement Center -->
+        <mapping class="com.erdal.helpdeskpro.domain.Announcement"/>
+        <mapping class="com.erdal.helpdeskpro.domain.AnnouncementRead"/>
+
+
+        <!-- Security Logs -->
+        <mapping class="com.erdal.helpdeskpro.domain.SecurityLog"/>
+
+
+        <!-- Asset Management -->
+        <mapping class="com.erdal.helpdeskpro.domain.Asset"/>
+        <mapping class="com.erdal.helpdeskpro.domain.AssetAssignment"/>
+        <mapping class="com.erdal.helpdeskpro.domain.request.AssetRequest"/>
+        <mapping class="com.erdal.helpdeskpro.domain.AssetMaintenance"/>
+
+    </session-factory>
 
 </hibernate-configuration>

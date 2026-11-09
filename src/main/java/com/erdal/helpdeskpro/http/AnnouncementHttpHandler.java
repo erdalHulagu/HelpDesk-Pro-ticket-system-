@@ -16,7 +16,7 @@ import com.erdal.helpdeskpro.controller.AnnouncementController;
 import com.erdal.helpdeskpro.controller.AnnouncementReadController;
 import com.erdal.helpdeskpro.domain.Announcement;
 import com.erdal.helpdeskpro.domain.User;
-import com.erdal.helpdeskpro.dtos.AnnouncementDTO;
+import com.erdal.helpdeskpro.domain.dtos.AnnouncementDTO;
 import com.erdal.helpdeskpro.enums.Role;
 import com.erdal.helpdeskpro.mapper.AnnouncementMapper;
 import com.google.gson.JsonSyntaxException;

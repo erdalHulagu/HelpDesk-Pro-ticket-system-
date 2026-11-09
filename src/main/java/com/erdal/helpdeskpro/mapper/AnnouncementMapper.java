@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 import com.erdal.helpdeskpro.domain.Announcement;
 import com.erdal.helpdeskpro.domain.User;
-import com.erdal.helpdeskpro.dtos.AnnouncementDTO;
+import com.erdal.helpdeskpro.domain.dtos.AnnouncementDTO;
 
 public class AnnouncementMapper {
 

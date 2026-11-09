@@ -1,4 +1,4 @@
-package com.erdal.helpdeskpro.dtos;
+package com.erdal.helpdeskpro.domain.dtos;
 
 import java.time.LocalDateTime;
 

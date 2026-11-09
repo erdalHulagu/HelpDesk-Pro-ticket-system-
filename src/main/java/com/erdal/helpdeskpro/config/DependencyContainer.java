@@ -1,4 +1,3 @@
-
 package com.erdal.helpdeskpro.config;
 
 import org.hibernate.SessionFactory;
@@ -23,11 +22,13 @@ import com.erdal.helpdeskpro.repository.TicketRepository;
 import com.erdal.helpdeskpro.repository.UserRepository;
 import com.erdal.helpdeskpro.repository.AuthTokenRepository;
 import com.erdal.helpdeskpro.repository.AnnouncementRepository;
+import com.erdal.helpdeskpro.repository.AssetRepository;
 import com.erdal.helpdeskpro.repository.dao.CommentDAO;
 import com.erdal.helpdeskpro.repository.dao.TicketDAO;
 import com.erdal.helpdeskpro.repository.dao.UserDAO;
 import com.erdal.helpdeskpro.repository.dao.AuthTokenDAO;
 import com.erdal.helpdeskpro.repository.dao.AnnouncementDAO;
+import com.erdal.helpdeskpro.repository.dao.AssetDAO;
 import com.erdal.helpdeskpro.service.CommentService;
 import com.erdal.helpdeskpro.service.TicketService;
 import com.erdal.helpdeskpro.service.UserService;
@@ -80,7 +81,11 @@ public final class DependencyContainer {
 
 	private static final AnnouncementReadRepository announcementReadRepository = new AnnouncementReadDAO(
 			sessionFactory);
+
 	private static final SecurityLogRepository securityLogRepository = new SecurityLogDAO(sessionFactory);
+
+	// Asset Repository
+	private static final AssetRepository assetRepository = new AssetDAO(sessionFactory);
 
 	// Services
 	private static final UserService userService = new UserServiceImpl(userRepository);
@@ -101,6 +106,7 @@ public final class DependencyContainer {
 
 	private static final AnnouncementReadService announcementReadService = new AnnouncementReadServiceImpl(
 			announcementReadRepository, announcementRepository);
+
 	private static final SecurityLogService securityLogService = new SecurityLogServiceImpl(securityLogRepository);
 
 	private static final ExcelExportService excelExportService = new ExcelExportServiceImpl();
@@ -122,10 +128,13 @@ public final class DependencyContainer {
 
 	private static final NotificationController notificationController = new NotificationController(
 			notificationService);
+
 	private static final TicketActivityController ticketActivityController = new TicketActivityController(
 			ticketActivityService);
+
 	private static final AnnouncementController announcementController = new AnnouncementController(
 			announcementService);
+
 	private static final AnnouncementReadController announcementReadController = new AnnouncementReadController(
 			announcementReadService);
 
@@ -169,12 +178,15 @@ public final class DependencyContainer {
 		return userRepository;
 	}
 
+	public static AssetRepository getAssetRepository() {
+		return assetRepository;
+	}
+
 	public static AttachmentController getAttachmentController() {
 		return attachmentController;
 	}
 
 	public static Authorization getAuthorization() {
-
 		return authorization;
 	}
 
@@ -201,18 +213,16 @@ public final class DependencyContainer {
 	public static SecurityLogService getSecurityLogService() {
 		return securityLogService;
 	}
-	
+
 	public static ExcelExportService getExcelExportService() {
-	    return excelExportService;
+		return excelExportService;
 	}
+
 	public static UserService getUserService() {
 		return userService;
 	}
 
 	public static TicketService getTicketService() {
-		
 		return ticketService;
 	}
-
-	
 }

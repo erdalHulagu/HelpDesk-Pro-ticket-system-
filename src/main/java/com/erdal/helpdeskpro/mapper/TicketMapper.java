@@ -6,8 +6,8 @@ import java.util.stream.Collectors;
 
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
-import com.erdal.helpdeskpro.dtos.TicketDTO;
-import com.erdal.helpdeskpro.dtos.UserDTO;
+import com.erdal.helpdeskpro.domain.dtos.TicketDTO;
+import com.erdal.helpdeskpro.domain.dtos.UserDTO;
 
 public class TicketMapper {
 
