@@ -1,5 +1,6 @@
 package com.erdal.helpdeskpro.service.impl;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import com.erdal.helpdeskpro.repository.UserRepository;
 import java.util.ArrayList;
@@ -324,5 +325,72 @@ public class TicketServiceImpl implements TicketService {
 			    null,
 			    null
 			);
+	}
+	
+	@Override
+	public String calculateSlaStatus(Ticket ticket) {
+
+	    if (ticket == null || ticket.getSlaDueAt() == null) {
+	        return "UNKNOWN";
+	    }
+
+	    // Çözülen veya kapatılan ticket
+	    if (ticket.getStatus() == TicketStatus.RESOLVED
+	            || ticket.getStatus() == TicketStatus.CLOSED) {
+	        return "COMPLETED";
+	    }
+
+	    LocalDateTime now = LocalDateTime.now();
+	    LocalDateTime deadline = ticket.getSlaDueAt();
+
+	    // SLA süresi aşılmış
+	    if (now.isAfter(deadline)) {
+	        return "BREACHED";
+	    }
+
+	    // Son 1 saat
+	    if (!now.isBefore(deadline.minusHours(1))) {
+	        return "AT_RISK";
+	    }
+
+	    return "ON_TRACK";
+	}
+
+	@Override
+	public String calculateSlaRemainingTime(Ticket ticket) {
+
+	    if (ticket == null || ticket.getSlaDueAt() == null) {
+	        return "N/A";
+	    }
+
+	    if (ticket.getStatus() == TicketStatus.RESOLVED
+	            || ticket.getStatus() == TicketStatus.CLOSED) {
+	        return "Completed";
+	    }
+
+	    Duration duration = Duration.between(
+	            LocalDateTime.now(),
+	            ticket.getSlaDueAt()
+	    );
+
+	    if (duration.isNegative() || duration.isZero()) {
+	        return "Overdue";
+	    }
+
+	    long totalMinutes = duration.toMinutes();
+
+	    long days = totalMinutes / (24 * 60);
+	    long hours = (totalMinutes % (24 * 60)) / 60;
+	    long minutes = totalMinutes % 60;
+
+	    if (days > 0) {
+	        return days + "d " + hours + "h remaining";
+	    }
+
+	    if (hours > 0) {
+	        return hours + "h " + minutes + "m remaining";
+	    }
+
+	    return minutes + "m remaining";
 	}
 }

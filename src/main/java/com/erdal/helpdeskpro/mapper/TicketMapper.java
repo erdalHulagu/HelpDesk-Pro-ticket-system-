@@ -11,89 +11,121 @@ import com.erdal.helpdeskpro.dtos.UserDTO;
 
 public class TicketMapper {
 
-	public static Ticket ticketDTOtoTicket(TicketDTO ticketDTO) {
+    public static Ticket ticketDTOtoTicket(TicketDTO ticketDTO) {
 
-		Ticket ticket = new Ticket();
+        Ticket ticket = new Ticket();
 
-		ticket.setId(ticketDTO.getId());
-		ticket.setStatus(ticketDTO.getStatus());
-		ticket.setDescription(ticketDTO.getDescription());
-		ticket.setCategory(ticketDTO.getCategory());
-		ticket.setPriority(ticketDTO.getPriority());
-		ticket.setDeleted(ticketDTO.isDeleted());
-		ticket.setTitle(ticketDTO.getTitle());
-		ticket.setResolvedAt(ticketDTO.getResolvedAt());
-		ticket.setSlaDueAt(ticketDTO.getSlaDueAt());
+        ticket.setId(ticketDTO.getId());
+        ticket.setStatus(ticketDTO.getStatus());
+        ticket.setDescription(ticketDTO.getDescription());
+        ticket.setCategory(ticketDTO.getCategory());
+        ticket.setPriority(ticketDTO.getPriority());
+        ticket.setDeleted(ticketDTO.isDeleted());
+        ticket.setTitle(ticketDTO.getTitle());
+        ticket.setResolvedAt(ticketDTO.getResolvedAt());
+        ticket.setSlaDueAt(ticketDTO.getSlaDueAt());
 
-		return ticket;
-	}
+        return ticket;
+    }
 
+    public static TicketDTO ticketToTicketDTO(Ticket ticket) {
 
-public static TicketDTO ticketToTicketDTO(Ticket ticket) {
+        TicketDTO ticketDTO = new TicketDTO();
 
-    TicketDTO ticketDTO = new TicketDTO();
+        ticketDTO.setId(ticket.getId());
+        ticketDTO.setStatus(ticket.getStatus());
+        ticketDTO.setDescription(ticket.getDescription());
+        ticketDTO.setCategory(ticket.getCategory());
+        ticketDTO.setPriority(ticket.getPriority());
+        ticketDTO.setDeleted(ticket.isDeleted());
+        ticketDTO.setTitle(ticket.getTitle());
+        ticketDTO.setResolvedAt(ticket.getResolvedAt());
+        ticketDTO.setSlaDueAt(ticket.getSlaDueAt());
 
-    ticketDTO.setId(ticket.getId());
-    ticketDTO.setStatus(ticket.getStatus());
-    ticketDTO.setDescription(ticket.getDescription());
-    ticketDTO.setCategory(ticket.getCategory());
-    ticketDTO.setPriority(ticket.getPriority());
-    ticketDTO.setDeleted(ticket.isDeleted());
-    ticketDTO.setTitle(ticket.getTitle());
-    ticketDTO.setResolvedAt(ticket.getResolvedAt());
-    ticketDTO.setSlaDueAt(ticket.getSlaDueAt());
+        ticketDTO.setCreatedById(
+            ticket.getCreatedBy() != null
+                ? ticket.getCreatedBy().getId()
+                : null
+        );
 
-    ticketDTO.setCreatedById(
-        ticket.getCreatedBy() != null
-            ? ticket.getCreatedBy().getId()
-            : null
-    );
+        ticketDTO.setCreatedByUsername(
+            ticket.getCreatedBy() != null
+                ? ticket.getCreatedBy().getUsername()
+                : null
+        );
 
-    ticketDTO.setCreatedByUsername(
-        ticket.getCreatedBy() != null
-            ? ticket.getCreatedBy().getUsername()
-            : null
-    );
+        ticketDTO.setCreatedByRole(
+            ticket.getCreatedBy() != null
+                    && ticket.getCreatedBy().getRole() != null
+                ? ticket.getCreatedBy().getRole().name()
+                : null
+        );
 
-    ticketDTO.setCreatedByRole(
-        ticket.getCreatedBy() != null
-                && ticket.getCreatedBy().getRole() != null
-            ? ticket.getCreatedBy().getRole().name()
-            : null
-    );
+        ticketDTO.setAssignedToId(
+            ticket.getAssignedTo() != null
+                ? ticket.getAssignedTo().getId()
+                : null
+        );
+        ticketDTO.setAssignedToUsername(
+        	    ticket.getAssignedTo() != null
+        	        ? ticket.getAssignedTo().getUsername()
+        	        : null
+        	);
 
-    return ticketDTO;
-}
+        return ticketDTO;
+    }
 
+    // SLA bilgileriyle birlikte DTO oluşturur.
+    public static TicketDTO ticketToTicketDTO(
+            Ticket ticket,
+            String slaStatus,
+            String slaRemainingTime) {
 
-	public static List<TicketDTO> ticketListToTicketDTOList(List<Ticket> tickets) {
-		if (tickets == null || tickets.isEmpty()) {
-			return Collections.emptyList();
-		}
+        TicketDTO ticketDTO = ticketToTicketDTO(ticket);
 
-		return tickets.stream().map(TicketMapper::ticketToTicketDTO).collect(Collectors.toList());
+        ticketDTO.setSlaStatus(slaStatus);
+        ticketDTO.setSlaRemainingTime(slaRemainingTime);
 
-	}
+        return ticketDTO;
+    }
 
-	public static List<Ticket> ticketDTOListToTicketList(List<TicketDTO> ticketDTOs) {
+    public static List<TicketDTO> ticketListToTicketDTOList(
+            List<Ticket> tickets) {
 
-		if (ticketDTOs == null || ticketDTOs.isEmpty()) {
-			return Collections.emptyList();
+        if (tickets == null || tickets.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-		}
-		return ticketDTOs.stream().map(TicketMapper::ticketDTOtoTicket).collect(Collectors.toList());
+        return tickets.stream()
+                .map(TicketMapper::ticketToTicketDTO)
+                .collect(Collectors.toList());
+    }
 
-	}
+    public static List<Ticket> ticketDTOListToTicketList(
+            List<TicketDTO> ticketDTOs) {
 
-	public static Ticket userDTOtoTicket(UserDTO userDTO) {
-		Ticket ticket = new Ticket();
-		if (userDTO.getId() != null) {
-			User user = new User();
-			user.setId(userDTO.getId());
-			ticket.setCreatedBy(user); // set creator
-		}
-		ticket.setStatus(null); // status can be set later
-		ticket.setId(null); // ID will be generated by DB
-		return ticket;
-	}
+        if (ticketDTOs == null || ticketDTOs.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return ticketDTOs.stream()
+                .map(TicketMapper::ticketDTOtoTicket)
+                .collect(Collectors.toList());
+    }
+
+    public static Ticket userDTOtoTicket(UserDTO userDTO) {
+
+        Ticket ticket = new Ticket();
+
+        if (userDTO.getId() != null) {
+            User user = new User();
+            user.setId(userDTO.getId());
+            ticket.setCreatedBy(user);
+        }
+
+        ticket.setStatus(null);
+        ticket.setId(null);
+
+        return ticket;
+    }
 }

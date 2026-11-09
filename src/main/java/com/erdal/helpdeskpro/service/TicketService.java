@@ -1,3 +1,4 @@
+
 package com.erdal.helpdeskpro.service;
 
 import java.time.LocalDateTime;
@@ -9,27 +10,36 @@ import com.erdal.helpdeskpro.enums.TicketStatus;
 
 public interface TicketService {
 
-	void createTicket(Ticket ticket, User currentUser);
+    void createTicket(Ticket ticket, User currentUser);
 
-	Ticket getTicketById(Long ticketId, User currentUser);
+    Ticket getTicketById(Long ticketId, User currentUser);
 
-	List<Ticket> getTicketsForUser(User currentUser);
+    List<Ticket> getTicketsForUser(User currentUser);
 
-	void assignTicket(Long ticketId, Long assignedToId, User currentUser);
+    void assignTicket(Long ticketId, Long assignedToId, User currentUser);
 
-	List<Ticket> findAllIncludingDeleted(User currentUser);
+    List<Ticket> findAllIncludingDeleted(User currentUser);
 
-	Ticket findByIdIncludingDeleted(Long id, User currentUser);
+    Ticket findByIdIncludingDeleted(Long id, User currentUser);
 
-	List<Ticket> getAllTicketsForAdmin(User currentUser);
+    List<Ticket> getAllTicketsForAdmin(User currentUser);
 
-	void updateStatus(Long ticketId, TicketStatus ticketStatus, User currentUser);
+    void updateStatus(Long ticketId, TicketStatus ticketStatus, User currentUser);
 
-	void deleteTicket(Long ticketId, User currentUser);
+    void deleteTicket(Long ticketId, User currentUser);
 
-	List<Ticket> findAllActive(User currentUser);
+    List<Ticket> findAllActive(User currentUser);
 
-	List<Ticket> getAllTickets(User currentUser);
+    List<Ticket> getAllTickets(User currentUser);
 
-	List<Ticket> getTicketsForExport(User currentUser, LocalDateTime startDate, LocalDateTime endDate);
+    List<Ticket> getTicketsForExport(
+            User currentUser,
+            LocalDateTime startDate,
+            LocalDateTime endDate
+    );
+
+    // SLA calculations
+    String calculateSlaStatus(Ticket ticket);
+
+    String calculateSlaRemainingTime(Ticket ticket);
 }
