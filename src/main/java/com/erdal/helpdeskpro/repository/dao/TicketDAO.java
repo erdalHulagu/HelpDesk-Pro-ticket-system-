@@ -187,10 +187,12 @@ public class TicketDAO implements TicketRepository {
 	@Override
 	public List<Ticket> findAllActiveByAssetId(Long assetId) {
 	    try (Session session = sessionFactory.openSession()) {
+	    	
 	        return session.createQuery(
 	                "SELECT t FROM Ticket t " +
 	                "LEFT JOIN FETCH t.createdBy " +
 	                "LEFT JOIN FETCH t.assignedTo " +
+	                "LEFT JOIN FETCH t.asset " +
 	                "WHERE t.asset.id = :assetId " +
 	                "AND t.isDeleted = false " +
 	                "ORDER BY t.createdAt DESC",

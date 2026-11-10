@@ -8,7 +8,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
+import com.erdal.helpdeskpro.domain.Asset;
+import com.erdal.helpdeskpro.domain.AssetAssignment;
+import com.erdal.helpdeskpro.enums.AssetStatus;
+import com.erdal.helpdeskpro.repository.AssetRepository;
+import com.erdal.helpdeskpro.repository.AssetAssignmentRepository;
 import com.erdal.helpdeskpro.authorization.Authorization;
 import com.erdal.helpdeskpro.domain.Ticket;
 import com.erdal.helpdeskpro.domain.User;
@@ -25,6 +29,7 @@ import com.erdal.helpdeskpro.service.TicketService;
 import com.erdal.helpdeskpro.service.TicketActivityService;
 import com.erdal.helpdeskpro.domain.Asset;
 import com.erdal.helpdeskpro.enums.AssetStatus;
+import com.erdal.helpdeskpro.repository.AssetAssignmentRepository;
 import com.erdal.helpdeskpro.repository.AssetRepository;
 
 public class TicketServiceImpl implements TicketService {
@@ -34,82 +39,74 @@ public class TicketServiceImpl implements TicketService {
 	private UserRepository userRepository;
 	private TicketActivityService ticketActivityService;
 	private AssetRepository assetRepository;
+	private AssetAssignmentRepository assetAssignmentRepository;
 
-	public TicketServiceImpl(
-	        TicketRepository ticketRepository,
-	        Authorization authorization,
-	        UserRepository userRepository,
-	        TicketActivityService ticketActivityService,
-	        AssetRepository assetRepository) {
+	public TicketServiceImpl(TicketRepository ticketRepository, Authorization authorization,
+			UserRepository userRepository, TicketActivityService ticketActivityService, AssetRepository assetRepository,
+			AssetAssignmentRepository assetAssignmentRepository) {
 
-	    this.ticketRepository = ticketRepository;
-	    this.authorization = authorization;
-	    this.userRepository = userRepository;
-	    this.ticketActivityService = ticketActivityService;
-	    this.assetRepository = assetRepository;
+		this.ticketRepository = ticketRepository;
+		this.authorization = authorization;
+		this.userRepository = userRepository;
+		this.ticketActivityService = ticketActivityService;
+		this.assetRepository = assetRepository;
+		this.assetAssignmentRepository = assetAssignmentRepository;
 	}
 
 	@Override
 	public void createTicket(Ticket ticket, User currentUser) {
-		
-		if (ticket.getAsset() != null && ticket.getAsset().getId() != null) {
 
-		    Asset asset = assetRepository.findById(ticket.getAsset().getId());
+		if (currentUser == null) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
 
-		    if (asset == null) {
-		        throw new ResourceNotFoundExeption("Asset not found.");
-		    }
+		if (ticket == null) {
+			throw new BadRequestExeption("Ticket is required.");
+		}
 
-		    if (asset.getStatus() == AssetStatus.RETIRED
-		            || asset.getStatus() == AssetStatus.LOST) {
-		        throw new BadRequestExeption(
-		                "Tickets cannot be linked to retired or lost assets.");
-		    }
+		if (ticket.getAsset() != null) {
 
-		    if (currentUser == null) {
-		        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-		    }
+			if (ticket.getAsset().getId() == null) {
+				throw new BadRequestExeption("Invalid asset ID.");
+			}
 
-		    if (currentUser.getRole() == Role.EMPLOYEE) {
+			Asset asset = assetRepository.findById(ticket.getAsset().getId());
 
-		        boolean hasAssignment = asset.getStatus() == AssetStatus.ASSIGNED;
+			if (asset == null) {
+				throw new ResourceNotFoundExeption("Asset not found.");
+			}
 
-		        if (!hasAssignment) {
-		            throw new BadRequestExeption(
-		                    "You can only create tickets for your assigned assets.");
-		        }
+			if (asset.getStatus() == AssetStatus.RETIRED || asset.getStatus() == AssetStatus.LOST) {
+				throw new BadRequestExeption("Tickets cannot be linked to retired or lost assets.");
+			}
 
-		        // Kullanıcının gerçekten bu cihazın aktif sahibi olduğunu doğrula.
-		        // Bu kontrol için aşağıdaki adımda AssignmentRepository ekleyeceğiz.
-		    }
+			if (currentUser.getRole() == Role.EMPLOYEE
+					&& !hasActiveAssetAssignment(asset.getId(), currentUser.getId())) {
+				throw new BadRequestExeption("You can only create tickets for your assigned assets.");
+			}
 
-		    ticket.setAsset(asset);
+			ticket.setAsset(asset);
 
 		} else {
-		    ticket.setAsset(null);
+			ticket.setAsset(null);
 		}
-	    ticket.setCreatedBy(currentUser);
-	    ticket.setStatus(TicketStatus.OPEN);
-	    ticket.setDeleted(false);
 
-	    if (ticket.getPriority() == null) {
-	        ticket.setPriority(TicketPriority.MEDIUM);
-	    }
+		ticket.setCreatedBy(currentUser);
+		ticket.setStatus(TicketStatus.OPEN);
+		ticket.setDeleted(false);
 
-	    ticket.setCreatedAt(LocalDateTime.now());
-	    ticket.setSlaDueAt(ticket.getCreatedAt().plusHours(getSlaHours(ticket.getPriority())));
-	    ticket.setResolvedAt(null);
+		if (ticket.getPriority() == null) {
+			ticket.setPriority(TicketPriority.MEDIUM);
+		}
 
-	    ticketRepository.save(ticket);
+		ticket.setCreatedAt(LocalDateTime.now());
+		ticket.setSlaDueAt(ticket.getCreatedAt().plusHours(getSlaHours(ticket.getPriority())));
+		ticket.setResolvedAt(null);
 
-	    ticketActivityService.createActivity(
-	        ticket.getId(),
-	        currentUser,
-	        TicketActivityType.TICKET_CREATED,
-	        "Ticket created",
-	        null,
-	        null
-	    );
+		ticketRepository.save(ticket);
+
+		ticketActivityService.createActivity(ticket.getId(), currentUser, TicketActivityType.TICKET_CREATED,
+				"Ticket created", null, null);
 	}
 
 	private int getSlaHours(TicketPriority priority) {
@@ -149,15 +146,10 @@ public class TicketServiceImpl implements TicketService {
 			ticket.setResolvedAt(LocalDateTime.now());
 		}
 		ticketRepository.update(ticket);
-		
-		ticketActivityService.createActivity(
-			    ticketId,
-			    currentUser,
-			    TicketActivityType.STATUS_CHANGED,
-			    "Status changed from " + oldStatus.name() + " to " + newStatus.name(),
-			    oldStatus.name(),
-			    newStatus.name()
-			);
+
+		ticketActivityService.createActivity(ticketId, currentUser, TicketActivityType.STATUS_CHANGED,
+				"Status changed from " + oldStatus.name() + " to " + newStatus.name(), oldStatus.name(),
+				newStatus.name());
 	}
 
 	private boolean isValidTransition(TicketStatus current, TicketStatus next) {
@@ -225,22 +217,14 @@ public class TicketServiceImpl implements TicketService {
 		}
 		User previousAssignee = ticket.getAssignedTo();
 
-		String oldAssignee = previousAssignee == null
-		        ? "Unassigned"
-		        : previousAssignee.getUsername();
+		String oldAssignee = previousAssignee == null ? "Unassigned" : previousAssignee.getUsername();
 
 		String newAssignee = assignedUser.getUsername();
 		ticket.setAssignedTo(assignedUser);
 		ticketRepository.update(ticket);
-		
-		ticketActivityService.createActivity(
-			    ticketId,
-			    currentUser,
-			    TicketActivityType.ASSIGNED,
-			    "Ticket assignment changed",
-			    oldAssignee,
-			    newAssignee
-			);
+
+		ticketActivityService.createActivity(ticketId, currentUser, TicketActivityType.ASSIGNED,
+				"Ticket assignment changed", oldAssignee, newAssignee);
 	}
 
 	@Override
@@ -251,25 +235,22 @@ public class TicketServiceImpl implements TicketService {
 
 		return ticketRepository.findAll();
 	}
-	
-	public List<Ticket> getTicketsForExport(
-	        User currentUser,
-	        LocalDateTime startDate,
-	        LocalDateTime endDate) {
 
-	    if (currentUser == null || currentUser.getRole() != Role.ADMIN) {
-	        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
-	    }
+	public List<Ticket> getTicketsForExport(User currentUser, LocalDateTime startDate, LocalDateTime endDate) {
 
-	    if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
-	        throw new BadRequestExeption("Start date cannot be after end date.");
-	    }
+		if (currentUser == null || currentUser.getRole() != Role.ADMIN) {
+			throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		}
 
-	    if (startDate == null && endDate == null) {
-	        return ticketRepository.findAll();
-	    }
+		if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+			throw new BadRequestExeption("Start date cannot be after end date.");
+		}
 
-	    return ticketRepository.findAllByCreatedAtRange(startDate, endDate);
+		if (startDate == null && endDate == null) {
+			return ticketRepository.findAll();
+		}
+
+		return ticketRepository.findAllByCreatedAtRange(startDate, endDate);
 	}
 
 	@Override
@@ -360,121 +341,129 @@ public class TicketServiceImpl implements TicketService {
 
 		ticket.setDeleted(true);
 		ticketRepository.update(ticket);
-		ticketActivityService.createActivity(
-			    ticketId,
-			    currentUser,
-			    TicketActivityType.TICKET_DELETED,
-			    "Ticket deleted",
-			    null,
-			    null
-			);
+		ticketActivityService.createActivity(ticketId, currentUser, TicketActivityType.TICKET_DELETED, "Ticket deleted",
+				null, null);
 	}
-	
+
 	@Override
 	public String calculateSlaStatus(Ticket ticket) {
 
-	    if (ticket == null || ticket.getSlaDueAt() == null) {
-	        return "UNKNOWN";
-	    }
+		if (ticket == null || ticket.getSlaDueAt() == null) {
+			return "UNKNOWN";
+		}
 
-	    boolean isCompleted =
-	            ticket.getStatus() == TicketStatus.RESOLVED
-	            || ticket.getStatus() == TicketStatus.CLOSED;
+		boolean isCompleted = ticket.getStatus() == TicketStatus.RESOLVED || ticket.getStatus() == TicketStatus.CLOSED;
 
-	    LocalDateTime deadline = ticket.getSlaDueAt();
+		LocalDateTime deadline = ticket.getSlaDueAt();
 
-	    if (isCompleted) {
+		if (isCompleted) {
 
-	        LocalDateTime resolvedAt = ticket.getResolvedAt();
+			LocalDateTime resolvedAt = ticket.getResolvedAt();
 
-	        // Eski kayıtlar için geriye dönük uyumluluk
-	        if (resolvedAt == null) {
-	            return "COMPLETED";
-	        }
+			// Eski kayıtlar için geriye dönük uyumluluk
+			if (resolvedAt == null) {
+				return "COMPLETED";
+			}
 
-	        if (!resolvedAt.isAfter(deadline)) {
-	            return "COMPLETED_ON_TIME";
-	        }
+			if (!resolvedAt.isAfter(deadline)) {
+				return "COMPLETED_ON_TIME";
+			}
 
-	        return "COMPLETED_LATE";
-	    }
+			return "COMPLETED_LATE";
+		}
 
-	    LocalDateTime now = LocalDateTime.now();
+		LocalDateTime now = LocalDateTime.now();
 
-	    if (now.isAfter(deadline)) {
-	        return "BREACHED";
-	    }
+		if (now.isAfter(deadline)) {
+			return "BREACHED";
+		}
 
-	    if (!now.isBefore(deadline.minusHours(1))) {
-	        return "AT_RISK";
-	    }
+		if (!now.isBefore(deadline.minusHours(1))) {
+			return "AT_RISK";
+		}
 
-	    return "ON_TRACK";
+		return "ON_TRACK";
 	}
 
 	@Override
 	public String calculateSlaRemainingTime(Ticket ticket) {
 
-	    if (ticket == null || ticket.getSlaDueAt() == null) {
-	        return "N/A";
-	    }
+		if (ticket == null || ticket.getSlaDueAt() == null) {
+			return "N/A";
+		}
 
-	    boolean isCompleted =
-	            ticket.getStatus() == TicketStatus.RESOLVED
-	            || ticket.getStatus() == TicketStatus.CLOSED;
+		boolean isCompleted = ticket.getStatus() == TicketStatus.RESOLVED || ticket.getStatus() == TicketStatus.CLOSED;
 
-	    if (isCompleted) {
+		if (isCompleted) {
 
-	        LocalDateTime resolvedAt = ticket.getResolvedAt();
+			LocalDateTime resolvedAt = ticket.getResolvedAt();
 
-	        if (resolvedAt == null) {
-	            return "Completed";
-	        }
+			if (resolvedAt == null) {
+				return "Completed";
+			}
 
-	        if (!resolvedAt.isAfter(ticket.getSlaDueAt())) {
-	            return "Completed on time";
-	        }
+			if (!resolvedAt.isAfter(ticket.getSlaDueAt())) {
+				return "Completed on time";
+			}
 
-	        return "Completed late";
-	    }
+			return "Completed late";
+		}
 
-	    Duration duration = Duration.between(
-	            LocalDateTime.now(),
-	            ticket.getSlaDueAt()
-	    );
+		Duration duration = Duration.between(LocalDateTime.now(), ticket.getSlaDueAt());
 
-	    if (duration.isNegative() || duration.isZero()) {
-	        return "Overdue";
-	    }
+		if (duration.isNegative() || duration.isZero()) {
+			return "Overdue";
+		}
 
-	    long totalMinutes = duration.toMinutes();
+		long totalMinutes = duration.toMinutes();
 
-	    long days = totalMinutes / (24 * 60);
-	    long hours = (totalMinutes % (24 * 60)) / 60;
-	    long minutes = totalMinutes % 60;
+		long days = totalMinutes / (24 * 60);
+		long hours = (totalMinutes % (24 * 60)) / 60;
+		long minutes = totalMinutes % 60;
 
-	    if (days > 0) {
-	        return days + "d " + hours + "h remaining";
-	    }
+		if (days > 0) {
+			return days + "d " + hours + "h remaining";
+		}
 
-	    if (hours > 0) {
-	        return hours + "h " + minutes + "m remaining";
-	    }
+		if (hours > 0) {
+			return hours + "h " + minutes + "m remaining";
+		}
 
-	    return minutes + "m remaining";
+		return minutes + "m remaining";
 	}
-	
+
 	@Override
 	public List<Ticket> getTicketsByAssetId(Long assetId, User currentUser) {
 
-	    if (currentUser == null) {
-	        throw new SecurityException("Authentication required.");
-	    }
+		if (currentUser == null) {
+			throw new SecurityException("Authentication required.");
+		}
 
-	    if (assetId == null || assetId <= 0) {
-	        throw new IllegalArgumentException("Invalid asset ID.");
-	    }
+		if (assetId == null || assetId <= 0) {
+			throw new BadRequestExeption("Invalid asset ID.");
+		}
 
-	    return ticketRepository.findAllActiveByAssetId(assetId);
+		Asset asset = assetRepository.findById(assetId);
+
+		if (asset == null) {
+			throw new ResourceNotFoundExeption("Asset not found.");
+		}
+
+		if (currentUser.getRole() == Role.EMPLOYEE && !hasActiveAssetAssignment(assetId, currentUser.getId())) {
+
+			throw new BadRequestExeption("You are not authorized to view tickets for this asset.");
+		}
+
+		return ticketRepository.findAllActiveByAssetId(assetId);
+	}
+	
+	
+
+	private boolean hasActiveAssetAssignment(Long assetId, Long userId) {
+
+		AssetAssignment assignment = assetAssignmentRepository.findActiveByAssetId(assetId);
+
+		return assignment != null && assignment.getUser() != null && assignment.getUser().getId() != null
+				&& assignment.getUser().getId().equals(userId);
 	}
 }

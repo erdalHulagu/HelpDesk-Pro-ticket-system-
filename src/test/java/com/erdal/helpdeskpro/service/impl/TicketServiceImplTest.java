@@ -28,266 +28,239 @@ import com.erdal.helpdeskpro.enums.TicketPriority;
 import com.erdal.helpdeskpro.enums.TicketStatus;
 import com.erdal.helpdeskpro.exception.BadRequestExeption;
 import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
+import com.erdal.helpdeskpro.repository.AssetAssignmentRepository;
+import com.erdal.helpdeskpro.repository.AssetRepository;
 import com.erdal.helpdeskpro.repository.TicketRepository;
 import com.erdal.helpdeskpro.repository.UserRepository;
 import com.erdal.helpdeskpro.service.TicketActivityService;
 
 class TicketServiceImplTest {
 
-    @Mock
-    private TicketRepository ticketRepository;
+	@Mock
+	private TicketRepository ticketRepository;
 
-    @Mock
-    private Authorization authorization;
+	@Mock
+	private Authorization authorization;
 
-    @Mock
-    private TicketServiceImpl ticketService;
-    
-    @Mock
-    private UserRepository userRepository;
-    
-    @Mock
+	@Mock
+	private TicketServiceImpl ticketService;
+
+	@Mock
+	private UserRepository userRepository;
+
+	@Mock
 	private TicketActivityService ticketActivityService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+	@Mock
+	private AssetRepository assetRepository;
 
-        ticketService = new TicketServiceImpl(
-            ticketRepository,
-            authorization,
-            userRepository,
-            ticketActivityService
-            
-        );
-    }
+	@Mock
+	private AssetAssignmentRepository assetAssignmentRepository;
 
-    // 1. Ticket oluşturulurken varsayılan değerler atanmalı.
-    @Test
-    void createTicket_shouldSetDefaultValuesAndSaveTicket() {
+	@BeforeEach
+	void setUp() {
+		MockitoAnnotations.openMocks(this);
 
-        Ticket ticket = new Ticket();
-        User currentUser = new User();
+		ticketService = new TicketServiceImpl(ticketRepository, authorization, userRepository, ticketActivityService,
+				assetRepository, assetAssignmentRepository
 
-        ticketService.createTicket(ticket, currentUser);
+		);
+	}
 
-        assertSame(currentUser, ticket.getCreatedBy());
-        assertEquals(TicketStatus.OPEN, ticket.getStatus());
-        assertEquals(TicketPriority.MEDIUM, ticket.getPriority());
-        assertFalse(ticket.isDeleted());
+	// 1. Ticket oluşturulurken varsayılan değerler atanmalı.
+	@Test
+	void createTicket_shouldSetDefaultValuesAndSaveTicket() {
 
-        verify(ticketRepository).save(ticket);
-    }
+		Ticket ticket = new Ticket();
+		User currentUser = new User();
 
-    // 2. Ticket ID ile bulunamazsa hata fırlatılmalı.
-    @Test
-    void getTicketById_shouldThrowExceptionWhenTicketNotFound() {
+		ticketService.createTicket(ticket, currentUser);
 
-        Long ticketId = 99L;
-        User currentUser = new User();
+		assertSame(currentUser, ticket.getCreatedBy());
+		assertEquals(TicketStatus.OPEN, ticket.getStatus());
+		assertEquals(TicketPriority.MEDIUM, ticket.getPriority());
+		assertFalse(ticket.isDeleted());
 
-        when(ticketRepository.findById(ticketId)).thenReturn(null);
+		verify(ticketRepository).save(ticket);
+	}
 
-        assertThrows(
-            ResourceNotFoundExeption.class,
-            () -> ticketService.getTicketById(ticketId, currentUser)
-        );
-    }
+	// 2. Ticket ID ile bulunamazsa hata fırlatılmalı.
+	@Test
+	void getTicketById_shouldThrowExceptionWhenTicketNotFound() {
 
-    // 3. ADMIN tüm ticket'ları alabilmeli.
-    @Test
-    void getAllTickets_shouldReturnAllTicketsForAdmin() {
+		Long ticketId = 99L;
+		User currentUser = new User();
 
-        User admin = new User();
-        admin.setRole(Role.ADMIN);
+		when(ticketRepository.findById(ticketId)).thenReturn(null);
 
-        List<Ticket> expectedTickets =
-            List.of(new Ticket(), new Ticket());
+		assertThrows(ResourceNotFoundExeption.class, () -> ticketService.getTicketById(ticketId, currentUser));
+	}
 
-        when(ticketRepository.findAll()).thenReturn(expectedTickets);
+	// 3. ADMIN tüm ticket'ları alabilmeli.
+	@Test
+	void getAllTickets_shouldReturnAllTicketsForAdmin() {
 
-        List<Ticket> actualTickets = ticketService.getAllTickets(admin);
+		User admin = new User();
+		admin.setRole(Role.ADMIN);
 
-        assertEquals(2, actualTickets.size());
-        assertEquals(expectedTickets, actualTickets);
+		List<Ticket> expectedTickets = List.of(new Ticket(), new Ticket());
 
-        verify(ticketRepository).findAll();
-    }
+		when(ticketRepository.findAll()).thenReturn(expectedTickets);
 
-    // 4. EMPLOYEE için yalnızca kendi ID'siyle sorgulama yapılmalı.
-    @Test
-    void getAllTickets_shouldReturnOwnTicketsForEmployee() {
+		List<Ticket> actualTickets = ticketService.getAllTickets(admin);
 
-        User employee = new User();
-        employee.setId(10L);
-        employee.setRole(Role.EMPLOYEE);
+		assertEquals(2, actualTickets.size());
+		assertEquals(expectedTickets, actualTickets);
 
-        List<Ticket> expectedTickets =
-            List.of(new Ticket(), new Ticket());
+		verify(ticketRepository).findAll();
+	}
 
-        when(ticketRepository.findAllActiveByCreatedBy(10L))
-            .thenReturn(expectedTickets);
+	// 4. EMPLOYEE için yalnızca kendi ID'siyle sorgulama yapılmalı.
+	@Test
+	void getAllTickets_shouldReturnOwnTicketsForEmployee() {
 
-        List<Ticket> actualTickets = ticketService.getAllTickets(employee);
+		User employee = new User();
+		employee.setId(10L);
+		employee.setRole(Role.EMPLOYEE);
 
-        assertEquals(2, actualTickets.size());
-        assertEquals(expectedTickets, actualTickets);
+		List<Ticket> expectedTickets = List.of(new Ticket(), new Ticket());
 
-        verify(ticketRepository).findAllActiveByCreatedBy(10L);
-        verify(ticketRepository, never()).findAll();
-    }
+		when(ticketRepository.findAllActiveByCreatedBy(10L)).thenReturn(expectedTickets);
 
-    // 5. ADMIN olmayan kullanıcı yönetici listeleme metodunu kullanamamalı.
-    @Test
-    void getAllTicketsForAdmin_shouldThrowExceptionForEmployee() {
+		List<Ticket> actualTickets = ticketService.getAllTickets(employee);
 
-        User employee = new User();
-        employee.setRole(Role.EMPLOYEE);
+		assertEquals(2, actualTickets.size());
+		assertEquals(expectedTickets, actualTickets);
 
-        assertThrows(
-            BadRequestExeption.class,
-            () -> ticketService.getAllTicketsForAdmin(employee)
-        );
+		verify(ticketRepository).findAllActiveByCreatedBy(10L);
+		verify(ticketRepository, never()).findAll();
+	}
 
-        verifyNoInteractions(ticketRepository);
-    }
+	// 5. ADMIN olmayan kullanıcı yönetici listeleme metodunu kullanamamalı.
+	@Test
+	void getAllTicketsForAdmin_shouldThrowExceptionForEmployee() {
 
-    // 6. Ticket bulunamazsa silme işlemi hata vermeli.
-    @Test
-    void deleteTicket_shouldThrowExceptionWhenTicketNotFound() {
+		User employee = new User();
+		employee.setRole(Role.EMPLOYEE);
 
-        Long ticketId = 99L;
+		assertThrows(BadRequestExeption.class, () -> ticketService.getAllTicketsForAdmin(employee));
 
-        User admin = new User();
-        admin.setRole(Role.ADMIN);
+		verifyNoInteractions(ticketRepository);
+	}
 
-        when(ticketRepository.findById(ticketId)).thenReturn(null);
+	// 6. Ticket bulunamazsa silme işlemi hata vermeli.
+	@Test
+	void deleteTicket_shouldThrowExceptionWhenTicketNotFound() {
 
-        assertThrows(
-            ResourceNotFoundExeption.class,
-            () -> ticketService.deleteTicket(ticketId, admin)
-        );
+		Long ticketId = 99L;
 
-        verify(ticketRepository, never()).update(any(Ticket.class));
-    }
+		User admin = new User();
+		admin.setRole(Role.ADMIN);
 
-    // 7. Silme işlemi fiziksel silme yerine soft delete uygulamalı.
-    @Test
-    void deleteTicket_shouldMarkTicketAsDeleted() {
+		when(ticketRepository.findById(ticketId)).thenReturn(null);
 
-        Long ticketId = 1L;
+		assertThrows(ResourceNotFoundExeption.class, () -> ticketService.deleteTicket(ticketId, admin));
 
-        Ticket ticket = new Ticket();
-        ticket.setDeleted(false);
+		verify(ticketRepository, never()).update(any(Ticket.class));
+	}
 
-        User admin = new User();
-        admin.setRole(Role.ADMIN);
+	// 7. Silme işlemi fiziksel silme yerine soft delete uygulamalı.
+	@Test
+	void deleteTicket_shouldMarkTicketAsDeleted() {
 
-        when(ticketRepository.findById(ticketId)).thenReturn(ticket);
+		Long ticketId = 1L;
 
-        ticketService.deleteTicket(ticketId, admin);
+		Ticket ticket = new Ticket();
+		ticket.setDeleted(false);
 
-        assertTrue(ticket.isDeleted());
+		User admin = new User();
+		admin.setRole(Role.ADMIN);
 
-        verify(authorization).canDeleteTicket(ticket, admin);
-        verify(ticketRepository).update(ticket);
-    }
+		when(ticketRepository.findById(ticketId)).thenReturn(ticket);
 
-    // 8. OPEN durumundan doğrudan CLOSED durumuna geçilememeli.
-    @Test
-    void updateStatus_shouldThrowExceptionForInvalidTransition() {
+		ticketService.deleteTicket(ticketId, admin);
 
-        Long ticketId = 1L;
+		assertTrue(ticket.isDeleted());
 
-        Ticket ticket = new Ticket();
-        ticket.setStatus(TicketStatus.OPEN);
+		verify(authorization).canDeleteTicket(ticket, admin);
+		verify(ticketRepository).update(ticket);
+	}
 
-        User admin = new User();
-        admin.setRole(Role.ADMIN);
+	// 8. OPEN durumundan doğrudan CLOSED durumuna geçilememeli.
+	@Test
+	void updateStatus_shouldThrowExceptionForInvalidTransition() {
 
-        when(ticketRepository.findById(ticketId)).thenReturn(ticket);
+		Long ticketId = 1L;
 
-        assertThrows(
-            BadRequestExeption.class,
-            () -> ticketService.updateStatus(
-                ticketId,
-                TicketStatus.CLOSED,
-                admin
-            )
-        );
+		Ticket ticket = new Ticket();
+		ticket.setStatus(TicketStatus.OPEN);
 
-        verify(authorization).canUpdateStatus(ticket, admin);
-        verify(ticketRepository, never()).update(any(Ticket.class));
-    }
+		User admin = new User();
+		admin.setRole(Role.ADMIN);
 
-    // 9. OPEN -> IN_PROGRESS geçişi başarılı olmalı.
-    @Test
-    void updateStatus_shouldUpdateTicketWhenTransitionIsValid() {
+		when(ticketRepository.findById(ticketId)).thenReturn(ticket);
 
-        Long ticketId = 1L;
+		assertThrows(BadRequestExeption.class, () -> ticketService.updateStatus(ticketId, TicketStatus.CLOSED, admin));
 
-        Ticket ticket = new Ticket();
-        ticket.setStatus(TicketStatus.OPEN);
+		verify(authorization).canUpdateStatus(ticket, admin);
+		verify(ticketRepository, never()).update(any(Ticket.class));
+	}
 
-        User admin = new User();
-        admin.setRole(Role.ADMIN);
+	// 9. OPEN -> IN_PROGRESS geçişi başarılı olmalı.
+	@Test
+	void updateStatus_shouldUpdateTicketWhenTransitionIsValid() {
 
-        when(ticketRepository.findById(ticketId)).thenReturn(ticket);
+		Long ticketId = 1L;
 
-        ticketService.updateStatus(
-            ticketId,
-            TicketStatus.IN_PROGRESS,
-            admin
-        );
+		Ticket ticket = new Ticket();
+		ticket.setStatus(TicketStatus.OPEN);
 
-        assertEquals(TicketStatus.IN_PROGRESS, ticket.getStatus());
+		User admin = new User();
+		admin.setRole(Role.ADMIN);
 
-        verify(authorization).canUpdateStatus(ticket, admin);
-        verify(ticketRepository).update(ticket);
-    }
+		when(ticketRepository.findById(ticketId)).thenReturn(ticket);
 
-    // 10. Yeni durum null ise güncelleme reddedilmeli.
-    @Test
-    void updateStatus_shouldThrowExceptionWhenNewStatusIsNull() {
+		ticketService.updateStatus(ticketId, TicketStatus.IN_PROGRESS, admin);
 
-        Long ticketId = 1L;
+		assertEquals(TicketStatus.IN_PROGRESS, ticket.getStatus());
 
-        Ticket ticket = new Ticket();
-        ticket.setStatus(TicketStatus.OPEN);
+		verify(authorization).canUpdateStatus(ticket, admin);
+		verify(ticketRepository).update(ticket);
+	}
 
-        User admin = new User();
-        admin.setRole(Role.ADMIN);
+	// 10. Yeni durum null ise güncelleme reddedilmeli.
+	@Test
+	void updateStatus_shouldThrowExceptionWhenNewStatusIsNull() {
 
-        when(ticketRepository.findById(ticketId)).thenReturn(ticket);
+		Long ticketId = 1L;
 
-        assertThrows(
-            BadRequestExeption.class,
-            () -> ticketService.updateStatus(ticketId, null, admin)
-        );
+		Ticket ticket = new Ticket();
+		ticket.setStatus(TicketStatus.OPEN);
 
-        verify(ticketRepository, never()).update(any(Ticket.class));
-    }
+		User admin = new User();
+		admin.setRole(Role.ADMIN);
 
-    // 11. Güncellenecek ticket bulunamazsa hata fırlatılmalı.
-    @Test
-    void updateStatus_shouldThrowExceptionWhenTicketNotFound() {
+		when(ticketRepository.findById(ticketId)).thenReturn(ticket);
 
-        Long ticketId = 99L;
+		assertThrows(BadRequestExeption.class, () -> ticketService.updateStatus(ticketId, null, admin));
 
-        User admin = new User();
-        admin.setRole(Role.ADMIN);
+		verify(ticketRepository, never()).update(any(Ticket.class));
+	}
 
-        when(ticketRepository.findById(ticketId)).thenReturn(null);
+	// 11. Güncellenecek ticket bulunamazsa hata fırlatılmalı.
+	@Test
+	void updateStatus_shouldThrowExceptionWhenTicketNotFound() {
 
-        assertThrows(
-            ResourceNotFoundExeption.class,
-            () -> ticketService.updateStatus(
-                ticketId,
-                TicketStatus.IN_PROGRESS,
-                admin
-            )
-        );
+		Long ticketId = 99L;
 
-        verify(ticketRepository, never()).update(any(Ticket.class));
-    }
+		User admin = new User();
+		admin.setRole(Role.ADMIN);
+
+		when(ticketRepository.findById(ticketId)).thenReturn(null);
+
+		assertThrows(ResourceNotFoundExeption.class,
+				() -> ticketService.updateStatus(ticketId, TicketStatus.IN_PROGRESS, admin));
+
+		verify(ticketRepository, never()).update(any(Ticket.class));
+	}
 }

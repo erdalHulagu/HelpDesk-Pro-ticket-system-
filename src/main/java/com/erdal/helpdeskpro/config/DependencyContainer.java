@@ -148,7 +148,7 @@ public final class DependencyContainer {
 			ticketActivityRepository, ticketRepository, authorization);
 
 	private static final TicketService ticketService = new TicketServiceImpl(ticketRepository, authorization,
-			userRepository, ticketActivityService,assetRepository);
+			userRepository, ticketActivityService,assetRepository,assetAssignmentRepository);
 
 	private static final NotificationService notificationService = new NotificationServiceImpl(notificationRepository,
 			userRepository, ticketRepository);
@@ -311,7 +311,7 @@ public final class DependencyContainer {
 		return assetService;
 	}
 
-	public static AssetController getAssetControlller() {
+	public static AssetController getAssetController() {
 		return assetController;
 	}
 
