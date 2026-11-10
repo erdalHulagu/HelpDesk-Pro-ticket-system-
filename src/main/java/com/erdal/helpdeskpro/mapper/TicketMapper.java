@@ -71,6 +71,24 @@ public class TicketMapper {
         	        ? ticket.getAssignedTo().getUsername()
         	        : null
         	);
+        
+        ticketDTO.setAssetId(
+        	    ticket.getAsset() != null
+        	        ? ticket.getAsset().getId()
+        	        : null
+        	);
+
+        	ticketDTO.setAssetTag(
+        	    ticket.getAsset() != null
+        	        ? ticket.getAsset().getAssetTag()
+        	        : null
+        	);
+
+        	ticketDTO.setAssetName(
+        	    ticket.getAsset() != null
+        	        ? ticket.getAsset().getName()
+        	        : null
+        	);
 
         return ticketDTO;
     }

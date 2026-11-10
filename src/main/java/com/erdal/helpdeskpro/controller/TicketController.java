@@ -112,4 +112,10 @@ public class TicketController {
 
 		return convertToDTOList(tickets);
 	}
+	public List<TicketDTO> getTicketsByAssetId(Long assetId, User currentUser) {
+	    List<Ticket> tickets =
+	            ticketService.getTicketsByAssetId(assetId, currentUser);
+
+	    return convertToDTOList(tickets);
+	}
 }

@@ -58,6 +58,12 @@ public class TicketHttpHandler implements HttpHandler {
                 handleGetActiveTickets(exchange, authenticatedUser);
                 return;
             }
+            
+            if ("GET".equalsIgnoreCase(method)
+                    && path.matches("/tickets/asset/\\d+")) {
+                handleGetTicketsByAsset(exchange, authenticatedUser);
+                return;
+            }
 
             if ("GET".equalsIgnoreCase(method) && path.matches("/tickets/\\d+")) {
                 handleGetTicketById(exchange, authenticatedUser);
@@ -299,5 +305,36 @@ public class TicketHttpHandler implements HttpHandler {
 
         ticketController.assignTicket(ticketId, request.getAssignedToId(), user);
         exchange.sendResponseHeaders(204, -1);
+    }
+    
+    private void handleGetTicketsByAsset(
+            HttpExchange exchange,
+            User user
+    ) throws IOException {
+
+        String path = exchange.getRequestURI().getPath();
+        String[] parts = path.split("/");
+
+        Long assetId;
+
+        try {
+            assetId = Long.parseLong(parts[3]);
+
+            if (assetId <= 0) {
+                JsonUtil.sendJson(exchange, 400,
+                        "{\"error\":\"Invalid asset ID\"}");
+                return;
+            }
+
+        } catch (NumberFormatException e) {
+            JsonUtil.sendJson(exchange, 400,
+                    "{\"error\":\"Invalid asset ID\"}");
+            return;
+        }
+
+        List<TicketDTO> tickets =
+                ticketController.getTicketsByAssetId(assetId, user);
+
+        JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(tickets));
     }
 }

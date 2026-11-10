@@ -53,4 +53,9 @@ public class AssetMaintenanceServiceImpl
     ) {
         maintenanceRepository.updateStatus(id, status);
     }
+    
+    @Override
+    public List<AssetMaintenance> getMaintenanceByReporterId(Long userId) {
+        return maintenanceRepository.findAllByReporterId(userId);
+    }
 }

@@ -24,4 +24,6 @@ public interface AssetMaintenanceService {
             Long id,
             AssetMaintenanceStatus status
     );
+    
+    List<AssetMaintenance> getMaintenanceByReporterId(Long userId);
 }

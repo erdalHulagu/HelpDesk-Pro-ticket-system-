@@ -148,7 +148,7 @@ public final class DependencyContainer {
 			ticketActivityRepository, ticketRepository, authorization);
 
 	private static final TicketService ticketService = new TicketServiceImpl(ticketRepository, authorization,
-			userRepository, ticketActivityService);
+			userRepository, ticketActivityService,assetRepository);
 
 	private static final NotificationService notificationService = new NotificationServiceImpl(notificationRepository,
 			userRepository, ticketRepository);

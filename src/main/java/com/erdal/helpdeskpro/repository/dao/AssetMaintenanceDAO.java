@@ -372,4 +372,20 @@ public class AssetMaintenanceDAO implements AssetMaintenanceRepository {
             );
         }
     }
+    
+    @Override
+    public List<AssetMaintenance> findAllByReporterId(Long userId) {
+
+        try (Session session = sessionFactory.openSession()) {
+
+            return session.createQuery(
+                    "FROM AssetMaintenance m " +
+                    "WHERE m.reportedBy.id = :userId " +
+                    "ORDER BY m.id DESC",
+                    AssetMaintenance.class
+            )
+            .setParameter("userId", userId)
+            .list();
+        }
+    }
 }

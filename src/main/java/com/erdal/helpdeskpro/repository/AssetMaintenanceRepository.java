@@ -20,5 +20,8 @@ public interface AssetMaintenanceRepository {
             AssetMaintenanceStatus status
     );
 
+    // Çalışanın kendi arıza ve bakım kayıtları.
+    List<AssetMaintenance> findAllByReporterId(Long userId);
+
     void updateStatus(Long id, AssetMaintenanceStatus status);
 }

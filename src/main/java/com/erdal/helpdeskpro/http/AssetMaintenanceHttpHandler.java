@@ -61,6 +61,13 @@ public class AssetMaintenanceHttpHandler
                         "{\"error\":\"Access denied\"}");
                 return;
             }
+            
+            if ("GET".equalsIgnoreCase(method)
+                    && "/asset-maintenance/my".equals(path)) {
+
+                handleGetMyIssues(exchange, authenticatedUser);
+                return;
+            }
 
             if ("GET".equalsIgnoreCase(method)
                     && "/asset-maintenance".equals(path)) {
@@ -297,5 +304,18 @@ public class AssetMaintenanceHttpHandler
         exchange.sendResponseHeaders(statusCode, bytes.length);
         exchange.getResponseBody().write(bytes);
         exchange.getResponseBody().close();
+    }
+    
+    private void handleGetMyIssues(
+            HttpExchange exchange,
+            User authenticatedUser
+    ) throws IOException {
+
+        List<AssetMaintenance> myIssues =
+                maintenanceController.getMaintenanceByReporterId(
+                        authenticatedUser.getId()
+                );
+
+        sendJson(exchange, 200, JsonUtil.toJson(myIssues));
     }
 }

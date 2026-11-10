@@ -42,4 +42,6 @@ public interface TicketService {
     String calculateSlaStatus(Ticket ticket);
 
     String calculateSlaRemainingTime(Ticket ticket);
+    
+    List<Ticket> getTicketsByAssetId(Long assetId, User currentUser);
 }

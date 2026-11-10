@@ -3,6 +3,7 @@ package com.erdal.helpdeskpro.repository.dao;
 
 import com.erdal.helpdeskpro.domain.Asset;
 import com.erdal.helpdeskpro.domain.AssetAssignment;
+import com.erdal.helpdeskpro.enums.AssetMaintenanceStatus;
 import com.erdal.helpdeskpro.enums.AssetStatus;
 import com.erdal.helpdeskpro.repository.AssetAssignmentRepository;
 
@@ -30,11 +31,21 @@ public class AssetAssignmentDAO implements AssetAssignmentRepository {
 
             transaction = session.beginTransaction();
 
+            if (assignment == null
+                    || assignment.getAsset() == null
+                    || assignment.getAsset().getId() == null) {
+                throw new IllegalArgumentException(
+                        "Asset is required."
+                );
+            }
+
             if (assignment.getId() == null) {
 
-                Asset asset = session.get(
+                // Eşzamanlı atamaları azaltmak için asset satırını kilitle.
+                Asset asset = session.find(
                         Asset.class,
-                        assignment.getAsset().getId()
+                        assignment.getAsset().getId(),
+                        jakarta.persistence.LockModeType.PESSIMISTIC_WRITE
                 );
 
                 if (asset == null) {
@@ -56,16 +67,54 @@ public class AssetAssignmentDAO implements AssetAssignmentRepository {
                     );
                 }
 
+                // Açık veya devam eden bakım varsa cihaz atanamaz.
+                Long activeMaintenanceCount =
+                        session.createQuery(
+                                "SELECT COUNT(m.id) " +
+                                "FROM AssetMaintenance m " +
+                                "WHERE m.asset.id = :assetId " +
+                                "AND m.status IN (:openStatus, :progressStatus)",
+                                Long.class
+                        )
+                        .setParameter("assetId", asset.getId())
+                        .setParameter(
+                                "openStatus",
+                                AssetMaintenanceStatus.OPEN
+                        )
+                        .setParameter(
+                                "progressStatus",
+                                AssetMaintenanceStatus.IN_PROGRESS
+                        )
+                        .uniqueResult();
+
+                if (activeMaintenanceCount != null
+                        && activeMaintenanceCount > 0) {
+                    throw new IllegalArgumentException(
+                            "Asset has an active maintenance record."
+                    );
+                }
+
                 assignment.setAsset(asset);
                 asset.setStatus(AssetStatus.ASSIGNED);
 
                 session.persist(assignment);
 
             } else {
-                session.merge(assignment);
+                throw new IllegalArgumentException(
+                        "Existing assignments cannot be overwritten. " +
+                        "Use the return operation instead."
+                );
             }
 
             transaction.commit();
+
+        } catch (IllegalArgumentException e) {
+
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+
+            throw e;
 
         } catch (Exception e) {
 
@@ -179,12 +228,56 @@ public class AssetAssignmentDAO implements AssetAssignmentRepository {
                 );
             }
 
+            Asset asset = session.find(
+                    Asset.class,
+                    assignment.getAsset().getId(),
+                    jakarta.persistence.LockModeType.PESSIMISTIC_WRITE
+            );
+
+            if (asset == null) {
+                throw new IllegalArgumentException("Asset not found.");
+            }
+
             assignment.setReturnedAt(LocalDateTime.now());
 
-            Asset asset = assignment.getAsset();
-            asset.setStatus(AssetStatus.AVAILABLE);
+            // Açık veya devam eden bakım varsa cihaz bakımda kalır.
+            Long activeMaintenanceCount =
+                    session.createQuery(
+                            "SELECT COUNT(m.id) " +
+                            "FROM AssetMaintenance m " +
+                            "WHERE m.asset.id = :assetId " +
+                            "AND m.status IN (:openStatus, :progressStatus)",
+                            Long.class
+                    )
+                    .setParameter("assetId", asset.getId())
+                    .setParameter(
+                            "openStatus",
+                            AssetMaintenanceStatus.OPEN
+                    )
+                    .setParameter(
+                            "progressStatus",
+                            AssetMaintenanceStatus.IN_PROGRESS
+                    )
+                    .uniqueResult();
+
+            if (activeMaintenanceCount != null
+                    && activeMaintenanceCount > 0) {
+
+                asset.setStatus(AssetStatus.MAINTENANCE);
+
+            } else {
+                asset.setStatus(AssetStatus.AVAILABLE);
+            }
 
             transaction.commit();
+
+        } catch (IllegalArgumentException e) {
+
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+
+            throw e;
 
         } catch (Exception e) {
 

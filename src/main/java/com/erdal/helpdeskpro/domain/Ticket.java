@@ -39,6 +39,9 @@ public class Ticket {
 	@Enumerated(EnumType.STRING)
 	private TicketPriority priority;
 	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "asset_id", nullable = true)
+	private Asset asset;
 	
 	 @ManyToOne
 	 @JoinColumn(name = "created_by")
@@ -128,6 +131,14 @@ public class Ticket {
 
 	public TicketStatus getStatus() {
 		return status;
+	}
+	
+	public Asset getAsset() {
+	    return asset;
+	}
+
+	public void setAsset(Asset asset) {
+	    this.asset = asset;
 	}
 
 	public void setStatus(TicketStatus status) {

@@ -23,6 +23,9 @@ import com.erdal.helpdeskpro.exception.ResourceNotFoundExeption;
 import com.erdal.helpdeskpro.repository.TicketRepository;
 import com.erdal.helpdeskpro.service.TicketService;
 import com.erdal.helpdeskpro.service.TicketActivityService;
+import com.erdal.helpdeskpro.domain.Asset;
+import com.erdal.helpdeskpro.enums.AssetStatus;
+import com.erdal.helpdeskpro.repository.AssetRepository;
 
 public class TicketServiceImpl implements TicketService {
 
@@ -30,21 +33,61 @@ public class TicketServiceImpl implements TicketService {
 	private Authorization authorization;
 	private UserRepository userRepository;
 	private TicketActivityService ticketActivityService;
+	private AssetRepository assetRepository;
 
 	public TicketServiceImpl(
 	        TicketRepository ticketRepository,
 	        Authorization authorization,
 	        UserRepository userRepository,
-	        TicketActivityService ticketActivityService) {
+	        TicketActivityService ticketActivityService,
+	        AssetRepository assetRepository) {
 
 	    this.ticketRepository = ticketRepository;
 	    this.authorization = authorization;
 	    this.userRepository = userRepository;
 	    this.ticketActivityService = ticketActivityService;
+	    this.assetRepository = assetRepository;
 	}
 
 	@Override
 	public void createTicket(Ticket ticket, User currentUser) {
+		
+		if (ticket.getAsset() != null && ticket.getAsset().getId() != null) {
+
+		    Asset asset = assetRepository.findById(ticket.getAsset().getId());
+
+		    if (asset == null) {
+		        throw new ResourceNotFoundExeption("Asset not found.");
+		    }
+
+		    if (asset.getStatus() == AssetStatus.RETIRED
+		            || asset.getStatus() == AssetStatus.LOST) {
+		        throw new BadRequestExeption(
+		                "Tickets cannot be linked to retired or lost assets.");
+		    }
+
+		    if (currentUser == null) {
+		        throw new BadRequestExeption(ExceptionMessage.NOT_ALLOWED);
+		    }
+
+		    if (currentUser.getRole() == Role.EMPLOYEE) {
+
+		        boolean hasAssignment = asset.getStatus() == AssetStatus.ASSIGNED;
+
+		        if (!hasAssignment) {
+		            throw new BadRequestExeption(
+		                    "You can only create tickets for your assigned assets.");
+		        }
+
+		        // Kullanıcının gerçekten bu cihazın aktif sahibi olduğunu doğrula.
+		        // Bu kontrol için aşağıdaki adımda AssignmentRepository ekleyeceğiz.
+		    }
+
+		    ticket.setAsset(asset);
+
+		} else {
+		    ticket.setAsset(null);
+		}
 	    ticket.setCreatedBy(currentUser);
 	    ticket.setStatus(TicketStatus.OPEN);
 	    ticket.setDeleted(false);
@@ -419,5 +462,19 @@ public class TicketServiceImpl implements TicketService {
 	    }
 
 	    return minutes + "m remaining";
+	}
+	
+	@Override
+	public List<Ticket> getTicketsByAssetId(Long assetId, User currentUser) {
+
+	    if (currentUser == null) {
+	        throw new SecurityException("Authentication required.");
+	    }
+
+	    if (assetId == null || assetId <= 0) {
+	        throw new IllegalArgumentException("Invalid asset ID.");
+	    }
+
+	    return ticketRepository.findAllActiveByAssetId(assetId);
 	}
 }

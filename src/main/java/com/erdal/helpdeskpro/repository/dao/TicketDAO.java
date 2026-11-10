@@ -161,7 +161,7 @@ public class TicketDAO implements TicketRepository {
 
 	        if (startDate != null) {
 	            hql.append(" and t.createdAt >= :startDate");
-	        }
+	        } 
 
 	        if (endDate != null) {
 	            hql.append(" and t.createdAt <= :endDate");
@@ -182,6 +182,23 @@ public class TicketDAO implements TicketRepository {
 	        return query.list();
 	    }
 	
+	}
+	
+	@Override
+	public List<Ticket> findAllActiveByAssetId(Long assetId) {
+	    try (Session session = sessionFactory.openSession()) {
+	        return session.createQuery(
+	                "SELECT t FROM Ticket t " +
+	                "LEFT JOIN FETCH t.createdBy " +
+	                "LEFT JOIN FETCH t.assignedTo " +
+	                "WHERE t.asset.id = :assetId " +
+	                "AND t.isDeleted = false " +
+	                "ORDER BY t.createdAt DESC",
+	                Ticket.class
+	        )
+	        .setParameter("assetId", assetId)
+	        .list();
+	    }
 	}
 
 }

@@ -29,5 +29,7 @@ public interface TicketRepository {
 	List<Ticket> findAllActiveByAssignedTo(Long userId);
 
 	List<Ticket> findAllByCreatedAtRange(LocalDateTime startDate, LocalDateTime endDate);
+	
+	List<Ticket> findAllActiveByAssetId(Long assetId);
 
 }

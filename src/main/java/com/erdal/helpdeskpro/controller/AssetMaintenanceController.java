@@ -9,40 +9,37 @@ import java.util.List;
 
 public class AssetMaintenanceController {
 
-    private final AssetMaintenanceService maintenanceService;
+	private final AssetMaintenanceService maintenanceService;
 
-    public AssetMaintenanceController(
-            AssetMaintenanceService maintenanceService
-    ) {
-        this.maintenanceService = maintenanceService;
-    }
+	public AssetMaintenanceController(AssetMaintenanceService maintenanceService) {
+		this.maintenanceService = maintenanceService;
+	}
 
-    public void createMaintenance(AssetMaintenance maintenance) {
-        maintenanceService.createMaintenance(maintenance);
-    }
+	public void createMaintenance(AssetMaintenance maintenance) {
+		maintenanceService.createMaintenance(maintenance);
+	}
 
-    public AssetMaintenance getMaintenanceById(Long id) {
-        return maintenanceService.getMaintenanceById(id);
-    }
+	public AssetMaintenance getMaintenanceById(Long id) {
+		return maintenanceService.getMaintenanceById(id);
+	}
 
-    public List<AssetMaintenance> getAllMaintenance() {
-        return maintenanceService.getAllMaintenance();
-    }
+	public List<AssetMaintenance> getAllMaintenance() {
+		return maintenanceService.getAllMaintenance();
+	}
 
-    public List<AssetMaintenance> getMaintenanceByAssetId(Long assetId) {
-        return maintenanceService.getMaintenanceByAssetId(assetId);
-    }
+	public List<AssetMaintenance> getMaintenanceByAssetId(Long assetId) {
+		return maintenanceService.getMaintenanceByAssetId(assetId);
+	}
 
-    public List<AssetMaintenance> getMaintenanceByStatus(
-            AssetMaintenanceStatus status
-    ) {
-        return maintenanceService.getMaintenanceByStatus(status);
-    }
+	public List<AssetMaintenance> getMaintenanceByStatus(AssetMaintenanceStatus status) {
+		return maintenanceService.getMaintenanceByStatus(status);
+	}
 
-    public void updateMaintenanceStatus(
-            Long id,
-            AssetMaintenanceStatus status
-    ) {
-        maintenanceService.updateMaintenanceStatus(id, status);
-    }
+	public void updateMaintenanceStatus(Long id, AssetMaintenanceStatus status) {
+		maintenanceService.updateMaintenanceStatus(id, status);
+	}
+
+	public List<AssetMaintenance> getMaintenanceByReporterId(Long userId) {
+		return maintenanceService.getMaintenanceByReporterId(userId);
+	}
 }
