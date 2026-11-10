@@ -72,6 +72,11 @@ import com.erdal.helpdeskpro.repository.dao.AssetMaintenanceDAO;
 import com.erdal.helpdeskpro.service.AssetMaintenanceService;
 import com.erdal.helpdeskpro.service.impl.AssetMaintenanceServiceImpl;
 import com.erdal.helpdeskpro.controller.AssetMaintenanceController;
+import com.erdal.helpdeskpro.repository.AssetRequestRepository;
+import com.erdal.helpdeskpro.repository.dao.AssetRequestDAO;
+import com.erdal.helpdeskpro.service.AssetRequestService;
+import com.erdal.helpdeskpro.service.impl.AssetRequestServiceImpl;
+import com.erdal.helpdeskpro.controller.AssetRequestController;
 
 public final class DependencyContainer {
 
@@ -79,6 +84,9 @@ public final class DependencyContainer {
 
 	// Repositories
 	private static final UserRepository userRepository = new UserDAO(sessionFactory);
+
+	// Token repository
+	private static final AuthTokenRepository authTokenRepository = new AuthTokenDAO(sessionFactory);
 
 	private static final TicketRepository ticketRepository = new TicketDAO(sessionFactory);
 
@@ -96,20 +104,31 @@ public final class DependencyContainer {
 			sessionFactory);
 
 	private static final SecurityLogRepository securityLogRepository = new SecurityLogDAO(sessionFactory);
-	
-	private static final AssetAssignmentRepository assetAssignmentRepository =
-	        new AssetAssignmentDAO(sessionFactory);
-	
-	private static final AssetMaintenanceRepository assetMaintenanceRepository =
-	        new AssetMaintenanceDAO(sessionFactory);
 
-	
+	private static final AssetAssignmentRepository assetAssignmentRepository = new AssetAssignmentDAO(sessionFactory);
 
-	// Asset Repository
+	private static final AssetMaintenanceRepository assetMaintenanceRepository = new AssetMaintenanceDAO(
+			sessionFactory);
+
+	private static final AssetRequestRepository assetRequestRepository = new AssetRequestDAO(sessionFactory);
+
 	private static final AssetRepository assetRepository = new AssetDAO(sessionFactory);
+
+	private static final AttachmentRepository attachmentRepository = new AttachmentDAO(sessionFactory);
+	
+	
+	
+	
 
 	// Services
 	private static final UserService userService = new UserServiceImpl(userRepository);
+
+	// Authentication service
+	private static final TokenService tokenService = new TokenService(authTokenRepository, userRepository);
+	
+	private static final SecurityLogService securityLogService = new SecurityLogServiceImpl(securityLogRepository);
+
+	private static final AuthService authService = new AuthServiceImpl(userService, tokenService, securityLogService);
 
 	private static final TicketActivityService ticketActivityService = new TicketActivityServiceImpl(
 			ticketActivityRepository, ticketRepository, authorization);
@@ -128,28 +147,25 @@ public final class DependencyContainer {
 	private static final AnnouncementReadService announcementReadService = new AnnouncementReadServiceImpl(
 			announcementReadRepository, announcementRepository);
 
-	private static final SecurityLogService securityLogService = new SecurityLogServiceImpl(securityLogRepository);
-
 	private static final ExcelExportService excelExportService = new ExcelExportServiceImpl();
 
 	private static final AssetService assetService = new AssetServiceImpl(assetRepository);
-	
-	private static final AssetAssignmentService assetAssignmentService =
-	        new AssetAssignmentServiceImpl(assetAssignmentRepository);
-	
-	private static final AssetMaintenanceService assetMaintenanceService =
-	        new AssetMaintenanceServiceImpl(assetMaintenanceRepository);
+
+	private static final AssetAssignmentService assetAssignmentService = new AssetAssignmentServiceImpl(
+			assetAssignmentRepository);
+
+	private static final AssetMaintenanceService assetMaintenanceService = new AssetMaintenanceServiceImpl(
+			assetMaintenanceRepository);
+
+	private static final AssetRequestService assetRequestService = new AssetRequestServiceImpl(assetRequestRepository);
+
+	private static final AttachmentService attachmentService = new AttachmentServiceImpl(attachmentRepository,
+			ticketRepository, authorization, commentRepository);
 
 	
-
-	// Token repository
-	private static final AuthTokenRepository authTokenRepository = new AuthTokenDAO(sessionFactory);
-
-	// Authentication
-	private static final TokenService tokenService = new TokenService(authTokenRepository, userRepository);
-
-	private static final AuthService authService = new AuthServiceImpl(userService, tokenService, securityLogService);
-
+	
+	
+	
 	// Controllers
 	private static final UserController userController = new UserController(userService);
 
@@ -170,29 +186,32 @@ public final class DependencyContainer {
 			announcementReadService);
 
 	private static final AssetController assetController = new AssetController(assetService);
-	
-	private static final AssetAssignmentController assetAssignmentController =
-	        new AssetAssignmentController(assetAssignmentService);
-	
-	private static final AssetMaintenanceController assetMaintenanceController =
-	        new AssetMaintenanceController(assetMaintenanceService);
 
-	// Attachments
-	private static final AttachmentRepository attachmentRepository = new AttachmentDAO(sessionFactory);
+	private static final AssetAssignmentController assetAssignmentController = new AssetAssignmentController(
+			assetAssignmentService);
 
+	private static final AssetMaintenanceController assetMaintenanceController = new AssetMaintenanceController(
+			assetMaintenanceService);
+	private static final AssetRequestController assetRequestController = new AssetRequestController(
+			assetRequestService);
 	private static final CommentMapper commentMapper = new CommentMapper(attachmentRepository);
-
 	private static final CommentController commentController = new CommentController(commentService, commentMapper);
-
-	private static final AttachmentService attachmentService = new AttachmentServiceImpl(attachmentRepository,
-			ticketRepository, authorization, commentRepository);
-
 	private static final AttachmentController attachmentController = new AttachmentController(attachmentService);
 
+	
+	
+	
+	
+	
 	private DependencyContainer() {
 		// Bu sınıftan nesne oluşturulmasını engeller.
 	}
 
+	
+	
+	
+	
+	//getters
 	public static UserController getUserController() {
 		return userController;
 	}
@@ -268,17 +287,21 @@ public final class DependencyContainer {
 	public static AssetService getAssetService() {
 		return assetService;
 	}
+
 	public static AssetController getAssetControlller() {
 		return assetController;
 	}
-	
+
 	public static AssetAssignmentController getAssetAssignmentController() {
-	    return assetAssignmentController;
+		return assetAssignmentController;
 	}
-	
+
 	public static AssetMaintenanceController getAssetMaintenanceController() {
-	    return assetMaintenanceController;
+		return assetMaintenanceController;
 	}
 	
-	
+	public static AssetRequestController getAssetRequestController() {
+	    return assetRequestController;
+	}
+
 }

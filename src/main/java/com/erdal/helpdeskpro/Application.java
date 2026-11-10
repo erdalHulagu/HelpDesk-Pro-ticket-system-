@@ -2,12 +2,8 @@
 package com.erdal.helpdeskpro;
 
 import java.net.InetSocketAddress;
-
-
 import com.sun.net.httpserver.HttpServer;
-
 import com.erdal.helpdeskpro.config.DependencyContainer;
-
 import com.erdal.helpdeskpro.http.AttachmentHttpHandler;
 import com.erdal.helpdeskpro.http.AuthHttpHandler;
 import com.erdal.helpdeskpro.http.CommentHttpHandler;
@@ -22,6 +18,13 @@ import com.erdal.helpdeskpro.http.ExcelExportHttpHandler;
 import com.erdal.helpdeskpro.http.UserExportHttpHandler;
 import com.erdal.helpdeskpro.http.AssetAssignmentHttpHandler;
 import com.erdal.helpdeskpro.http.AssetMaintenanceHttpHandler;
+import com.erdal.helpdeskpro.http.AssetRequestHttpHandler;
+
+
+
+
+
+
 
 public class Application {
 
@@ -163,6 +166,15 @@ public class Application {
                 "/asset-maintenance",
                 new AssetMaintenanceHttpHandler(
                         DependencyContainer.getAssetMaintenanceController(),
+                        DependencyContainer.getAuthService()
+                )
+        );
+        
+     // Asset Requests
+        server.createContext(
+                "/asset-requests",
+                new AssetRequestHttpHandler(
+                        DependencyContainer.getAssetRequestController(),
                         DependencyContainer.getAuthService()
                 )
         );
