@@ -19,6 +19,8 @@ import com.erdal.helpdeskpro.http.UserExportHttpHandler;
 import com.erdal.helpdeskpro.http.AssetAssignmentHttpHandler;
 import com.erdal.helpdeskpro.http.AssetMaintenanceHttpHandler;
 import com.erdal.helpdeskpro.http.AssetRequestHttpHandler;
+import com.erdal.helpdeskpro.http.AssetOverviewHttpHandler;
+import com.erdal.helpdeskpro.http.MyAssetsHttpHandler;
 
 
 
@@ -175,6 +177,23 @@ public class Application {
                 "/asset-requests",
                 new AssetRequestHttpHandler(
                         DependencyContainer.getAssetRequestController(),
+                        DependencyContainer.getAuthService()
+                )
+        );
+        
+        
+        server.createContext(
+                "/asset-overview",
+                new AssetOverviewHttpHandler(
+                        DependencyContainer.getAssetOverviewController(),
+                        DependencyContainer.getAuthService()
+                )
+        );
+        
+        server.createContext(
+                "/my-assets",
+                new MyAssetsHttpHandler(
+                        DependencyContainer.getMyAssetsController(),
                         DependencyContainer.getAuthService()
                 )
         );

@@ -13,18 +13,21 @@ import com.erdal.helpdeskpro.authorization.Authorization;
 import com.erdal.helpdeskpro.authorization.AuthorizationImpl;
 import com.erdal.helpdeskpro.config.util.HibernateUtil;
 import com.erdal.helpdeskpro.controller.CommentController;
+import com.erdal.helpdeskpro.controller.MyAssetsController;
 import com.erdal.helpdeskpro.controller.TicketController;
 import com.erdal.helpdeskpro.controller.UserController;
 import com.erdal.helpdeskpro.controller.AnnouncementController;
 import com.erdal.helpdeskpro.controller.AssetController;
 import com.erdal.helpdeskpro.mapper.CommentMapper;
 import com.erdal.helpdeskpro.repository.CommentRepository;
+import com.erdal.helpdeskpro.repository.MyAssetsRepository;
 import com.erdal.helpdeskpro.repository.TicketRepository;
 import com.erdal.helpdeskpro.repository.UserRepository;
 import com.erdal.helpdeskpro.repository.AuthTokenRepository;
 import com.erdal.helpdeskpro.repository.AnnouncementRepository;
 import com.erdal.helpdeskpro.repository.AssetRepository;
 import com.erdal.helpdeskpro.repository.dao.CommentDAO;
+import com.erdal.helpdeskpro.repository.dao.MyAssetsDAO;
 import com.erdal.helpdeskpro.repository.dao.TicketDAO;
 import com.erdal.helpdeskpro.repository.dao.UserDAO;
 import com.erdal.helpdeskpro.repository.dao.AuthTokenDAO;
@@ -60,6 +63,7 @@ import com.erdal.helpdeskpro.service.impl.AnnouncementReadServiceImpl;
 import com.erdal.helpdeskpro.controller.AnnouncementReadController;
 import com.erdal.helpdeskpro.service.ExcelExportService;
 import com.erdal.helpdeskpro.service.impl.ExcelExportServiceImpl;
+import com.erdal.helpdeskpro.service.impl.MyAssetsServiceImpl;
 import com.erdal.helpdeskpro.service.AssetService;
 import com.erdal.helpdeskpro.service.impl.AssetServiceImpl;
 import com.erdal.helpdeskpro.repository.AssetAssignmentRepository;
@@ -77,6 +81,13 @@ import com.erdal.helpdeskpro.repository.dao.AssetRequestDAO;
 import com.erdal.helpdeskpro.service.AssetRequestService;
 import com.erdal.helpdeskpro.service.impl.AssetRequestServiceImpl;
 import com.erdal.helpdeskpro.controller.AssetRequestController;
+import com.erdal.helpdeskpro.repository.AssetOverviewRepository;
+import com.erdal.helpdeskpro.repository.dao.AssetOverviewDAO;
+import com.erdal.helpdeskpro.service.AssetOverviewService;
+import com.erdal.helpdeskpro.service.impl.AssetOverviewServiceImpl;
+import com.erdal.helpdeskpro.controller.AssetOverviewController;
+import com.erdal.helpdeskpro.service.MyAssetsService;
+import com.erdal.helpdeskpro.controller.MyAssetsController;
 
 public final class DependencyContainer {
 
@@ -84,7 +95,6 @@ public final class DependencyContainer {
 
 	// Repositories
 	private static final UserRepository userRepository = new UserDAO(sessionFactory);
-
 	// Token repository
 	private static final AuthTokenRepository authTokenRepository = new AuthTokenDAO(sessionFactory);
 
@@ -116,16 +126,20 @@ public final class DependencyContainer {
 
 	private static final AttachmentRepository attachmentRepository = new AttachmentDAO(sessionFactory);
 	
+	private static final AssetOverviewRepository assetOverviewRepository = new AssetOverviewDAO(sessionFactory);
 	
-	
-	
+	private static final MyAssetsRepository myAssetRepository = new MyAssetsDAO(sessionFactory);
 
+	
+	
+	
+	
+	
 	// Services
 	private static final UserService userService = new UserServiceImpl(userRepository);
-
 	// Authentication service
 	private static final TokenService tokenService = new TokenService(authTokenRepository, userRepository);
-	
+
 	private static final SecurityLogService securityLogService = new SecurityLogServiceImpl(securityLogRepository);
 
 	private static final AuthService authService = new AuthServiceImpl(userService, tokenService, securityLogService);
@@ -161,7 +175,13 @@ public final class DependencyContainer {
 
 	private static final AttachmentService attachmentService = new AttachmentServiceImpl(attachmentRepository,
 			ticketRepository, authorization, commentRepository);
+	private static final AssetOverviewService assetOverviewService = new AssetOverviewServiceImpl(
+			assetOverviewRepository);
+			private static final MyAssetsService myAssetsService = new MyAssetsServiceImpl(
+			myAssetRepository);
+			
 
+	
 	
 	
 	
@@ -195,8 +215,15 @@ public final class DependencyContainer {
 	private static final AssetRequestController assetRequestController = new AssetRequestController(
 			assetRequestService);
 	private static final CommentMapper commentMapper = new CommentMapper(attachmentRepository);
+
 	private static final CommentController commentController = new CommentController(commentService, commentMapper);
+
 	private static final AttachmentController attachmentController = new AttachmentController(attachmentService);
+
+	private static final AssetOverviewController assetOverviewController = new AssetOverviewController(
+			assetOverviewService);
+	
+	private static final MyAssetsController myAssetsController = new MyAssetsController(myAssetsService);
 
 	
 	
@@ -207,11 +234,7 @@ public final class DependencyContainer {
 		// Bu sınıftan nesne oluşturulmasını engeller.
 	}
 
-	
-	
-	
-	
-	//getters
+	// getters
 	public static UserController getUserController() {
 		return userController;
 	}
@@ -299,9 +322,18 @@ public final class DependencyContainer {
 	public static AssetMaintenanceController getAssetMaintenanceController() {
 		return assetMaintenanceController;
 	}
-	
+
 	public static AssetRequestController getAssetRequestController() {
-	    return assetRequestController;
+		return assetRequestController;
+	}
+	
+	public static AssetOverviewController getAssetOverviewController() {
+	    return assetOverviewController;
+	}
+
+	public static MyAssetsController getMyAssetsController() {
+		
+		return myAssetsController;
 	}
 
 }

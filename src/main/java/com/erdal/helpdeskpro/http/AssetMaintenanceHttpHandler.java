@@ -9,13 +9,13 @@ import com.erdal.helpdeskpro.domain.AssetMaintenance;
 import com.erdal.helpdeskpro.domain.User;
 import com.erdal.helpdeskpro.enums.AssetMaintenanceStatus;
 import com.erdal.helpdeskpro.enums.Role;
-
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 public class AssetMaintenanceHttpHandler
         extends BaseAuthHandler implements HttpHandler {
@@ -42,33 +42,36 @@ public class AssetMaintenanceHttpHandler
                 return;
             }
 
-            if (!isAuthorized(authenticatedUser)) {
+            String method = exchange.getRequestMethod();
+            String path = exchange.getRequestURI().getPath();
+
+            boolean staff = isStaff(authenticatedUser);
+
+            // Employee, IT Support ve Admin arıza bildirimi oluşturabilir.
+            if ("POST".equalsIgnoreCase(method)
+                    && "/asset-maintenance".equals(path)) {
+
+                handleCreate(exchange, authenticatedUser);
+                return;
+            }
+
+            // Diğer bütün endpointler IT Support veya Admin içindir.
+            if (!staff) {
                 sendJson(exchange, 403,
                         "{\"error\":\"Access denied\"}");
                 return;
             }
-
-            String method = exchange.getRequestMethod();
-            String path = exchange.getRequestURI().getPath();
 
             if ("GET".equalsIgnoreCase(method)
                     && "/asset-maintenance".equals(path)) {
 
                 handleGetAll(exchange);
 
-            } else if ("POST".equalsIgnoreCase(method)
-                    && "/asset-maintenance".equals(path)) {
-
-                handleCreate(exchange, authenticatedUser);
-
             } else if (path.matches(
                     "/asset-maintenance/asset/\\d+")
                     && "GET".equalsIgnoreCase(method)) {
 
-                handleGetByAsset(
-                        exchange,
-                        extractId(path)
-                );
+                handleGetByAsset(exchange, extractId(path));
 
             } else if (path.matches(
                     "/asset-maintenance/status/[A-Z_]+")
@@ -93,21 +96,25 @@ public class AssetMaintenanceHttpHandler
                     "/asset-maintenance/\\d+")
                     && "GET".equalsIgnoreCase(method)) {
 
-                handleGetById(
-                        exchange,
-                        extractId(path)
-                );
+                handleGetById(exchange, extractId(path));
 
             } else {
                 sendJson(exchange, 404,
                         "{\"error\":\"Endpoint not found\"}");
             }
 
+        } catch (SecurityException e) {
+            sendJson(exchange, 401,
+                    "{\"error\":\"Unauthorized\"}");
+
         } catch (IllegalArgumentException e) {
             sendJson(exchange, 400,
-                    JsonUtil.toJson(
-                            java.util.Map.of("error", e.getMessage())
-                    ));
+                    JsonUtil.toJson(Map.of(
+                            "error",
+                            e.getMessage() == null
+                                    ? "Invalid request"
+                                    : e.getMessage()
+                    )));
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -117,7 +124,7 @@ public class AssetMaintenanceHttpHandler
         }
     }
 
-    private boolean isAuthorized(User user) {
+    private boolean isStaff(User user) {
         return user.getRole() == Role.ADMIN
                 || user.getRole() == Role.IT_SUPPORT;
     }
@@ -128,7 +135,8 @@ public class AssetMaintenanceHttpHandler
         List<AssetMaintenance> maintenanceList =
                 maintenanceController.getAllMaintenance();
 
-        sendJson(exchange, 200, JsonUtil.toJson(maintenanceList));
+        sendJson(exchange, 200,
+                JsonUtil.toJson(maintenanceList));
     }
 
     private void handleCreate(
@@ -157,17 +165,20 @@ public class AssetMaintenanceHttpHandler
             return;
         }
 
-        // Bildirimi yapan kullanıcı token üzerinden belirlenir.
+        // Kullanıcı bilgisi token üzerinden alınır.
         maintenance.setReportedBy(authenticatedUser);
 
-        // Yeni bakım kaydı oluşturulur.
+        // İstemciden gelen yönetim alanları kabul edilmez.
         maintenance.setId(null);
+        maintenance.setAssignedTo(null);
         maintenance.setStatus(AssetMaintenanceStatus.OPEN);
+        maintenance.setStartedAt(null);
+        maintenance.setCompletedAt(null);
 
         maintenanceController.createMaintenance(maintenance);
 
         sendJson(exchange, 201,
-                "{\"message\":\"Maintenance record created successfully\"}");
+                "{\"message\":\"Device issue reported successfully\"}");
     }
 
     private void handleGetById(
@@ -184,7 +195,8 @@ public class AssetMaintenanceHttpHandler
             return;
         }
 
-        sendJson(exchange, 200, JsonUtil.toJson(maintenance));
+        sendJson(exchange, 200,
+                JsonUtil.toJson(maintenance));
     }
 
     private void handleGetByAsset(
@@ -195,7 +207,8 @@ public class AssetMaintenanceHttpHandler
         List<AssetMaintenance> maintenanceList =
                 maintenanceController.getMaintenanceByAssetId(assetId);
 
-        sendJson(exchange, 200, JsonUtil.toJson(maintenanceList));
+        sendJson(exchange, 200,
+                JsonUtil.toJson(maintenanceList));
     }
 
     private void handleGetByStatus(
@@ -216,7 +229,8 @@ public class AssetMaintenanceHttpHandler
         List<AssetMaintenance> maintenanceList =
                 maintenanceController.getMaintenanceByStatus(status);
 
-        sendJson(exchange, 200, JsonUtil.toJson(maintenanceList));
+        sendJson(exchange, 200,
+                JsonUtil.toJson(maintenanceList));
     }
 
     private void handleUpdateStatus(
@@ -229,8 +243,8 @@ public class AssetMaintenanceHttpHandler
                 StandardCharsets.UTF_8
         );
 
-        java.util.Map<?, ?> request =
-                JsonUtil.fromJson(body, java.util.Map.class);
+        Map<?, ?> request =
+                JsonUtil.fromJson(body, Map.class);
 
         if (request == null || request.get("status") == null) {
             sendJson(exchange, 400,
@@ -242,7 +256,8 @@ public class AssetMaintenanceHttpHandler
 
         try {
             status = AssetMaintenanceStatus.valueOf(
-                    request.get("status").toString().toUpperCase()
+                    request.get("status").toString()
+                            .trim().toUpperCase()
             );
         } catch (IllegalArgumentException e) {
             sendJson(exchange, 400,
