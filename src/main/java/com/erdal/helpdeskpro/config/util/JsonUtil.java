@@ -3,25 +3,27 @@ package com.erdal.helpdeskpro.config.util;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.erdal.helpdeskpro.exception.ExceptionMessage;
 import com.erdal.helpdeskpro.exception.IllegalArgumentException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializer;
 import com.sun.net.httpserver.HttpExchange;
 
 public class JsonUtil {
 
-    private static final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(
-                    LocalDateTime.class,
-                    (JsonSerializer<LocalDateTime>) (src, type, ctx) ->
-                            new JsonPrimitive(src.toString())
-            )
-            .create();
+	private static final Gson gson = new GsonBuilder()
+	        .registerTypeAdapter(
+	                LocalDate.class,
+	                new LocalDateTypeAdapter()
+	        )
+	        .registerTypeAdapter(
+	                LocalDateTime.class,
+	                new LocalDateTimeTypeAdapter()
+	        )
+	        .create();
 
     public static String toJson(Object obj) {
         return gson.toJson(obj);
