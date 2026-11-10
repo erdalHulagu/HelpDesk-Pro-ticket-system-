@@ -67,6 +67,11 @@ import com.erdal.helpdeskpro.repository.dao.AssetAssignmentDAO;
 import com.erdal.helpdeskpro.service.AssetAssignmentService;
 import com.erdal.helpdeskpro.service.impl.AssetAssignmentServiceImpl;
 import com.erdal.helpdeskpro.controller.AssetAssignmentController;
+import com.erdal.helpdeskpro.repository.AssetMaintenanceRepository;
+import com.erdal.helpdeskpro.repository.dao.AssetMaintenanceDAO;
+import com.erdal.helpdeskpro.service.AssetMaintenanceService;
+import com.erdal.helpdeskpro.service.impl.AssetMaintenanceServiceImpl;
+import com.erdal.helpdeskpro.controller.AssetMaintenanceController;
 
 public final class DependencyContainer {
 
@@ -94,6 +99,11 @@ public final class DependencyContainer {
 	
 	private static final AssetAssignmentRepository assetAssignmentRepository =
 	        new AssetAssignmentDAO(sessionFactory);
+	
+	private static final AssetMaintenanceRepository assetMaintenanceRepository =
+	        new AssetMaintenanceDAO(sessionFactory);
+
+	
 
 	// Asset Repository
 	private static final AssetRepository assetRepository = new AssetDAO(sessionFactory);
@@ -126,6 +136,11 @@ public final class DependencyContainer {
 	
 	private static final AssetAssignmentService assetAssignmentService =
 	        new AssetAssignmentServiceImpl(assetAssignmentRepository);
+	
+	private static final AssetMaintenanceService assetMaintenanceService =
+	        new AssetMaintenanceServiceImpl(assetMaintenanceRepository);
+
+	
 
 	// Token repository
 	private static final AuthTokenRepository authTokenRepository = new AuthTokenDAO(sessionFactory);
@@ -158,6 +173,9 @@ public final class DependencyContainer {
 	
 	private static final AssetAssignmentController assetAssignmentController =
 	        new AssetAssignmentController(assetAssignmentService);
+	
+	private static final AssetMaintenanceController assetMaintenanceController =
+	        new AssetMaintenanceController(assetMaintenanceService);
 
 	// Attachments
 	private static final AttachmentRepository attachmentRepository = new AttachmentDAO(sessionFactory);
@@ -256,6 +274,10 @@ public final class DependencyContainer {
 	
 	public static AssetAssignmentController getAssetAssignmentController() {
 	    return assetAssignmentController;
+	}
+	
+	public static AssetMaintenanceController getAssetMaintenanceController() {
+	    return assetMaintenanceController;
 	}
 	
 	

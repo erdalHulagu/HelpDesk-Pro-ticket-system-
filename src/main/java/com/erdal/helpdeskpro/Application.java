@@ -21,6 +21,7 @@ import com.erdal.helpdeskpro.http.SecurityLogHttpHandler;
 import com.erdal.helpdeskpro.http.ExcelExportHttpHandler;
 import com.erdal.helpdeskpro.http.UserExportHttpHandler;
 import com.erdal.helpdeskpro.http.AssetAssignmentHttpHandler;
+import com.erdal.helpdeskpro.http.AssetMaintenanceHttpHandler;
 
 public class Application {
 
@@ -153,6 +154,15 @@ public class Application {
                 "/asset-assignments",
                 new AssetAssignmentHttpHandler(
                         DependencyContainer.getAssetAssignmentController(),
+                        DependencyContainer.getAuthService()
+                )
+        );
+        
+     // Asset Maintenance
+        server.createContext(
+                "/asset-maintenance",
+                new AssetMaintenanceHttpHandler(
+                        DependencyContainer.getAssetMaintenanceController(),
                         DependencyContainer.getAuthService()
                 )
         );
