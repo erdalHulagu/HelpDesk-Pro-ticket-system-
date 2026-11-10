@@ -3,6 +3,7 @@ package com.erdal.helpdeskpro;
 
 import java.net.InetSocketAddress;
 
+
 import com.sun.net.httpserver.HttpServer;
 
 import com.erdal.helpdeskpro.config.DependencyContainer;
@@ -19,6 +20,7 @@ import com.erdal.helpdeskpro.http.AnnouncementHttpHandler;
 import com.erdal.helpdeskpro.http.SecurityLogHttpHandler;
 import com.erdal.helpdeskpro.http.ExcelExportHttpHandler;
 import com.erdal.helpdeskpro.http.UserExportHttpHandler;
+import com.erdal.helpdeskpro.http.AssetAssignmentHttpHandler;
 
 public class Application {
 
@@ -145,6 +147,15 @@ public class Application {
         	        DependencyContainer.getAuthService()
         	    )
         	);
+        
+     // Asset Assignment
+        server.createContext(
+                "/asset-assignments",
+                new AssetAssignmentHttpHandler(
+                        DependencyContainer.getAssetAssignmentController(),
+                        DependencyContainer.getAuthService()
+                )
+        );
 
         server.setExecutor(null);
         server.start();

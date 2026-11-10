@@ -16,6 +16,7 @@ import com.erdal.helpdeskpro.controller.CommentController;
 import com.erdal.helpdeskpro.controller.TicketController;
 import com.erdal.helpdeskpro.controller.UserController;
 import com.erdal.helpdeskpro.controller.AnnouncementController;
+import com.erdal.helpdeskpro.controller.AssetController;
 import com.erdal.helpdeskpro.mapper.CommentMapper;
 import com.erdal.helpdeskpro.repository.CommentRepository;
 import com.erdal.helpdeskpro.repository.TicketRepository;
@@ -59,6 +60,13 @@ import com.erdal.helpdeskpro.service.impl.AnnouncementReadServiceImpl;
 import com.erdal.helpdeskpro.controller.AnnouncementReadController;
 import com.erdal.helpdeskpro.service.ExcelExportService;
 import com.erdal.helpdeskpro.service.impl.ExcelExportServiceImpl;
+import com.erdal.helpdeskpro.service.AssetService;
+import com.erdal.helpdeskpro.service.impl.AssetServiceImpl;
+import com.erdal.helpdeskpro.repository.AssetAssignmentRepository;
+import com.erdal.helpdeskpro.repository.dao.AssetAssignmentDAO;
+import com.erdal.helpdeskpro.service.AssetAssignmentService;
+import com.erdal.helpdeskpro.service.impl.AssetAssignmentServiceImpl;
+import com.erdal.helpdeskpro.controller.AssetAssignmentController;
 
 public final class DependencyContainer {
 
@@ -83,6 +91,9 @@ public final class DependencyContainer {
 			sessionFactory);
 
 	private static final SecurityLogRepository securityLogRepository = new SecurityLogDAO(sessionFactory);
+	
+	private static final AssetAssignmentRepository assetAssignmentRepository =
+	        new AssetAssignmentDAO(sessionFactory);
 
 	// Asset Repository
 	private static final AssetRepository assetRepository = new AssetDAO(sessionFactory);
@@ -111,6 +122,11 @@ public final class DependencyContainer {
 
 	private static final ExcelExportService excelExportService = new ExcelExportServiceImpl();
 
+	private static final AssetService assetService = new AssetServiceImpl(assetRepository);
+	
+	private static final AssetAssignmentService assetAssignmentService =
+	        new AssetAssignmentServiceImpl(assetAssignmentRepository);
+
 	// Token repository
 	private static final AuthTokenRepository authTokenRepository = new AuthTokenDAO(sessionFactory);
 
@@ -137,6 +153,11 @@ public final class DependencyContainer {
 
 	private static final AnnouncementReadController announcementReadController = new AnnouncementReadController(
 			announcementReadService);
+
+	private static final AssetController assetController = new AssetController(assetService);
+	
+	private static final AssetAssignmentController assetAssignmentController =
+	        new AssetAssignmentController(assetAssignmentService);
 
 	// Attachments
 	private static final AttachmentRepository attachmentRepository = new AttachmentDAO(sessionFactory);
@@ -225,4 +246,17 @@ public final class DependencyContainer {
 	public static TicketService getTicketService() {
 		return ticketService;
 	}
+
+	public static AssetService getAssetService() {
+		return assetService;
+	}
+	public static AssetController getAssetControlller() {
+		return assetController;
+	}
+	
+	public static AssetAssignmentController getAssetAssignmentController() {
+	    return assetAssignmentController;
+	}
+	
+	
 }
