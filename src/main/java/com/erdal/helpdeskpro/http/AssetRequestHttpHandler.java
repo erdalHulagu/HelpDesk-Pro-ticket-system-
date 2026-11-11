@@ -11,19 +11,24 @@ import com.erdal.helpdeskpro.enums.AssetRequestStatus;
 import com.erdal.helpdeskpro.enums.Role;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import com.erdal.helpdeskpro.domain.response.AssetRequestResponse;
+import java.util.stream.Collectors;
+import com.erdal.helpdeskpro.service.NotificationService;
 
 public class AssetRequestHttpHandler extends BaseAuthHandler implements HttpHandler {
 
 	private final AssetRequestController requestController;
+	private final NotificationService notificationService;
+	
 
-	public AssetRequestHttpHandler(AssetRequestController requestController, AuthService authService) {
+	public AssetRequestHttpHandler(AssetRequestController requestController, AuthService authService,NotificationService notificationService) {
 		super(authService);
 		this.requestController = requestController;
+		this.notificationService = notificationService;
 	}
 
 	@Override
@@ -80,6 +85,7 @@ public class AssetRequestHttpHandler extends BaseAuthHandler implements HttpHand
 				return;
 			}
 
+			
 			// PUT /asset-requests/{id}/review
 			if (path.matches("/asset-requests/\\d+/review") && "PUT".equalsIgnoreCase(method)) {
 
@@ -164,18 +170,33 @@ public class AssetRequestHttpHandler extends BaseAuthHandler implements HttpHand
 		sendJson(exchange, 201, "{\"message\":\"Asset request created successfully\"}");
 	}
 
+//	private void handleGetAll(HttpExchange exchange) throws IOException {
+//
+//		List<AssetRequest> requests = requestController.getAllRequests();
+//
+//		sendJson(exchange, 200, JsonUtil.toJson(requests));
+//	}
 	private void handleGetAll(HttpExchange exchange) throws IOException {
+	    List<AssetRequestResponse> responses =
+	            requestController.getAllRequests()
+	                    .stream()
+	                    .map(AssetRequestResponse::fromEntity)
+	                    .collect(Collectors.toList());
 
-		List<AssetRequest> requests = requestController.getAllRequests();
-
-		sendJson(exchange, 200, JsonUtil.toJson(requests));
+	    sendJson(exchange, 200, JsonUtil.toJson(responses));
 	}
+	private void handleGetMyRequests(
+	        HttpExchange exchange,
+	        User authenticatedUser
+	) throws IOException {
 
-	private void handleGetMyRequests(HttpExchange exchange, User authenticatedUser) throws IOException {
+	    List<AssetRequestResponse> responses =
+	            requestController.getRequestsByUserId(authenticatedUser.getId())
+	                    .stream()
+	                    .map(AssetRequestResponse::fromEntity)
+	                    .collect(Collectors.toList());
 
-		List<AssetRequest> requests = requestController.getRequestsByUserId(authenticatedUser.getId());
-
-		sendJson(exchange, 200, JsonUtil.toJson(requests));
+	    sendJson(exchange, 200, JsonUtil.toJson(responses));
 	}
 
 	private void handleGetById(HttpExchange exchange, Long id, User authenticatedUser) throws IOException {
@@ -215,35 +236,80 @@ public class AssetRequestHttpHandler extends BaseAuthHandler implements HttpHand
 		sendJson(exchange, 200, JsonUtil.toJson(requests));
 	}
 
-	private void handleReview(HttpExchange exchange, Long requestId, User authenticatedUser) throws IOException {
+	private void handleReview(
+	        HttpExchange exchange,
+	        Long requestId,
+	        User authenticatedUser
+	) throws IOException {
 
-		String body = readBody(exchange);
+	    String body = readBody(exchange);
+	    Map<?, ?> requestBody = JsonUtil.fromJson(body, Map.class);
 
-		Map<?, ?> requestBody = JsonUtil.fromJson(body, Map.class);
+	    if (requestBody == null || requestBody.get("status") == null) {
+	        sendJson(exchange, 400,
+	                "{\"error\":\"Status is required\"}");
+	        return;
+	    }
 
-		if (requestBody == null || requestBody.get("status") == null) {
-			sendJson(exchange, 400, "{\"error\":\"Status is required\"}");
-			return;
-		}
+	    AssetRequestStatus status;
 
-		AssetRequestStatus status;
+	    try {
+	        status = AssetRequestStatus.valueOf(
+	                requestBody.get("status").toString().toUpperCase()
+	        );
+	    } catch (IllegalArgumentException e) {
+	        sendJson(exchange, 400,
+	                "{\"error\":\"Invalid request status\"}");
+	        return;
+	    }
 
-		try {
-			status = AssetRequestStatus.valueOf(requestBody.get("status").toString().toUpperCase());
-		} catch (IllegalArgumentException e) {
-			sendJson(exchange, 400, "{\"error\":\"Invalid request status\"}");
-			return;
-		}
+	    if (status != AssetRequestStatus.APPROVED &&
+	            status != AssetRequestStatus.REJECTED) {
 
-		if (status != AssetRequestStatus.APPROVED && status != AssetRequestStatus.REJECTED) {
+	        sendJson(exchange, 400,
+	                "{\"error\":\"Only APPROVED or REJECTED are allowed\"}");
+	        return;
+	    }
 
-			sendJson(exchange, 400, "{\"error\":\"Only APPROVED or REJECTED are allowed\"}");
-			return;
-		}
+	    // Talebi işlemden önce alıyoruz.
+	    AssetRequest request = requestController.getRequestById(requestId);
 
-		requestController.reviewRequest(requestId, status, authenticatedUser.getId());
+	    if (request == null || request.getUser() == null) {
+	        sendJson(exchange, 404,
+	                "{\"error\":\"Asset request not found\"}");
+	        return;
+	    }
 
-		sendJson(exchange, 200, "{\"message\":\"Asset request reviewed successfully\"}");
+	    Long recipientId = request.getUser().getId();
+	    String category = request.getCategory().name();
+
+	    // Önce talep durumunu güncelle.
+	    requestController.reviewRequest(
+	            requestId,
+	            status,
+	            authenticatedUser.getId()
+	    );
+
+	    // Ardından talep sahibine bildirim gönder.
+	    String title = status == AssetRequestStatus.APPROVED
+	            ? "Equipment Request Approved"
+	            : "Equipment Request Rejected";
+
+	    String message = status == AssetRequestStatus.APPROVED
+	            ? "Your " + category + " equipment request has been approved."
+	            : "Your " + category + " equipment request has been rejected.";
+
+	    notificationService.createNotification(
+	            recipientId,
+	            null,
+	            authenticatedUser.getId(),
+	            "ASSET_REQUEST",
+	            title,
+	            message
+	    );
+
+	    sendJson(exchange, 200,
+	            "{\"message\":\"Asset request reviewed and notification sent successfully\"}");
 	}
 
 	private void handleCancel(HttpExchange exchange, Long requestId, User authenticatedUser) throws IOException {

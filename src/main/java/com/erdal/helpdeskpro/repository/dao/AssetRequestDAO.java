@@ -84,10 +84,14 @@ public class AssetRequestDAO implements AssetRequestRepository {
 
         try (Session session = sessionFactory.openSession()) {
 
-            return session.createQuery(
-                    "FROM AssetRequest r ORDER BY r.id DESC",
-                    AssetRequest.class
-            ).list();
+        	return session.createQuery(
+        		    "SELECT DISTINCT r FROM AssetRequest r " +
+        		    "LEFT JOIN FETCH r.user " +
+        		    "LEFT JOIN FETCH r.reviewedBy " +
+        		    "LEFT JOIN FETCH r.asset " +
+        		    "ORDER BY r.id DESC",
+        		    AssetRequest.class
+        		).list();
         }
     }
 
@@ -96,14 +100,19 @@ public class AssetRequestDAO implements AssetRequestRepository {
 
         try (Session session = sessionFactory.openSession()) {
 
-            return session.createQuery(
-                    "FROM AssetRequest r " +
-                    "WHERE r.user.id = :userId ORDER BY r.id DESC",
-                    AssetRequest.class
-            )
-            .setParameter("userId", userId)
-            .list();
-        }
+        	        return session.createQuery(
+        	                "SELECT DISTINCT r FROM AssetRequest r " +
+        	                "LEFT JOIN FETCH r.user " +
+        	                "LEFT JOIN FETCH r.reviewedBy " +
+        	                "LEFT JOIN FETCH r.asset " +
+        	                "WHERE r.user.id = :userId " +
+        	                "ORDER BY r.id DESC",
+        	                AssetRequest.class
+        	        )
+        	        .setParameter("userId", userId)
+        	        .list();
+        	    }
+        	
     }
 
     @Override

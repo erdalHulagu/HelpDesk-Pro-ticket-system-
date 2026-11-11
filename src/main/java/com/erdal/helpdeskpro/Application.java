@@ -9,6 +9,7 @@ import com.erdal.helpdeskpro.http.AuthHttpHandler;
 import com.erdal.helpdeskpro.http.CommentHttpHandler;
 import com.erdal.helpdeskpro.http.TicketHttpHandler;
 import com.erdal.helpdeskpro.http.UserHttpHandler;
+import com.erdal.helpdeskpro.service.NotificationService;
 import com.erdal.helpdeskpro.http.NotificationHttpHandler;
 import com.erdal.helpdeskpro.http.TicketActivityHttpHandler;
 import com.erdal.helpdeskpro.http.TicketExportHttpHandler;
@@ -187,7 +188,8 @@ public class Application {
                 "/asset-requests",
                 new AssetRequestHttpHandler(
                         DependencyContainer.getAssetRequestController(),
-                        DependencyContainer.getAuthService()
+                        DependencyContainer.getAuthService(),
+                        DependencyContainer.getNotificationService()
                 )
         );
         
